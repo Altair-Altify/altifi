@@ -327,12 +327,69 @@ Mỗi case: năm, nơi, tiêu đề, ảnh/emoji, tóm tắt kiến thức cần
 - Linh vật + trang tùy biến (base đang là **đồng xu "Tiko"** → **thay bằng sư tử Alti Lion** theo mục 5.3, giữ nguyên trang tùy biến).
 - Lưu: localStorage key `altifi-demo-v1` (`S.set` cài đặt, `S.p` hồ sơ, `S.m` buddy) + ảnh nền ở `altifi-demo-v1-bg`. → Khi gộp, **migrate** dữ liệu này sang cấu trúc mới, không làm mất cài đặt/hồ sơ của người dùng.
 
+**✅ ĐƯỢC PHÉP CẢI THIỆN giao diện nền** — base là *điểm xuất phát*, không phải bản đóng băng. Giữ **bản sắc** (font Nunito, bảng màu tím/vàng/xanh/đỏ — ✅ giữ nguyên màu hiện tại, không đổi màu chủ đạo, nút có bóng đáy kiểu Duolingo, bo góc lớn, phong cách dễ thương) và **mọi tính năng** đã liệt kê ở trên, nhưng được làm đẹp & mượt hơn:
+- Khoảng cách, cỡ chữ, phân cấp tiêu đề nhất quán (một thang spacing & type scale chung); thẻ/card đồng bộ.
+- Chế độ Night hoàn chỉnh cho mọi màn hình mới (game, Khám phá, lesson).
+- Trạng thái rỗng, đang tải, lỗi có minh họa Alti Lion thay vì chữ trơn.
+- Khả năng tiếp cận: tương phản chữ đủ, vùng bấm ≥ 44px, có nhãn cho nút chỉ có icon.
+- Ảnh thật & minh họa được bo góc, có chú thích nguồn nhỏ.
+
+**✅ Chuyển động (motion) — nên có, nhưng kiểu "app", không kiểu "landing page":**
+- NÊN: chuyển trang trượt (base đã có), danh sách/thẻ **hiện lần lượt (stagger)** khi mở màn hình, nút nhấn lún, thanh tiến độ chạy mượt, số net worth/XP **đếm lên/xuống**, thẻ đúng/sai rung/nảy, confetti khi hoàn thành, Alti Lion chớp mắt & phản ứng.
+- Có thể dùng **fade-in khi cuộn** nhẹ cho các màn dài (bài Khám phá, phần "Đào sâu" của lesson) — nhanh (≤ 300ms), dịch chuyển nhỏ (≤ 12px), chỉ chạy 1 lần.
+- KHÔNG: hiệu ứng parallax nặng, chuyển động kéo dài làm chậm thao tác, animation lặp vô hạn ngoài các điểm nhấn nhỏ.
+- Bắt buộc tôn trọng **Potato Mode** và cài đặt hệ thống **"giảm chuyển động" (`prefers-reduced-motion`)**: tắt/giảm toàn bộ hiệu ứng.
+- Ưu tiên mượt trên điện thoại tầm trung (chỉ animate `transform`/`opacity`).
+
 **Trong base nhưng THAY THẾ bằng thiết kế mới:**
 - Lessons dạng chỉ trắc nghiệm (8 bài, 4 unit) → engine 10+ dạng bài tập của v3 + nội dung 5 mảng (mục 3).
 - Crisis Game gõ chữ + đồng hồ 45 giây (3 case 1929/1973/2008) → game mới theo mục 6 (bản đồ kiểu Animal Crossing, nhân vật, chế độ theo mảng, chế độ Khủng hoảng có hình ảnh động, không spoil). 💡 Có thể giữ ý "gõ lý do trong thời gian giới hạn" cho các quyết định cấp cao (mục 6.1 — viết lý do), chấm demo bằng từ khóa như base đang làm (`rate`/`analyzeMove`).
 - Tab "Crisis Game" → đổi thành tab **Chơi** (gồm các chế độ + Khủng hoảng); thêm tab/mục **Khám phá**.
 
 **Lấy từ `altifi-prototype.html` (v3) cấy vào nền:** engine bài học (`learn, pick, mcq, sort, match, order, slider, jars, spot, tap`), trình tạo nhân vật + hàm vẽ `avatar()`, bản đồ thị trấn & đi bộ, vòng lặp tháng, ngân hàng/chợ/nhà/HQ, doanh nghiệp & chi nhánh, thư viện 10 case + góc nhìn các bên, Alti Lion 3 cấp độ (n/l/p) + phát hiện thuật ngữ chuyên sâu, migrate save.
+
+## 10c. NÂNG CẤP GIAO DIỆN ✅ (nhóm chốt 18/10 — làm ngay, áp dụng cho mọi màn hình hiện có và làm sau)
+> Lý do: giao diện nền gọn nhưng còn "chất prototype" (emoji làm icon, nhiều ô trắng viền mỏng giống nhau, trang chủ chưa có điểm nhấn). Mục tiêu: trông như **app hoàn chỉnh**, vẫn giữ sự đơn giản & bản sắc (Nunito, màu hiện tại, nút kiểu Duolingo, Alti Lion). **Ưu tiên 4 màn sẽ lên video demo:** trang chủ, một bài học, bản đồ game, màn kết quả.
+
+**1. Bộ icon SVG vẽ riêng, đồng bộ một phong cách** — thay **toàn bộ emoji** ở: thanh điều hướng, nút bài học/lộ trình, Cài đặt, HUD (streak, XP, net worth, tim), các nút hành động.
+- Một phong cách duy nhất: nét bo tròn ~2px, góc mềm, tô 2 tông (màu chủ đạo + tông nhạt), kích thước lưới 24px; có trạng thái active/inactive (tab đang chọn tô đầy màu, tab khác viền xám).
+- Làm thành 1 component/sprite `Icon` dùng chung, có `aria-label`. Emoji chỉ còn được dùng *bên trong nội dung* (minh họa bài học) khi thật cần.
+
+**2. Trang chủ (tab Học) có phần đầu minh họa (hero)**
+- Khung cảnh nhỏ vẽ SVG (đồi, cây, vài ngôi nhà/cửa hàng mini cùng phong cách bản đồ game) với **Alti Lion đứng/vẫy tay** (giữ bong bóng thoại & biểu cảm của base).
+- **Vòng tròn mục tiêu hôm nay** (vd 20 XP hoặc 5 phút/ngày, chạy đầy khi đạt), **streak** 🔥→icon lửa, và **thẻ lớn "Tiếp tục bài đang học"** (tên bài, mảng, % tiến độ, nút Tiếp tục). Người mới: thẻ thành "Làm bài test xếp lớp".
+
+**3. Lộ trình học = con đường minh họa uốn lượn**
+- Đường đi SVG uốn lượn, nút bài học nằm trên đường. **Mỗi mảng tài chính là một vùng có cảnh riêng, cùng phong cách & màu với các khu trên bản đồ game (mục 6.1b):** Cá nhân → khu dân cư; Doanh nghiệp → phố cửa hàng; Thị trường & Đầu tư → tòa nhà kính + bảng giá; Tài chính công → tòa thị chính; Quốc tế → cảng/tàu. → Học và Chơi trông như **một thế giới thống nhất**.
+- **Cột mốc:** rương thưởng sau mỗi 2–3 bài (mở ra có hiệu ứng + XP), **huy hiệu** khi xong một mảng.
+- Vì không ép thứ tự (mục 3.2): mọi mảng đều mở; nút bài hiển thị trạng thái đã xong/đang học/chưa học + nhãn "nên biết trước" khi có.
+
+**4. Tạo chiều sâu & phân cấp**
+- Thẻ có **bóng đổ mềm nhiều lớp**, **gradient nhẹ** cho thẻ nổi bật; **giảm viền mỏng** lặp lại.
+- **Kích thước thẻ đa dạng** để có điểm nhấn (1 thẻ hero lớn + lưới thẻ nhỏ 2 cột), không xếp các ô giống hệt nhau.
+- Thang chữ rõ: tiêu đề màn 28–32px extra-bold; **con số (XP, net worth, streak) to, đậm**, dùng `font-variant-numeric: tabular-nums`, có hiệu ứng đếm lên/xuống.
+
+**5. Trang Tôi (Me)**
+- **Ảnh bìa hồ sơ** (chọn từ vài ảnh bìa minh họa có sẵn theo chủ đề, hoặc ảnh người dùng tải lên — dùng lại luồng xin quyền ảnh của base); avatar chồng lên mép ảnh bìa.
+- **Kệ huy hiệu thành tích** (huy hiệu đã đạt có màu, chưa đạt xám + ổ khóa; bấm xem điều kiện).
+- **Biểu đồ net worth nhỏ** (đường/area theo tháng trong game) + các chỉ số streak, XP, số bài, số case.
+
+**6. Được phép cải thiện giao diện nền & chuyển động (motion)** — làm theo đúng 2 đoạn "ĐƯỢC PHÉP CẢI THIỆN giao diện nền" và "Chuyển động (motion)" ở **mục 10b** (giữ bản sắc & tính năng; motion kiểu app; tôn trọng Potato Mode & `prefers-reduced-motion`).
+
+**7. Nền mờ chủ đề tiền bạc – kinh tế**
+- Họa tiết lặp (pattern SVG) **rất nhạt** phía sau nội dung: đồng xu ₫, tờ tiền, heo đất, biểu đồ đi lên, ngân hàng, ký hiệu %, cái cân, quả địa cầu… vẽ nét mảnh cùng phong cách icon.
+- Độ mờ ~4–7% ở Light, ~3–5% ở Night; **không làm khó đọc chữ**; nằm **dưới** lớp hiệu ứng thời tiết; **tắt** khi Theme = "ảnh của tôi". Có thể trôi cực chậm, nhưng **đứng yên** khi Potato Mode hoặc giảm chuyển động.
+
+**8. Ảnh thật cho Khám phá & case lịch sử — nhóm KHÔNG phải tự tìm từng ảnh**
+- Vấn đề: phiên Claude Code không truy cập được Wikimedia; nhóm không có thời gian gom ảnh.
+- Giải pháp: **trình duyệt của người dùng thì truy cập được**, nên app tự lấy ảnh **lúc chạy** qua **API của Wikimedia Commons** (gọi từ trình duyệt, tham số `origin=*` để qua CORS):
+  1. Mỗi bài Khám phá / case lịch sử khai báo trong dữ liệu: `imageQuery` (từ khóa tìm, vd `"1931 soup kitchen line Chicago"`, `"1973 gas station no gas sign"`, `"Falcon 9 launch"`, `"Lehman Brothers headquarters"`, `"gold bars"`) và tùy chọn `imageFile` (tên file Commons cụ thể nếu nhóm đã chọn).
+  2. Component `RealImage` gọi API (`action=query`, `generator=search`, `gsrnamespace=6`, `prop=imageinfo`, `iiprop=url|extmetadata`, `iiurlwidth=800`), **chỉ nhận ảnh có giấy phép tự do** (Public domain, CC0, CC BY, CC BY-SA) đọc từ `extmetadata.LicenseShortName`, lấy tác giả từ `Artist`.
+  3. Hiển thị ảnh bo góc + **dòng ghi nguồn nhỏ** (tác giả · giấy phép · Wikimedia Commons, có link).
+  4. **Cache** kết quả trong localStorage để lần sau không gọi lại; **fallback** sang hình minh họa SVG nếu mất mạng/lỗi/không tìm thấy.
+  5. Khi nhóm duyệt và ưng ảnh nào, bấm/ghi lại tên file vào `imageFile` để **cố định** ảnh cho video demo (tránh API trả ảnh khác lúc quay).
+- Vì Claude Code không chạy thử được API này trong phiên, **nhóm mở app trên trình duyệt để kiểm tra** ảnh hiện đúng; báo lại ảnh nào không hợp để đổi `imageQuery`.
+- ⚠️ Không dùng ảnh từ Google Images/báo chí (có bản quyền). Không dùng ảnh "fair use" của Wikipedia tiếng Anh — chỉ lấy từ **Commons** với giấy phép tự do như trên.
 
 ---
 

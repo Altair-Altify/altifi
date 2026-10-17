@@ -4,7 +4,9 @@ import { S, save, PO, BG_KEY } from "../core/state";
 import { reg } from "../core/actions";
 import { t, lang, setLang } from "../i18n/i18n";
 import { lion } from "../mascot/lion";
-import { pageAnim, stopTalk, startTalk, paintTalk, talkId, LINES, confetti } from "./fx";
+import { pageAnim, stopTalk, startTalk, paintTalk, talkId, LINES, confetti, countAttrs, runCounts } from "./fx";
+import { icon, IC } from "./icons";
+import { hydrateImages } from "./realimage";
 import { wxOverlay } from "./weather";
 import { setCtx } from "../assistant/context";
 import { refreshFab, placeFab } from "../assistant/assistant";
@@ -16,7 +18,7 @@ import { settingsView, getSetSub, clearSetSub } from "./settings";
 
 export type Tab = "learn" | "explore" | "play" | "me" | "settings";
 export const NAVORD: Tab[] = ["learn", "explore", "play", "me", "settings"];
-const ICONS: Record<Tab, string> = { learn: "📚", explore: "🧭", play: "🎮", me: "👤", settings: "⚙️" };
+const ICONS: Record<Tab, string> = { learn: "learn", explore: "explore", play: "play", me: "me", settings: "settings" };
 export let tab: Tab = "learn";
 
 export const BN = () => esc(S.m.name || "Alti Lion");
@@ -25,7 +27,7 @@ export function go(to: Tab) {
   const d = NAVORD.indexOf(to) - NAVORD.indexOf(tab), hadSub = !!getSetSub();
   tab = to;
   clearSetSub();
-  render();
+  render(true);
   const scr = $("#screen");
   if (scr) scr.scrollTop = 0;
   if (d) pageAnim(d); else if (hadSub) pageAnim(-1);
@@ -33,9 +35,10 @@ export function go(to: Tab) {
 
 export const ovShown = () => !!$("#overlay")?.classList.contains("show");
 
+export const fmtCount = (n: number, fmt: string) => (fmt === "vnd" ? shortVnd(n, lang()) : n.toLocaleString(lang() === "vi" ? "vi-VN" : "en-US"));
 function topBar() {
-  const nw = S.game ? `<span title="${t("top.netWorth")}">💰 ${shortVnd(S.game.netWorth, lang())}</span>` : "";
-  return `<div class="logo">altifi</div><div class="stats"><span>🔥 ${S.streak}</span><span>⭐ ${S.xp}</span>${nw}<button class="langpill" onclick="A.toggleLang()" aria-label="${t("top.lang")}">${lang() === "vi" ? "VI" : "EN"}</button></div>`;
+  const nw = S.game ? `<span class="hud" title="${t("top.netWorth")}">${icon("wallet", { size: 20, color: IC.wallet, label: t("top.netWorth") })}<b ${countAttrs("nw", S.game.netWorth, "vnd", (n) => shortVnd(n, lang()))}</b></span>` : "";
+  return `<div class="logo">altifi</div><div class="stats"><span class="hud" title="${t("me.streak")}">${icon("flame", { size: 20, color: IC.flame, label: t("me.streak") })}<b ${countAttrs("streak", S.streak)}</b></span><span class="hud" title="XP">${icon("star", { size: 20, color: IC.star, label: "XP" })}<b ${countAttrs("xp", S.xp)}</b></span>${nw}<button class="langpill" onclick="A.toggleLang()" aria-label="${t("top.lang")}">${lang() === "vi" ? "VI" : "EN"}</button></div>`;
 }
 
 function tabCtx() {
@@ -44,15 +47,22 @@ function tabCtx() {
   setCtx({ key: "tab:" + tab, where, title: t("nav." + tab), answered: true, kb: tab === "play" ? ["crisis1929", "crisis1973", "crisis2008", "fixedfloat"] : tab === "explore" ? ["fx", "crisis2008", "stocks"] : [] });
 }
 
-export function render() {
+/** `enter` = we just navigated here → cards appear one after another (stagger). */
+export function render(enter = false) {
   $("#top")!.innerHTML = topBar();
   const views: Record<Tab, () => string> = { learn: learnView, explore: exploreView, play: playView, me: meView, settings: settingsView };
-  $("#screen")!.innerHTML = views[tab]();
+  const scr = $("#screen")!;
+  scr.innerHTML = views[tab]();
+  scr.classList.toggle("enter", enter);
+  if (enter) setTimeout(() => scr.classList.remove("enter"), 900);
   document.querySelectorAll<HTMLButtonElement>(".nav button").forEach((b) => {
-    const k = b.dataset.t as Tab;
-    b.innerHTML = `<span>${ICONS[k]}</span>${t("nav." + k)}`;
-    b.classList.toggle("on", k === tab);
+    const k = b.dataset.t as Tab, on = k === tab;
+    b.innerHTML = `<span class="navic">${icon(ICONS[k], { size: 26, active: on, tint: on ? 0.28 : 0 })}</span>${t("nav." + k)}`;
+    b.setAttribute("aria-current", on ? "page" : "false");
+    b.classList.toggle("on", on);
   });
+  runCounts(document, fmtCount);
+  hydrateImages(scr);
   if (!ovShown()) tabCtx();
   refreshFab();
   if (tab === "learn" && S.set.inter && !PO() && !ovShown()) {
@@ -71,11 +81,13 @@ export function rerenderAll() {
 }
 export function openO(html: string, opts?: { noWx?: boolean }) {
   const o = $("#overlay")!, isNew = !o.classList.contains("show");
-  o.innerHTML = (opts?.noWx ? "" : wxOverlay()) + html;
+  o.innerHTML = '<div class="bgpat" aria-hidden="true"></div>' + (opts?.noWx ? "" : wxOverlay()) + html;
   o.classList.add("show");
   $(".phone")!.classList.add("ov");
   if (isNew) pageAnim(1, o);
   requestAnimationFrame(placeFab);
+  hydrateImages(o);
+  runCounts(o, fmtCount);
 }
 export function closeO() {
   ovRerender = null;
@@ -104,7 +116,7 @@ export function resultPopup(o: { title: string; sub: string; stats: Array<[strin
   openO(`<div class="resultbg"><div class="resultcard" role="dialog" aria-label="${esc(o.title)}">
     <div class="rc-face m-${mood}">${lion(118, mood)}</div>
     <h2>${o.title}</h2><div class="muted rc-sub">${o.sub}</div>
-    <div class="rc-stats">${o.stats.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("")}</div>
+    <div class="rc-stats">${o.stats.map(([v, l], i) => `<div>${icon(["check", "clock", "star"][i] || "star", { size: 22, color: ["var(--good)", "var(--pri)", IC.star][i] || IC.star, tint: 0.3 })}<b>${v}</b><span>${l}</span></div>`).join("")}</div>
     <div class="happy"><div class="hrow"><span>${t("res.happiness", { name: BN() })}</span><b>${label}</b></div><div class="hbar"><i style="width:${lvl}%"></i></div></div>
     ${o.extra || ""}
     <div class="rc-btns">${o.buttons.map(([l, f, c]) => `<button class="btn ${c || ""}" onclick="${f}">${l}</button>`).join("")}</div>

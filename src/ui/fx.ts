@@ -1,13 +1,13 @@
 /* ---------- Effects & buddy talk (ported from altifi-base.html) ---------- */
 import { $, esc, rand } from "../core/util";
-import { PO, S } from "../core/state";
+import { S, noMotion } from "../core/state";
 import { lion } from "../mascot/lion";
 import { reg } from "../core/actions";
 import { t } from "../i18n/i18n";
 
 /** Slide the page in from the side of the tab you came from (motion blur via SVG filters in index.html). */
 export function pageAnim(dir: number, el?: HTMLElement | null) {
-  if (PO()) return;
+  if (noMotion()) return;
   el = el || $("#screen");
   if (!el) return;
   el.classList.remove("mb-r", "mb-l");
@@ -21,13 +21,13 @@ export function pageAnim(dir: number, el?: HTMLElement | null) {
 export function pushThen(btn: HTMLElement, fn: () => void) {
   if (btn.dataset.busy) return;
   btn.dataset.busy = "1";
-  if (PO()) return fn();
+  if (noMotion()) return fn();
   btn.classList.add("push");
   setTimeout(fn, 170);
 }
 
 export function confetti(host?: HTMLElement | null) {
-  if (PO()) return;
+  if (noMotion()) return;
   const o = host || $("#overlay")!, box = document.createElement("div");
   box.className = "confetti";
   const cols = ["#FFC93C", "#FF6FA5", "#5B5BD6", "#2BB673", "#8EC5FF", "#FF8A3D"];
@@ -123,3 +123,29 @@ export function emote(m: string, ms: number) {
 }
 
 reg({ closeSheet, pushThen: (btn: HTMLElement, name: string, ...args: any[]) => pushThen(btn, () => (window.A as any)[name](...args)) });
+
+/* ---------- Numbers that count up/down (XP, streak, net worth) — design doc 10c.4 ----------
+ * Markup: <b data-ck="xp" data-to="120" data-fmt="num|vnd">120</b>. The last value shown for each key is
+ * remembered, so after a re-render the number rolls from the old value to the new one. */
+const lastShown: Record<string, number> = {};
+export function countAttrs(key: string, to: number, fmt: "num" | "vnd" = "num", format: (n: number) => string = String) {
+  const from = lastShown[key] ?? to;
+  return `data-ck="${key}" data-to="${to}" data-fmt="${fmt}">${format(from)}`;
+}
+export function runCounts(root: ParentNode = document, format: (n: number, fmt: string) => string = (n) => String(n)) {
+  root.querySelectorAll<HTMLElement>("[data-ck]").forEach((el) => {
+    const key = el.dataset.ck!, to = +el.dataset.to!, fmt = el.dataset.fmt || "num";
+    const from = lastShown[key] ?? to;
+    lastShown[key] = to;
+    if (from === to || noMotion()) { el.textContent = format(to, fmt); return; }
+    const t0 = performance.now(), ms = 700;
+    el.classList.add("counting");
+    const step = (now: number) => {
+      if (!el.isConnected) return;
+      const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = format(Math.round(from + (to - from) * e), fmt);
+      if (k < 1) requestAnimationFrame(step); else el.classList.remove("counting");
+    };
+    requestAnimationFrame(step);
+  });
+}

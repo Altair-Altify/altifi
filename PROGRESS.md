@@ -2,6 +2,35 @@
 
 > Đọc file này + `ALTIFI_DESIGN.md` ở đầu mỗi phiên. Cập nhật ở cuối mỗi phiên.
 
+## Phiên 2 — 18/10/2026 · Nâng cấp giao diện (mục 10c) ✅ có bản chạy được
+
+**Kết quả:** `npm run build` sạch. Kiểm thử Playwright chơi hết 3 bài (cơ bản + đào sâu) ở VI và EN: mọi bước chấm điểm đều đúng (bước `predict` không chấm điểm, đúng thiết kế). Đã chụp và soát Sáng/Tối, VI/EN, chế độ giảm chuyển động. Làm theo đúng thứ tự được giao, ưu tiên các màn lên video (trang chủ, bài học, màn kết quả).
+
+### Đã xong
+1. **Bộ icon SVG riêng** (`src/ui/icons.ts`, ~70 icon): lưới 24px, nét bo 2px, 2 tông (nét + tông nhạt); `icon(name, {size, color, label, active})` có `aria-label`. Đã thay emoji ở: thanh điều hướng (tab đang chọn tô màu, tab khác viền xám), HUD (lửa, sao XP, ví net worth, tim trong bài học), nút trên lộ trình, Cài đặt, nút đóng/quay lại, nút điều khiển video, pop-up kết quả, trang Tôi, nút hành động. Emoji chỉ còn trong *nội dung* bài học. Xem toàn bộ icon tại `/dev/icons.html` khi chạy dev.
+2. **Trang chủ có hero**: thị trấn SVG (đồi, cây, nhà, cửa hàng trà sữa, tòa kính — cùng phong cách bản đồ game) + **Alti Lion toàn thân vẫy tay, đuôi đung đưa** (`lionFull()`), giữ bong bóng thoại & biểu cảm của base; bấm vào để tùy biến. **Vòng mục tiêu hôm nay** (20 XP/ngày, `S.today`), **streak** to, và **thẻ lớn "Tiếp tục bài đang học"** (lưu bước đang dở `S.inprog`, bấm là vào đúng bước đó; hiện % tiến độ). Người mới → thẻ **"Làm bài test xếp lớp"**.
+   - **Bài test xếp lớp** (`src/content/placement.ts`, 8 câu dựa trên các hiểu sai trong khảo sát; không mất tim) → đặt `S.placement` → trình độ tự động của Alti Lion + gợi ý bài bắt đầu. (Kế hoạch đặt placement vào 23/10; làm sớm vì thẻ hero cần chỗ dẫn tới. 23/10 chỉ cần duyệt câu hỏi.)
+3. **Lộ trình = con đường uốn lượn**: 5 vùng, mỗi vùng là cảnh của khu tương ứng trên bản đồ game (Cá nhân → nhà; Doanh nghiệp → phố cửa hàng; Đầu tư → tòa kính + bảng giá VNI; Công → tòa thị chính; Quốc tế → biển, tàu, cần cẩu). Nút bài có trạng thái đã xong (vàng + sao) / gợi ý (nhấp nháy + "BẮT ĐẦU") / mở / sắp có, nhãn **"Nên biết trước"**. **Rương thưởng** sau 3 bài (mở → +20 XP, hiệu ứng), **huy hiệu** cuối mỗi vùng. Không ép thứ tự.
+4. **Chiều sâu & phân cấp**: bóng đổ mềm nhiều lớp thay viền mỏng, gradient nhẹ cho thẻ nổi bật, thẻ to nhỏ khác nhau (hero + lưới 2 cột), tiêu đề màn 30px, con số to dùng `tabular-nums` và **đếm lên/xuống** (XP, streak, net worth, mục tiêu).
+5. **Trang Tôi**: **ảnh bìa** (4 ảnh bìa minh họa: Thị trấn, Phố tài chính, Bến cảng, Hoàng hôn, hoặc ảnh tải lên qua đúng hộp xin quyền ảnh kiểu iOS của base), avatar chồng mép bìa, 4 chỉ số lớn (streak, XP, số bài, số case), **biểu đồ net worth** (area chart từ `S.game.history`; chưa có dữ liệu → trạng thái rỗng có Alti Lion), **kệ huy hiệu** 14 huy hiệu (đã đạt có màu, chưa đạt xám + ổ khóa, bấm xem điều kiện; `src/content/badges.ts`).
+6. **Motion kiểu app**: trang trượt (base), thẻ hiện lần lượt khi mở màn (≤ 300ms, dịch ≤ 10px), nút nhấn lún, số đếm, rương nảy, Alti Lion chớp mắt & vẫy tay. Tôn trọng **Potato Mode** và **`prefers-reduced-motion`** (cả CSS lẫn JS: `noMotion()`); chỉ animate transform/opacity.
+7. **Nền mờ tiền bạc**: họa tiết lặp vẽ từ chính bộ icon (đồng xu, tờ tiền, heo đất, biểu đồ, ngân hàng, %, cân, địa cầu), ~6% ở Sáng / ~4,5% ở Tối, nằm dưới thời tiết, tắt khi Theme = ảnh của tôi, trôi rất chậm và đứng yên khi Khoai tây/giảm chuyển động. Có cả trong màn bài học.
+8. **RealImage** (`src/ui/realimage.ts`): trình duyệt người dùng gọi API Wikimedia Commons (`origin=*`, `generator=search`, `gsrnamespace=6`, `iiprop=url|extmetadata`, `iiurlwidth=800`), **chỉ nhận Public domain / CC0 / CC BY / CC BY-SA** (loại `NonFree`), hiện "tác giả · giấy phép · Wikimedia Commons" có link, **cache localStorage**, **fallback** minh họa SVG (có hiệu ứng đang tải). Chế độ chọn ảnh `?pick=1`: nút ↻ đổi ảnh + nút chép `imageFile: "..."` để ghim. Đã gắn vào: 5 thẻ Khám phá (1 thẻ lớn + lưới 2 cột), 3 phòng Bảo tàng Khủng hoảng (tab Chơi), ảnh mở đầu của 3 bài học.
+   - Đã test bằng API giả lập (Playwright chặn & trả JSON): lọc giấy phép đúng, ghi nguồn đúng, nút chọn ảnh hiện. **Chưa test với Commons thật** vì phiên Claude Code bị chặn mạng tới Wikimedia → **nhóm mở app trên trình duyệt để kiểm tra** (xem bên dưới).
+   - ⚠️ Tránh "spoil" (mục 6.4): thẻ phòng bảo tàng dùng ảnh **trung tính "trước sự kiện"** (`imageQuery`: sàn chứng khoán thập niên 1920, xe tải giao hàng 1970s, khu nhà ở Mỹ 2000s). Các từ khóa trong tài liệu (`1931 soup kitchen line Chicago`, `1973 gas station no gas sign`, `Lehman Brothers headquarters`) được giữ ở `revealQuery` cho bước "Chuyện gì đã thực sự xảy ra" của chế độ Khủng hoảng (22/10).
+- Khác: chạm ≥ 44px cho nút icon (nút đóng, VI/EN, video), nút thoát giữa bài giờ **giữ vị trí** để tiếp tục sau; `addXP()` cập nhật cả XP hôm nay; save mới có thêm `today, goal, chests, badges, inprog, p.cover` (save cũ tự điền mặc định).
+
+### Nhóm cần làm (ảnh thật)
+1. `npm run dev`, mở `http://localhost:5173` trên máy có mạng (hoặc bản deploy + `?pick=1`).
+2. Xem tab **Khám phá**, **Chơi → Bảo tàng**, và ảnh mở đầu 3 bài học. Ảnh nào không hợp: bấm ↻ để xem ảnh tiếp theo, ưng thì bấm **imageFile** rồi dán vào `imageFile` (Khám phá: `src/ui/explore.ts`; Bảo tàng: `src/ui/play.ts`; bài học: `photo: { query, file }` trong file bài). Không có ảnh nào hợp thì đổi `imageQuery`.
+3. Ghi tên file + tác giả + giấy phép vào `assets/CREDITS.md`.
+
+### Lỗi / lưu ý đã biết (phiên 2)
+- Kiểm thử tự động thỉnh thoảng báo bước `sort` "not-checked" khi máy chậm (do thời gian chờ của script, chạy lại thì đúng; đã tăng thời gian chờ).
+- Service worker cache cả phản hồi API Commons (cache-first) — sau khi ghim `imageFile` thì không ảnh hưởng; muốn làm mới ảnh trên bản deploy thì tăng `VERSION` trong `public/sw.js`.
+- Huy hiệu mảng tính theo **các bài đã có nội dung** (bài "Sắp có" không tính); khi thêm bài mới, huy hiệu đã nhận vẫn được giữ.
+- Thẻ "Tiếp tục" mở lại bài ở đúng bước nhưng các câu trước đó không được tính lại vào điểm/XP của lần đó.
+
 ## Phiên 1 — 18/10/2026 (làm sớm từ tối 17/10) ✅ có bản chạy được
 
 **Kết quả:** `npm run dev` / `npm run build` chạy sạch (tsc không lỗi). Kiểm thử tự động bằng Playwright: chơi hết 3 bài × (cơ bản + đào sâu) ở cả VI và EN — mọi bước có chấm điểm đều RIGHT, không có lỗi console; bản build production đăng ký service worker được.
@@ -46,7 +75,7 @@
 - Các con số tự tính (lãi kép 10 triệu × 8% × 30 năm = 100,6 triệu, quy tắc 72, hòa vốn 2.864 ly, DOL 22…) đã ghi phép tính trong comment của file bài học.
 
 ## ▶️ Việc đầu tiên của phiên sau (19/10)
-1. Đọc `ALTIFI_DESIGN.md` mục 6.1, 6.1b, 6.6 + file này. `npm install && npm run dev`, chạy `node scripts/playthrough.cjs vi` để chắc bản 18/10 vẫn xanh.
-2. Quyết định engine bản đồ: **Phaser 3** (camera, tilemap, tween) — thêm `src/game/`; tab **Chơi** mở bản đồ thay cho danh sách "Sắp có".
-3. Làm theo bảng mục 12 ngày 19/10: thế giới ~1600×2400 (camera theo nhân vật, kéo/zoom, minimap, nút về nhân vật), bấm-để-đi (tìm đường trên lưới), 6 khu, NPC, dùng lại thời tiết; trình tạo nhân vật (`avatar()` của v3, nhập tên/ngoại hình từ `S.legacy.life`); HUD net worth (đặt `S.game.netWorth`, thanh trên đã hiển thị sẵn).
-4. Tôn trọng Potato Mode, i18n (`t()`/`tx()`), và gọi `setCtx()` ở màn hình game để Alti Lion biết ngữ cảnh.
+1. Đọc `ALTIFI_DESIGN.md` mục 6.1, 6.1b, 6.6, **10b, 10c** + file này. `npm install && npm run dev`, chạy `node scripts/playthrough.cjs vi` để chắc mọi thứ vẫn xanh.
+2. Quyết định engine bản đồ: **Phaser 3** (camera, tilemap, tween) — thêm `src/game/`; tab **Chơi** mở bản đồ thay cho danh sách "Sắp có". **Dùng lại phong cách & mảnh SVG trong `src/ui/scenes.ts`** (nhà, cửa hàng, tòa kính, tòa thị chính, tàu, cây) và bảng màu của 5 vùng trên con đường học để Học và Chơi là một thế giới (10c.3).
+3. Làm theo bảng mục 12 ngày 19/10: thế giới ~1600×2400 (camera theo nhân vật, kéo/zoom, minimap, nút về nhân vật), bấm-để-đi (tìm đường trên lưới), 6 khu, NPC, dùng lại thời tiết; trình tạo nhân vật (`avatar()` của v3, nhập tên/ngoại hình từ `S.legacy.life`); HUD net worth (đặt `S.game.netWorth` và **đẩy giá trị theo tháng vào `S.game.history`** để biểu đồ trang Tôi tự chạy; số case vào `S.game.cases`).
+4. Dùng `icon()` cho mọi icon mới (không emoji ở chrome), `noMotion()` cho hiệu ứng, Night mode cho màn game, `setCtx()` cho Alti Lion, `t()`/`tx()` cho chữ.

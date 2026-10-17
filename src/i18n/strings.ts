@@ -55,7 +55,7 @@ export const STRINGS = {
   "learn.prereq": ["Nên biết trước", "Good to know first"],
   "learn.review": ["Ôn nhanh 1 phút", "1-minute refresher"],
   "learn.startBasic": ["HỌC PHẦN CƠ BẢN", "START THE BASICS"],
-  "learn.deep": ["🔬 ĐÀO SÂU", "🔬 DEEP DIVE"],
+  "learn.deep": ["ĐÀO SÂU", "DEEP DIVE"],
   "learn.deepLocked": ["Đào sâu (mở sau phần cơ bản)", "Deep dive (unlocks after the basics)"],
   "learn.steps": ["{n} bước", "{n} steps"],
   "learn.hasVideo": ["có video", "with video"],
@@ -110,10 +110,10 @@ export const STRINGS = {
   "lp.refilled": ["Tim đã hồi đầy! ❤️❤️❤️", "Hearts refilled! ❤️❤️❤️"],
   "lp.quit": ["Thoát bài học", "Quit lesson"],
   "lp.quitQ": ["Thoát bài học?", "Quit the lesson?"],
-  "lp.quitSub": ["Tiến độ của bài này sẽ không được lưu.", "Your progress in this lesson won't be saved."],
+  "lp.quitSub": ["Bạn có thể tiếp tục từ bước này ở trang chủ.", "You can pick up from this step on the home screen."],
   "lp.keepGoing": ["HỌC TIẾP", "KEEP LEARNING"],
   "lp.quitBtn": ["THOÁT", "QUIT"],
-  "lp.deepTag": ["🔬 ĐÀO SÂU", "🔬 DEEP DIVE"],
+  "lp.deepTag": ["ĐÀO SÂU", "DEEP DIVE"],
 
   /* result popup */
   "res.perfect": ["Hoàn hảo! 🏆", "Perfect lesson! 🏆"],
@@ -128,9 +128,43 @@ export const STRINGS = {
   "res.m.wow": ["Hơi lo lo 😬", "A bit nervous 😬"],
   "res.m.sad": ["Buồn, nhưng vẫn tin bạn 🥺", "Sad, but believes in you 🥺"],
   "res.next": ["BÀI TIẾP THEO", "NEXT LESSON"],
-  "res.deep": ["🔬 ĐÀO SÂU BÀI NÀY", "🔬 DEEP DIVE THIS LESSON"],
+  "res.deep": ["ĐÀO SÂU BÀI NÀY", "DEEP DIVE THIS LESSON"],
   "res.retry": ["HỌC LẠI", "TRY AGAIN"],
   "res.deepDone": ["Đào sâu xong! 🎓", "Deep dive done! 🎓"],
+
+  /* placement test */
+  "pt.done": ["Xếp lớp xong! 🧭", "Placement done! 🧭"],
+  "pt.level": ["Alti Lion sẽ giải thích ở mức: {l}", "Alti Lion will explain at: {l}"],
+  "pt.lvlShort": ["trình độ", "level"],
+  "pt.suggest": ["Gợi ý bắt đầu: {title}. Mọi bài vẫn mở — học bài nào trước cũng được.", "Suggested start: {title}. Every lesson stays open — start anywhere."],
+
+  /* home hero (design doc 10c.2) */
+  "hm.today": ["Mục tiêu hôm nay", "Today's goal"],
+  "hm.goalDone": ["Đạt mục tiêu! 🎉", "Goal reached! 🎉"],
+  "hm.streak": ["ngày liên tiếp", "day streak"],
+  "hm.continue": ["Tiếp tục bài đang học", "Continue where you left off"],
+  "hm.next": ["Bài tiếp theo gợi ý", "Suggested next lesson"],
+  "hm.cont": ["TIẾP TỤC", "CONTINUE"],
+  "hm.placeT": ["Làm bài test xếp lớp", "Take the placement test"],
+  "hm.placeS": ["8 câu · 3 phút — để Alti Lion biết nên bắt đầu từ đâu.", "8 questions · 3 minutes — so Alti Lion knows where you should start."],
+  "hm.placeBtn": ["BẮT ĐẦU TEST", "START THE TEST"],
+  "hm.skip": ["Bỏ qua, học ngay", "Skip, start learning"],
+  "hm.allDone": ["Bạn đã học hết các bài hiện có! Thử đào sâu hoặc chờ bài mới nhé.", "You've finished every lesson so far! Try a deep dive or wait for new ones."],
+  "hm.pathTitle": ["Con đường học tập", "Your learning road"],
+  "hm.step": ["bước {n}/{m}", "step {n}/{m}"],
+
+  /* path milestones (design doc 10c.3) */
+  "ms.chest": ["Rương thưởng", "Reward chest"],
+  "ms.chestLocked": ["Học xong các bài phía trên để mở rương.", "Finish the lessons above to open this chest."],
+  "ms.chestOpen": ["Mở rương!", "Open the chest!"],
+  "ms.chestGot": ["Bạn nhận được +{xp} XP!", "You got +{xp} XP!"],
+  "ms.chestDone": ["Đã mở", "Opened"],
+  "ms.badge": ["Huy hiệu: {d}", "Badge: {d}"],
+  "ms.badgeHow": ["Học xong mọi bài hiện có của mảng này để nhận huy hiệu.", "Finish every available lesson in this area to earn the badge."],
+  "ms.badgeGot": ["Bạn đã nhận huy hiệu này! 🏅", "You've earned this badge! 🏅"],
+  "ms.newBadge": ["Huy hiệu mới: {b} 🏅", "New badge: {b} 🏅"],
+  "ms.soonTag": ["Sắp có", "Soon"],
+  "ms.prereqTag": ["Nên biết trước", "Good to know first"],
 
   /* explore */
   "ex.title": ["Khám phá", "Explore"],
@@ -170,6 +204,19 @@ export const STRINGS = {
   "me.toastBody": ["5 phút hôm nay giữ chuỗi 🔥 {n} ngày của bạn.", "5 minutes today keeps your 🔥 {n}-day streak alive."],
   "me.now": ["bây giờ", "now"],
   "me.level": ["Trình độ của {name}", "{name}'s level"],
+
+  "me.cover": ["Đổi ảnh bìa", "Change cover"],
+  "me.coverPick": ["Chọn ảnh bìa", "Pick a cover"],
+  "me.coverPhoto": ["Ảnh của tôi", "My photo"],
+  "me.coverNames": ["Thị trấn|Phố tài chính|Bến cảng|Hoàng hôn", "Town|Finance street|Harbour|Sunset"],
+  "me.badges": ["Kệ huy hiệu", "Badge shelf"],
+  "me.badgesCount": ["{n}/{m} đã đạt", "{n}/{m} earned"],
+  "me.badgeGot": ["Đã đạt", "Earned"],
+  "me.badgeLocked": ["Chưa đạt", "Not yet"],
+  "me.nwChart": ["Tài sản ròng trong game", "In-game net worth"],
+  "me.nwEmpty": ["Chơi chế độ \"Cuộc sống của tôi\" để thấy tài sản ròng lớn lên theo từng tháng.", "Play \"My Life\" to watch your net worth grow month by month."],
+  "me.cases": ["case đã chơi", "cases played"],
+  "me.stats": ["Thống kê", "Stats"],
 
   /* profile */
   "pf.title": ["Hồ sơ của tôi", "My Profile"],

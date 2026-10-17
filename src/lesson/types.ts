@@ -14,7 +14,7 @@ interface Graded {
 }
 
 export type Step =
-  | { t: "learn"; title: TL; text: TL; art?: string; img?: Img; cap?: TL; items?: [string, TL][]; lion?: TL; fs?: number }
+  | { t: "learn"; title: TL; text: TL; art?: string; img?: Img; photo?: { query?: string; file?: string }; cap?: TL; items?: [string, TL][]; lion?: TL; fs?: number }
   | { t: "video"; video: VideoDef }
   | ({ t: "pick"; q: TL; opts: [string, TL][]; a: number } & Graded)
   | ({ t: "mcq"; q: TL; o: TL[]; a: number } & Graded)
@@ -48,7 +48,9 @@ export interface ExplainKey { label: TL; words: { vi: string[]; en: string[] } }
 export interface Lesson {
   id: string;
   domain: DomainId;
-  icon: string;
+  icon: string; // emoji, used inside content (result pop-up subtitle)
+  ic: string; // UI icon name (src/ui/icons.ts) for the path node
+  kind?: "placement"; // placement test: no hearts lost, sets S.placement instead of lesson progress
   title: TL;
   desc: TL;
   minutes: number;
@@ -61,4 +63,4 @@ export interface Lesson {
 }
 
 /** Lessons not written yet still appear on the path so the 5-area structure is visible. */
-export interface LessonStub { id: string; domain: DomainId; icon: string; title: TL; soon: true }
+export interface LessonStub { id: string; domain: DomainId; icon: string; ic: string; title: TL; soon: true }

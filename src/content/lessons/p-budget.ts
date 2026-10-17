@@ -8,6 +8,7 @@ const lesson: Lesson = {
   id: "p-budget",
   domain: "personal",
   icon: "📊",
+  ic: "pie",
   minutes: 6,
   title: { vi: "Ngân sách & quy tắc 50/30/20", en: "Budgets & the 50/30/20 rule" },
   desc: {
@@ -33,7 +34,7 @@ const lesson: Lesson = {
   kb: ["budget", "leaks", "debt", "emergency"],
   steps: [
     {
-      t: "learn", art: "📅 1 → 15 → 30<br>💰 → 💸 → 🫙", cap: { vi: "Đầu tháng nhiều tiền · giữa tháng… đâu mất rồi?", en: "Start of month: plenty · mid-month: where did it go?" },
+      t: "learn", photo: { query: "Vietnamese dong banknotes" }, art: "📅 1 → 15 → 30<br>💰 → 💸 → 🫙", cap: { vi: "Đầu tháng nhiều tiền · giữa tháng… đâu mất rồi?", en: "Start of month: plenty · mid-month: where did it go?" },
       title: { vi: "Tiền 'bốc hơi' giữa tháng", en: "The mid-month vanishing act" },
       text: {
         vi: "Rất nhiều người nhận tiền đầu tháng và tới giữa tháng đã cạn — dù không nhớ mình mua gì lớn. Thủ phạm thường không phải một món đắt, mà là <b>hàng chục khoản nhỏ</b> không ai ghi lại. Ngân sách giúp bạn quyết định tiền đi đâu <b>trước</b>, thay vì ngạc nhiên <b>sau</b>.",

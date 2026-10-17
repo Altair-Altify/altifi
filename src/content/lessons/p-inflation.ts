@@ -96,6 +96,7 @@ const lesson: Lesson = {
   id: "p-inflation",
   domain: "personal",
   icon: "⛄",
+  ic: "percent",
   minutes: 8,
   title: { vi: "Lạm phát, lãi kép & quỹ khẩn cấp", en: "Inflation, compounding & emergency funds" },
   desc: {
@@ -123,7 +124,7 @@ const lesson: Lesson = {
   steps: [
     { t: "video", video: compoundVideo },
     {
-      t: "learn", art: "🧋 30.000₫ → 🧋 33.000₫", cap: { vi: "Cùng một ly, giá cao hơn", en: "Same drink, higher price" },
+      t: "learn", photo: { query: "Ben Thanh Market Ho Chi Minh City" }, art: "🧋 30.000₫ → 🧋 33.000₫", cap: { vi: "Cùng một ly, giá cao hơn", en: "Same drink, higher price" },
       title: { vi: "Lạm phát: tiền 'teo' trong ngăn kéo", en: "Inflation: money shrinking in the drawer" },
       text: {
         vi: "Lạm phát là khi <b>mặt bằng giá chung</b> tăng lên — không chỉ một món. Ở Việt Nam, Cục Thống kê đo nó bằng <b>chỉ số giá tiêu dùng (CPI)</b>: giá của một 'giỏ' hàng hóa, dịch vụ mà gia đình hay mua. Năm 2008, lạm phát bình quân ở Việt Nam lên tới khoảng <b>23%</b> — tiền tiết kiệm mất gần một phần tư sức mua chỉ trong một năm.",

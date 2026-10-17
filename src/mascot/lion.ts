@@ -129,3 +129,22 @@ export function lion(size = 80, mood = "happy", cfg?: Partial<Buddy>): string {
    ${pendant}${place(gl)}${place(hat)}${place(ex)}
   </svg>`;
 }
+
+/** Full-body Alti Lion (home hero): the same head on a small body, waving paw and a tail with a mane-coloured tuft.
+ *  CSS classes: .lion-wave (waving arm), .lion-tail. Same cfg/mood as lion(). */
+export function lionFull(width = 120, mood = "happy", cfg?: Partial<Buddy>): string {
+  const b: Buddy = { ...defaultM(), ...(cfg || cfgSource()) };
+  const c = LION_COLORS[b.color] || LION_COLORS.pink;
+  const head = lion(120, mood, b).replace("<svg ", '<svg x="0" y="0" ');
+  const h = Math.round(width * 1.3);
+  return `<svg class="lionfull" width="${width}" height="${h}" viewBox="-8 -10 136 176" aria-hidden="true" style="overflow:visible">
+    <ellipse cx="60" cy="160" rx="34" ry="6" fill="rgba(30,27,58,.14)"/>
+    <g class="lion-tail"><path d="M84 138 C104 140 112 120 104 106" stroke="${c.face}" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="104" cy="103" r="8" fill="${c.mane}"/><circle cx="101" cy="100" r="3" fill="${c.spot}" opacity=".5"/></g>
+    <rect x="42" y="134" width="14" height="22" rx="7" fill="${c.face}"/><rect x="64" y="134" width="14" height="22" rx="7" fill="${c.face}"/>
+    <ellipse cx="49" cy="156" rx="10" ry="5.5" fill="${c.muzzle}"/><ellipse cx="71" cy="156" rx="10" ry="5.5" fill="${c.muzzle}"/>
+    <ellipse cx="60" cy="124" rx="28" ry="24" fill="${c.face}"/><ellipse cx="60" cy="130" rx="16" ry="15" fill="${c.muzzle}"/>
+    <ellipse cx="34" cy="128" rx="8" ry="13" fill="${c.face}" transform="rotate(14 34 128)"/><ellipse cx="32" cy="140" rx="7" ry="5" fill="${c.muzzle}"/>
+    <g class="lion-wave"><ellipse cx="92" cy="104" rx="8" ry="15" fill="${c.face}" transform="rotate(32 92 104)"/><circle cx="99" cy="91" r="8" fill="${c.muzzle}"/><path d="M95 86v3M99 85v3M103 86v3" stroke="${c.nose}" stroke-width="1.4" stroke-linecap="round" opacity=".5"/></g>
+    ${head}
+  </svg>`;
+}

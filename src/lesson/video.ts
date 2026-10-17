@@ -7,6 +7,8 @@ import { tx, t, lang } from "../i18n/i18n";
 import { S, save, PO } from "../core/state";
 import { esc, vnd, shortVnd, fmtNum } from "../core/util";
 import { reg } from "../core/actions";
+import { icon } from "../ui/icons";
+const vic = (n: string) => icon(n, { size: 18, tint: 0.3 });
 
 type Anim = "pop" | "up" | "fade" | "left" | "right";
 type Base = { at?: number; anim?: Anim };
@@ -59,10 +61,10 @@ export function videoHTML(def: VideoDef) {
     <div class="v-stage" id="vstage" onclick="A.vToggle()"></div>
     <div class="v-cap" id="vcap" aria-live="polite"></div>
     <div class="v-ctrl">
-      <button onclick="A.vToggle()" id="vplay" aria-label="${t("vd.play")}">▶</button>
-      <button onclick="A.vReplay()" aria-label="${t("vd.replay")}">↺</button>
-      <span class="v-title">🎬 ${esc(tx(def.title))}</span>
-      <button onclick="A.vVoice()" id="vvoice" aria-label="${S.set.voice ? t("vd.voiceOn") : t("vd.voiceOff")}">${S.set.voice ? "🔊" : "🔇"}</button>
+      <button onclick="A.vToggle()" id="vplay" aria-label="${t("vd.play")}">${vic("playTri")}</button>
+      <button onclick="A.vReplay()" aria-label="${t("vd.replay")}">${vic("refresh")}</button>
+      <span class="v-title">${icon("video", { size: 15 })} ${esc(tx(def.title))}</span>
+      <button onclick="A.vVoice()" id="vvoice" aria-label="${S.set.voice ? t("vd.voiceOn") : t("vd.voiceOff")}">${vic(S.set.voice ? "speaker" : "mute")}</button>
     </div></div>`;
 }
 
@@ -133,7 +135,7 @@ function next() {
 }
 function paintCtrl() {
   const b = document.getElementById("vplay");
-  if (b) { b.textContent = V.playing ? "⏸" : "▶"; b.setAttribute("aria-label", V.playing ? t("vd.pause") : t("vd.play")); }
+  if (b) { b.innerHTML = vic(V.playing ? "pause" : "playTri"); b.setAttribute("aria-label", V.playing ? t("vd.pause") : t("vd.play")); }
   document.getElementById("vplayer")?.classList.toggle("paused", !V.playing);
 }
 
@@ -165,7 +167,7 @@ reg({
   vVoice() {
     S.set.voice = !S.set.voice; save();
     const b = document.getElementById("vvoice");
-    if (b) { b.textContent = S.set.voice ? "🔊" : "🔇"; b.setAttribute("aria-label", S.set.voice ? t("vd.voiceOn") : t("vd.voiceOff")); }
+    if (b) { b.innerHTML = vic(S.set.voice ? "speaker" : "mute"); b.setAttribute("aria-label", S.set.voice ? t("vd.voiceOn") : t("vd.voiceOff")); }
     if (!S.set.voice) try { speechSynthesis.cancel(); } catch { /* */ }
   },
 });

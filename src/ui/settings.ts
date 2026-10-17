@@ -1,11 +1,13 @@
 /* ---------- Settings (from altifi-base.html) + language and Alti Lion level ---------- */
 import { $ } from "../core/util";
-import { S, save, BG_KEY } from "../core/state";
+import { S, save, BG_KEY, COVER_KEY } from "../core/state";
 import { reg } from "../core/actions";
 import { t, setLang, lang } from "../i18n/i18n";
 import { BN, render, applyTheme, bgImg, setBgImg } from "./shell";
 import { pageAnim } from "./fx";
 import { countryName, updateWeather } from "./weather";
+import { icon } from "./icons";
+const wi = (n: string) => icon(n, { size: 24, color: "#fff", tint: 0.35 });
 
 let setSub: string | null = null;
 export const getSetSub = () => setSub;
@@ -22,16 +24,16 @@ function segRow(icon: string, color: string, title: string, opts: [string, strin
 export function settingsView() {
   if (setSub === "theme") return themeView();
   const th = { light: t("st.light"), night: t("st.night"), image: t("st.image") }[S.set.theme === "image" && !bgImg ? "light" : S.set.theme];
-  return `<h2>${t("st.title")}</h2><p class="muted" style="font-weight:700;margin-bottom:14px">${t("st.sub")}</p>
+  return `<h2 class="title">${t("st.title")}</h2><p class="muted" style="font-weight:700;margin-bottom:14px">${t("st.sub")}</p>
   <div class="setlist">
-    ${segRow("🌐", "#3D5AFE", t("st.lang"), [["vi", "🇻🇳 Tiếng Việt"], ["en", "🇬🇧 English"]], lang(), "setLangTo")}
-    <button class="setrow" onclick="A.openSub('theme')"><span class="si" style="background:#5B5BD6">🎨</span><span class="st"><b>${t("st.theme")}</b><small>${th}</small></span><span class="chev">›</span></button>
-    ${toggleRow("inter", "🦁", "#E8418C", t("st.inter", { name: BN() }), t("st.interSub", { name: BN() }))}
-    ${segRow("🎓", "#7E5BE0", t("st.lvl", { name: BN() }), [["auto", t("as.lvl.auto")], ["n", "🌱"], ["l", "📘"], ["p", "🎓"]], S.set.lvl, "setLvl")}
-    ${toggleRow("wx", "🌦️", "#4C93E6", t("st.wx"), t("st.wxSub", { c: countryName(S.p.country) }))}
-    ${toggleRow("potato", "🥔", "#A0714F", t("st.potato"), t("st.potatoSub"))}
-    ${toggleRow("intel", "<i class='ilogo'>i</i>", "#1BADA6", t("st.intel"), t("st.intelSub"))}
-    ${toggleRow("voice", "🔊", "#F2A33A", t("st.voice"), t("st.voiceSub"))}
+    ${segRow(wi("globe"), "#3D5AFE", t("st.lang"), [["vi", "🇻🇳 Tiếng Việt"], ["en", "🇬🇧 English"]], lang(), "setLangTo")}
+    <button class="setrow" onclick="A.openSub('theme')"><span class="si" style="background:#5B5BD6">${wi("palette")}</span><span class="st"><b>${t("st.theme")}</b><small>${th}</small></span><span class="chev">${icon("chevron", { size: 22 })}</span></button>
+    ${toggleRow("inter", wi("chat"), "#E8418C", t("st.inter", { name: BN() }), t("st.interSub", { name: BN() }))}
+    ${segRow(wi("cap"), "#7E5BE0", t("st.lvl", { name: BN() }), [["auto", t("as.lvl.auto")], ["n", t("as.lvl.n")], ["l", t("as.lvl.l")], ["p", t("as.lvl.p")]], S.set.lvl, "setLvl")}
+    ${toggleRow("wx", wi("weather"), "#4C93E6", t("st.wx"), t("st.wxSub", { c: countryName(S.p.country) }))}
+    ${toggleRow("potato", wi("potato"), "#A0714F", t("st.potato"), t("st.potatoSub"))}
+    ${toggleRow("intel", wi("bulb"), "#1BADA6", t("st.intel"), t("st.intelSub"))}
+    ${toggleRow("voice", wi("speaker"), "#F2A33A", t("st.voice"), t("st.voiceSub"))}
   </div>`;
 }
 
@@ -51,22 +53,25 @@ function mock(kind: "light" | "night" | "image") {
 }
 function themeView() {
   const th = S.set.theme === "image" && !bgImg ? "light" : S.set.theme;
-  return `<button class="backlink" onclick="A.closeSub()">${t("st.back")}</button><h2>${t("st.theme")}</h2><p class="muted" style="font-weight:700;margin-bottom:14px">${t("st.themeSub")}</p>
+  return `<button class="backlink" onclick="A.closeSub()">${t("st.back")}</button><h2 class="title">${t("st.theme")}</h2><p class="muted" style="font-weight:700;margin-bottom:14px">${t("st.themeSub")}</p>
   <div class="themegrid">
     <button class="themecard ${th === "light" ? "on" : ""}" onclick="A.setTheme('light')">${mock("light")}☀️ ${t("st.light")}</button>
     <button class="themecard ${th === "night" ? "on" : ""}" onclick="A.setTheme('night')">${mock("night")}🌙 ${t("st.night")}</button>
   </div>
   <div class="sub">${t("st.ownPic")}</div>
-  ${bgImg ? `<div class="themegrid"><button class="themecard ${th === "image" ? "on" : ""}" onclick="A.setTheme('image')">${mock("image")}🖼️ ${t("st.image")}</button><button class="upload" onclick="A.askPhotos()"><span>📷</span>${t("st.change")}<small>${t("st.changeSub")}</small></button></div>`
-    : `<button class="upload" onclick="A.askPhotos()"><span>📷</span>${t("st.upload")}<small>${t("st.uploadSub")}</small></button>`}`;
+  ${bgImg ? `<div class="themegrid"><button class="themecard ${th === "image" ? "on" : ""}" onclick="A.setTheme('image')">${mock("image")}🖼️ ${t("st.image")}</button><button class="upload" onclick="A.askPhotos('bg')"><span>${icon("camera", { size: 34, color: "var(--pri)" })}</span>${t("st.change")}<small>${t("st.changeSub")}</small></button></div>`
+    : `<button class="upload" onclick="A.askPhotos('bg')"><span>${icon("camera", { size: 34, color: "var(--pri)" })}</span>${t("st.upload")}<small>${t("st.uploadSub")}</small></button>`}`;
 }
 function setTheme(k: "light" | "night" | "image") {
   if (k === "image" && !bgImg) return askPhotos();
   S.set.theme = k; save(); applyTheme(); render();
 }
-function askPhotos() {
+/** Same iOS-style permission flow for the app background and the profile cover (design doc 10c.5). */
+let photoTarget: "bg" | "cover" = "bg";
+function askPhotos(target: "bg" | "cover" = "bg") {
+  photoTarget = target === "cover" ? "cover" : "bg";
   if (S.set.photosOK) return ($("#filein") as HTMLInputElement).click();
-  $("#pmodal")!.innerHTML = `<div class="alertbg"><div class="permbox"><div class="pb"><div style="font-size:42px;line-height:1;margin-bottom:8px">🖼️</div><b>${t("st.permT")}</b><p>${t("st.permB")}</p></div><div class="permbtns"><button onclick="A.closePerm()">${t("st.deny")}</button><button onclick="A.allowPhotos()">${t("st.allow")}</button></div></div></div>`;
+  $("#pmodal")!.innerHTML = `<div class="alertbg"><div class="permbox"><div class="pb"><div style="line-height:1;margin-bottom:8px">${icon("image", { size: 44, color: "#0A7AFF" })}</div><b>${t("st.permT")}</b><p>${t("st.permB")}</p></div><div class="permbtns"><button onclick="A.closePerm()">${t("st.deny")}</button><button onclick="A.allowPhotos()">${t("st.allow")}</button></div></div></div>`;
 }
 function gotPhoto(inp: HTMLInputElement) {
   const f = inp.files && inp.files[0];
@@ -74,18 +79,30 @@ function gotPhoto(inp: HTMLInputElement) {
   if (!f) return;
   const url = URL.createObjectURL(f), img = new Image();
   img.onload = () => {
-    const sc = Math.min(1, 1400 / Math.max(img.width, img.height)), cv = document.createElement("canvas");
+    const sc = Math.min(1, (photoTarget === "cover" ? 900 : 1400) / Math.max(img.width, img.height)), cv = document.createElement("canvas");
     cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
     cv.getContext("2d")!.drawImage(img, 0, 0, cv.width, cv.height);
     const data = cv.toDataURL("image/jpeg", 0.82);
-    setBgImg(data);
     URL.revokeObjectURL(url);
+    if (photoTarget === "cover") {
+      try { localStorage.setItem(COVER_KEY, data); } catch { /* too big: kept for this session */ }
+      setCoverImg(data);
+      S.p.cover = "photo"; save(); closeSheetIfAny(); render();
+      return;
+    }
+    setBgImg(data);
     try { localStorage.setItem(BG_KEY, data); } catch { /* too big for storage: still used this session */ }
     S.set.theme = "image"; save(); applyTheme(); render();
   };
   img.onerror = () => URL.revokeObjectURL(url);
   img.src = url;
 }
+
+let coverImg: string | null = null;
+try { coverImg = localStorage.getItem(COVER_KEY); } catch { /* blocked */ }
+export const getCoverImg = () => coverImg;
+function setCoverImg(v: string) { coverImg = v; }
+function closeSheetIfAny() { const m = $("#pmodal"); if (m) m.innerHTML = ""; }
 
 reg({
   flip, setTheme, askPhotos, gotPhoto,

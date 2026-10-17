@@ -17,7 +17,7 @@ export interface Settings {
   lvl: "auto" | Lvl; // how Alti Lion explains things
   voice: boolean; // read narration of animated videos aloud
 }
-export interface Profile { name: string; bio: string; country: string; age: number }
+export interface Profile { name: string; bio: string; country: string; age: number; cover: string } // cover: preset id or "photo"
 export interface Buddy {
   name: string; color: string; eyes: string; mouth: string;
   hat: string | null; glasses: string | null; extra: string | null;
@@ -37,11 +37,17 @@ export interface State {
   lessons: Record<string, LessonRec>;
   placement: { lvl: Lvl; score: number } | null;
   game: GameState | null;
+  today: { day: string; xp: number }; // daily goal ring on the home hero
+  goal: number; // daily XP goal
+  chests: string[]; // opened milestone chests on the path
+  badges: string[]; // earned achievement badges (kept once earned)
+  inprog: { id: string; deep: boolean; s: number; n: number } | null; // lesson left half-way → "Continue" card
   legacy: { life?: unknown; oldLessonsDone?: number; migratedFrom?: string[] };
 }
 
 export const KEY = "altifi-app-v1";
 export const BG_KEY = KEY + "-bg";
+export const COVER_KEY = KEY + "-cover";
 const OLD_V1 = "altifi-demo-v1";
 const OLD_V2 = "altifi-demo-v2";
 export const MAX_HEARTS = 3;
@@ -50,11 +56,12 @@ export const DEFAULT_BUDDY_NAME = "Alti Lion";
 export const defaultM = (): Buddy => ({ name: DEFAULT_BUDDY_NAME, color: "pink", eyes: "amber", mouth: "cat", hat: null, glasses: null, extra: null });
 const guessLang = (): Lang => (/^vi\b/i.test(navigator.language || "") ? "vi" : "en");
 export const defaultSet = (): Settings => ({ theme: "light", inter: true, potato: false, intel: false, photosOK: false, wx: true, lang: guessLang(), lvl: "auto", voice: true });
-export const defaultP = (): Profile => ({ name: "Minh Hân", bio: "", country: "VN", age: 15 });
+export const defaultP = (): Profile => ({ name: "Minh Hân", bio: "", country: "VN", age: 15, cover: "town" });
 
 export const fresh = (): State => ({
   v: 1, xp: 0, streak: 1, lastDay: new Date().toDateString(), lastOpen: Date.now(), hearts: MAX_HEARTS,
   set: defaultSet(), p: defaultP(), m: defaultM(), lessons: {}, placement: null, game: null, legacy: {},
+  today: { day: new Date().toDateString(), xp: 0 }, goal: 20, chests: [], badges: [], inprog: null,
 });
 
 /* Coin "Tiko" → lion "Alti Lion". Eyes/mouth keys mostly match; colors differ. */
@@ -118,6 +125,10 @@ export function normalize(raw: any): State {
   S.m = Object.assign(defaultM(), raw.m || {});
   if (!S.lessons || typeof S.lessons !== "object") S.lessons = {};
   if (!S.legacy) S.legacy = {};
+  if (!Array.isArray(S.chests)) S.chests = [];
+  if (!Array.isArray(S.badges)) S.badges = [];
+  if (!S.today || typeof S.today.xp !== "number") S.today = { day: new Date().toDateString(), xp: 0 };
+  if (typeof S.goal !== "number") S.goal = 20;
   if (typeof S.hearts !== "number") S.hearts = MAX_HEARTS;
   S.hearts = Math.max(0, Math.min(MAX_HEARTS, S.hearts));
   if (!["vi", "en"].includes(S.set.lang)) S.set.lang = guessLang();
@@ -156,8 +167,21 @@ export function resetState() {
   const today = new Date().toDateString(), y = new Date(Date.now() - 864e5).toDateString();
   if (S.lastDay !== today) { S.streak = S.lastDay === y ? S.streak + 1 : 1; S.lastDay = today; }
   S.lastOpen = Date.now();
+  if (S.today.day !== today) S.today = { day: today, xp: 0 };
   save();
 })();
 
+/** All XP goes through here so the daily-goal ring stays in sync. */
+export function addXP(n: number) {
+  const today = new Date().toDateString();
+  if (S.today.day !== today) S.today = { day: today, xp: 0 };
+  S.xp += n;
+  S.today.xp += n;
+  save();
+}
+
 export const PO = () => !!S.set.potato;
+/** Potato Mode OR the system "reduce motion" setting → skip JS animations (design doc 10b). */
+const rm = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+export const noMotion = () => PO() || !!rm?.matches;
 export const lessonsDone = () => Object.keys(S.lessons).length;

@@ -3,12 +3,14 @@
  * + new types for deeper content: video, chart, calc, statement, explain, predict.
  * Wrapped in the base demo's UX: talking Alti Lion, emotions, push/shake/wave effects, confetti, hearts, result pop-up. */
 import { $, esc, shuffle, vnd, shortVnd, fmtNum, fmtTime, clamp, rand } from "../core/util";
-import { S, save, PO, MAX_HEARTS } from "../core/state";
+import { S, save, PO, MAX_HEARTS, addXP } from "../core/state";
 import { reg } from "../core/actions";
 import { t, tx, lang, type TL } from "../i18n/i18n";
 import { lion } from "../mascot/lion";
 import type { Lesson, Step, Unit, ChartDef, Sheet } from "./types";
 import { videoHTML, mountVideo, stopVideo } from "./video";
+import { icon, IC } from "../ui/icons";
+import { realImage } from "../ui/realimage";
 import { openO, closeO, resultPopup, setOvRerender } from "../ui/shell";
 import { bud, emote, react, startTalk, stopTalk, paintTalk, confetti, sheet, closeSheet, LINES, REACT, minitoast } from "../ui/fx";
 import { setCtx } from "../assistant/context";
@@ -52,21 +54,31 @@ const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u
 
 /* ---------- hearts ---------- */
 function heartsHTML(breaking: number) {
-  let h = "❤️".repeat(S.hearts);
+  if (L?.les.kind === "placement") return "";
+  const full = icon("heart", { size: 22, color: IC.heart, tint: 1 });
+  let h = full.repeat(S.hearts);
   const lost = MAX_HEARTS - S.hearts;
-  for (let i = 0; i < lost; i++) h += i < breaking ? '<span class="breaking">💔</span>' : "<span class=\"hgone\">🤍</span>";
-  return `<span class="lhearts" aria-label="${S.hearts}/${MAX_HEARTS}">${h}</span>`;
+  for (let i = 0; i < lost; i++) h += i < breaking ? `<span class="breaking">${icon("heartBroken", { size: 22, color: IC.heart })}</span>` : `<span class="hgone">${icon("heart", { size: 22, color: "var(--lockd)", tint: 0.4 })}</span>`;
+  return `<span class="lhearts" role="img" aria-label="${S.hearts}/${MAX_HEARTS} ♥">${h}</span>`;
+}
+/** Remember where the user is, so the home screen can offer "Continue". */
+function trackProgress() {
+  if (!L || L.les.kind === "placement") return;
+  S.inprog = { id: L.les.id, deep: L.deep, s: L.s, n: L.steps.length };
+  save();
 }
 
 /* ---------- start / intro ---------- */
-export function startLesson(id: string, deep = false) {
+/** from = step to resume at (the home "Continue" card). */
+export function startLesson(id: string, deep = false, from = 0) {
   const les = findLesson(id);
   if (!les) return;
   closeSheet();
   const steps = deep && les.deep ? les.deep : les.steps;
-  L = { les, deep: deep && !!les.deep, steps, s: 0, ok: 0, graded: 0, checked: false, right: false, st: {}, t0: Date.now(), broke: 0, outShown: false, videoDone: {} };
+  L = { les, deep: deep && !!les.deep, steps, s: Math.max(0, Math.min(from, steps.length - 1)), ok: 0, graded: 0, checked: false, right: false, st: {}, t0: Date.now(), broke: 0, outShown: false, videoDone: {} };
   bud.mood = "happy";
   initStep();
+  trackProgress();
   lessonRender();
   setOvRerender(() => lessonRender());
   if (!PO()) startTalk("lessonTalk", LINES.lesson, t("lesson.letsgo"));
@@ -155,7 +167,8 @@ export function lessonRender(fx?: string) {
   let body = "", ready = false, auto = false, hint = "";
   switch (st.t) {
     case "learn":
-      body = (st.img ? `<figure class="limg"><img src="${st.img.src}" alt="${esc(tx(st.img.alt))}" loading="lazy"><figcaption>${tx(st.img.credit)}</figcaption></figure>`
+      body = (st.photo ? realImage(st.photo, `<div class="scene">${st.art || ""}</div>`, { ratio: "16/10", cls: "lphoto" }) + (st.cap ? `<div class="cap muted">${tx(st.cap)}</div>` : "")
+        : st.img ? `<figure class="limg"><img src="${st.img.src}" alt="${esc(tx(st.img.alt))}" loading="lazy"><figcaption>${tx(st.img.credit)}</figcaption></figure>`
         : st.art ? `<div class="scene"${st.fs ? ` style="font-size:${st.fs}px"` : ""}>${st.art}${st.cap ? `<div class="cap">${tx(st.cap)}</div>` : ""}</div>` : "")
         + `<div class="learnt">${tx(st.title)}</div><div class="ltext">${tx(st.text)}</div>`
         + (st.items ? `<div class="icons3">${st.items.map(([e, l]) => `<div class="card"><div>${e}</div>${tx(l)}</div>`).join("")}</div>` : "")
@@ -301,9 +314,9 @@ export function lessonRender(fx?: string) {
   }
 
   const talkEl = PO() ? "" : `<div class="bubble sm talk" id="lessonTalk"></div>`;
-  const tag = (L.deep ? `<span class="deeptag">${t("lp.deepTag")}</span> ` : "") + t("type." + st.t);
+  const tag = (L.deep ? `<span class="deeptag">${icon("deep", { size: 13, tint: 0 })} ${t("lp.deepTag")}</span> ` : "") + t("type." + st.t);
   const wave = (fx === "wave" || fx === "shake") && !PO() ? " " + fx : "";
-  openO(`<div class="ohead"><button class="x" onclick="A.quitLesson()" aria-label="${t("lp.quit")}">✕</button><div class="prog"><i style="width:${pct}%"></i></div>${heartsHTML(L.broke)}${S.set.intel ? `<button class="infobtn" onclick="A.openAssistant()" aria-label="Tips"><i>i</i></button>` : ""}</div>
+  openO(`<div class="ohead"><button class="x" onclick="A.quitLesson()" aria-label="${t("lp.quit")}">${icon("close", { size: 26 })}</button><div class="prog"><i style="width:${pct}%"></i></div>${heartsHTML(L.broke)}${S.set.intel ? `<button class="infobtn" onclick="A.openAssistant()" aria-label="Tips">${icon("info", { size: 22, tint: 0 })}</button>` : ""}</div>
     <div class="obody${wave}" id="lbody"><div class="budrow"><div id="bud" class="bud" data-size="56">${lion(56, bud.mood)}</div>${talkEl}</div>
     <div class="ltag">${tag}</div>${body}</div>${foot}<div id="lmodal"></div>`, { noWx: true });
   paintTalk(false);
@@ -337,7 +350,7 @@ function finishStep(right: boolean) {
   if (!L) return;
   L.checked = true; L.right = right; L.graded++;
   if (right) L.ok++;
-  else if (S.hearts > 0) { S.hearts--; L.broke = 1; save(); }
+  else if (S.hearts > 0 && L.les.kind !== "placement") { S.hearts--; L.broke = 1; save(); }
   lessonRender(right ? "wave" : "shake");
   if (right) { confetti(); emote("cheer", 1600); react(rand(REACT.ok())); }
   else { const m = Math.random() < 0.5 ? "sad" : "laugh"; emote(m, 2600); react(rand(m === "sad" ? REACT.sad() : REACT.laugh())); }
@@ -417,7 +430,7 @@ function nextStep() {
   // out of hearts → refresher first
   if (S.hearts <= 0 && !L.outShown) { L.outShown = true; return outOfHearts(); }
   L.s++;
-  if (L.s < L.steps.length) { initStep(); lessonRender(); $("#lbody")?.scrollTo(0, 0); return; }
+  if (L.s < L.steps.length) { initStep(); trackProgress(); lessonRender(); $("#lbody")?.scrollTo(0, 0); return; }
   lessonDone();
 }
 
@@ -442,7 +455,9 @@ function lessonDone() {
   if (!L) return;
   stopTalk(); stopVideo();
   const les = L.les, n = Math.max(1, L.graded), pct = L.graded ? L.ok / n : 1, xp = 10 + L.ok * 5, secs = Math.round((Date.now() - L.t0) / 1000);
-  S.xp += xp;
+  S.inprog = null;
+  if (les.kind === "placement") return placementDone(pct, xp);
+  addXP(xp);
   const prev = S.lessons[les.id];
   const stars = pct >= 0.99 ? 3 : pct >= 0.66 ? 2 : 1;
   // stars & score come from the basic part; finishing the deep dive only adds the 🔬 badge
@@ -453,17 +468,33 @@ function lessonDone() {
   const nextLes = ALL_LESSONS.find((x) => !S.lessons[x.id] && x.id !== les.id);
   const title = L.deep ? t("res.deepDone") : pct === 1 ? t("res.perfect") : pct >= 0.66 ? t("res.complete") : pct > 0 ? t("res.madeIt") : t("res.tough");
   const buttons: Array<[string, string, string?]> = [];
-  if (!L.deep && les.deep) buttons.push([t("res.deep"), `A.startLesson('${les.id}',true)`, "sun"]);
-  if (nextLes) buttons.push([`${t("res.next")} · ${nextLes.icon}`, `A.startLesson('${nextLes.id}')`, "good"]);
+  if (!L.deep && les.deep) buttons.push([`${icon("deep", { size: 20, tint: 0.3 })} ${t("res.deep")}`, `A.startLesson('${les.id}',true)`, "sun"]);
+  if (nextLes) buttons.push([`${t("res.next")} · ${icon(nextLes.ic, { size: 20, color: "#fff", tint: 0.35 })}`, `A.startLesson('${nextLes.id}')`, "good"]);
   else if (pct < 0.66) buttons.push([t("res.retry"), `A.startLesson('${les.id}',${L.deep})`, "good"]);
   buttons.push([t("c.backHome"), "A.backHome()", "ghost"]);
   const wasDeep = L.deep;
   L = null;
   setOvRerender(null);
   resultPopup({
-    title, sub: `${les.icon} ${tx(les.title)}${wasDeep ? " · " + t("lp.deepTag") : ""}`, pct, noWx: true,
+    title, sub: `${tx(les.title)}${wasDeep ? " · " + t("lp.deepTag") : ""}`, pct, noWx: true,
     stats: [[`${Math.round(pct * n)}/${n}`, t("res.correct")], [fmtTime(secs), t("res.time")], [`+${xp}`, "XP"]],
     buttons,
+  });
+}
+
+/** Placement result → Alti Lion's level + a suggested first lesson (design doc 3.2). */
+function placementDone(pct: number, xp: number) {
+  const lvl = pct >= 0.75 ? "p" : pct >= 0.4 ? "l" : "n";
+  S.placement = { lvl, score: Math.round(pct * 100) };
+  addXP(xp);
+  const pick = lvl === "p" ? findLesson("c-breakeven") : findLesson("p-budget");
+  L = null;
+  setOvRerender(null);
+  resultPopup({
+    title: t("pt.done"), sub: t("pt.level", { l: t("as.lvl." + lvl) }), pct: Math.max(pct, 0.7), noWx: true,
+    stats: [[`${Math.round(pct * 8)}/8`, t("res.correct")], [t("as.lvl." + lvl).split(" ")[0], t("pt.lvlShort")], [`+${xp}`, "XP"]],
+    extra: pick ? `<p class="muted" style="font-weight:800;margin:0 0 12px">${t("pt.suggest", { title: tx(pick.title) })}</p>` : "",
+    buttons: [...(pick ? [[`${t("c.start")} · ${tx(pick.title)}`, `A.startLesson('${pick.id}')`, "good"] as [string, string, string]] : []), [t("c.backHome"), "A.backHome()", "ghost"]],
   });
 }
 

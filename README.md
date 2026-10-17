@@ -29,7 +29,10 @@ src/ui/                 shell (thanh trên, điều hướng, overlay, pop-up k�
 src/lesson/             types.ts (định dạng dữ liệu bài học) · player.ts (engine 16 dạng bài) · video.ts (trình phát video hoạt họa)
 src/assistant/          assistant.ts (nút Alti Lion góc phải + chat theo ngữ cảnh) · kb.ts (kho câu trả lời 3 cấp × 2 ngôn ngữ) · context.ts
 src/content/            domains.ts (5 mảng & danh sách bài) · lessons/*.ts (mỗi bài một file)
-src/styles/             base.css (từ altifi-base.html) · lesson.css (từ prototype) · app.css (phần mới)
+src/styles/             base.css (từ altifi-base.html) · lesson.css (từ prototype) · app.css · ui2.css (nâng cấp giao diện 10c)
+src/ui/icons.ts         bộ icon SVG dùng chung: icon(name, {size, color, label}) — xem tất cả ở /dev/icons.html khi chạy dev
+src/ui/scenes.ts        mảnh minh họa SVG (cây, nhà, cửa hàng, tòa kính, tòa thị chính, cảng) + Alti Lion toàn thân ở mascot/lion.ts
+src/ui/realimage.ts     ảnh thật từ Wikimedia Commons (lấy lúc chạy trong trình duyệt người dùng)
 reference/              3 file HTML gốc (base, prototype, alti-lion) để đối chiếu
 assets/CREDITS.md       nguồn & giấy phép ảnh/asset
 ```
@@ -43,6 +46,16 @@ Dạng bài tập (`t:`): `learn` · `video` · `pick` · `mcq` · `sort` · `ma
 Bài có thể có `deep: [...]` (tầng **Đào sâu**), `prereq` (**Nên biết trước**) và `review` (thẻ **Ôn nhanh 1 phút**, cũng dùng để hồi tim).
 
 Video hoạt họa = một danh sách cảnh (`VideoDef` trong `src/lesson/video.ts`), ví dụ `compoundVideo` trong `p-inflation.ts`.
+
+## Ảnh thật (RealImage)
+
+Bài Khám phá, phòng bảo tàng khủng hoảng và phần mở đầu bài học khai báo `imageQuery` (hoặc `photo: { query }` trong bài học).
+Trình duyệt của người dùng tự gọi API Wikimedia Commons, **chỉ nhận ảnh giấy phép tự do** (Public domain, CC0, CC BY, CC BY-SA), hiện dòng ghi nguồn và lưu cache.
+Mất mạng hoặc không tìm thấy ảnh thì hiện hình minh họa SVG.
+
+**Chọn & ghim ảnh cho video demo:** mở app với `?pick=1` (vd `http://localhost:5173/?pick=1`; khi chạy `npm run dev` thì luôn bật).
+Mỗi ảnh có nút ↻ (xem ảnh khác) và nút **imageFile** (chép dòng `imageFile: "Tên_file.jpg"`).
+Dán dòng đó vào dữ liệu (`imageFile` trong `src/ui/explore.ts`, `src/ui/play.ts`; `file` trong `photo` của bài học) để ảnh cố định khi quay.
 
 ## AI
 

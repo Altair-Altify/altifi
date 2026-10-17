@@ -2,6 +2,8 @@
 import "./styles/base.css";
 import "./styles/lesson.css";
 import "./styles/app.css";
+import "./styles/ui2.css";
+import { installPattern } from "./ui/pattern";
 import "./core/actions";
 import { S } from "./core/state";
 import { onLangChange } from "./i18n/i18n";
@@ -32,10 +34,11 @@ reg({ afterReset: () => { clearChats(); closeAssistant(); applyTheme(); } });
 window.addEventListener("error", (e) => { try { minitoast("⚠️ " + (e.message || t("c.error"))); } catch { /* */ } });
 window.addEventListener("unhandledrejection", () => { try { minitoast("⚠️ " + t("c.error")); } catch { /* */ } });
 
+installPattern();
 pickWx();
 updateWeather();
 applyTheme();
-render();
+render(true);
 
 // PWA: offline cache + "Add to Home Screen" (production builds only)
 if ("serviceWorker" in navigator && import.meta.env.PROD) {

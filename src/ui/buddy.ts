@@ -6,6 +6,7 @@ import { t } from "../i18n/i18n";
 import { lion, LION_EYES, LION_MOUTHS, LION_COLORS, ACC } from "../mascot/lion";
 import { openO, closeO, setOvRerender } from "./shell";
 import { sheet } from "./fx";
+import { icon } from "./icons";
 
 let D: Buddy | null = null;
 let cTab = "face";
@@ -29,7 +30,7 @@ function openCustom() {
 }
 function draw() {
   if (!D) return;
-  openO(`<div class="chead"><button class="backbtn" onclick="A.custBack()" aria-label="${t("c.back")}">←</button><b>${t("bd.title")}</b><button class="savebtn${isDirty() ? " show" : ""}" id="savebtn" onclick="A.custSave()">${t("c.save")}</button></div>
+  openO(`<div class="chead"><button class="backbtn" onclick="A.custBack()" aria-label="${t("c.back")}">${icon("back", { size: 22 })}</button><b>${t("bd.title")}</b><button class="savebtn${isDirty() ? " show" : ""}" id="savebtn" onclick="A.custSave()">${t("c.save")}</button></div>
     <div class="obody">
       <div class="stage"><div class="cprev" id="cprev">${lion(170, "happy", D)}</div><div><span class="nametag" id="cname">${esc(D.name)}</span></div></div>
       <div class="namebox"><label for="nameIn">${t("bd.name")}</label><input id="nameIn" maxlength="12" autocomplete="off" value="${esc(D.name)}" oninput="A.budName(this.value)" placeholder="${t("bd.namePh")}"><button class="dice" onclick="A.randName()" aria-label="${t("bd.random")}">🎲</button></div>
@@ -55,7 +56,7 @@ function drawTiles() {
   } else {
     const part = cTab as "hat" | "glasses" | "extra";
     const label = { hat: t("bd.tapHat"), glasses: t("bd.tapGlasses"), extra: t("bd.tapExtra") }[part];
-    h += `<div class="sub">${label}</div><div class="tilegrid">` + tile(!D[part], `<span class="none">🚫</span>`, t("bd.none"), `A.setPart('${part}',null)`)
+    h += `<div class="sub">${label}</div><div class="tilegrid">` + tile(!D[part], `<span class="none">${icon("close", { size: 30 })}</span>`, t("bd.none"), `A.setPart('${part}',null)`)
       + ACC[part].map((a) => tile(D![part] === a.id, `<svg width="70" height="58" viewBox="${a.vb}" aria-hidden="true">${a.tile || a.svg}</svg>`, nm(a.n), `A.setPart('${part}','${a.id}')`)).join("") + `</div>`;
   }
   $("#ctiles")!.innerHTML = h;

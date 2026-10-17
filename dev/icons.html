@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Altifi icons</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>body{font-family:Nunito,sans-serif;background:#F2F3FF;color:#1E1B3A;padding:16px}#g{display:grid;grid-template-columns:repeat(8,1fr);gap:10px}.c{background:#fff;border-radius:14px;padding:10px 4px;text-align:center;font-size:11px;font-weight:800;color:#5B5BD6}.c div{color:#6B6890;margin-top:4px}</style></head>
+<body><h2>Altifi icon set (dev only)</h2><div id="g"></div>
+<script type="module">
+import { icon, ICONS } from "../src/ui/icons.ts";
+document.getElementById("g").innerHTML = ICONS.map(n => `<div class="c">${icon(n, { size: 32 })}<div>${n}</div></div>`).join("");
+</script></body></html>

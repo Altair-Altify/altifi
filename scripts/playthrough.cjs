@@ -41,7 +41,7 @@ const LANG = process.argv[2] || 'vi';
         await p.click('.ofoot .btn.good'); await p.waitForTimeout(400);
       } else if (info.t === 'sort') {
         const n = await p.evaluate(() => window.__lesson().st.items.length);
-        for (let i = 0; i < n; i++) { await p.evaluate(() => { const L = window.__lesson(); A.sortPick(L.st.items[L.st.idx][2]); }); await p.waitForTimeout(650); }
+        for (let i = 0; i < n; i++) { await p.evaluate(() => { const L = window.__lesson(); A.sortPick(L.st.items[L.st.idx][2]); }); await p.waitForTimeout(800); }
       } else {
         await p.evaluate(() => {
           const L = window.__lesson(), st = L.steps[L.s];

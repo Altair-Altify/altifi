@@ -10,6 +10,7 @@ const lesson: Lesson = {
   id: "c-breakeven",
   domain: "corporate",
   icon: "🧋",
+  ic: "scale",
   minutes: 8,
   title: { vi: "Doanh thu, chi phí & điểm hòa vốn", en: "Revenue, costs & break-even" },
   desc: {
@@ -36,7 +37,7 @@ const lesson: Lesson = {
   kb: ["breakeven", "profit"],
   steps: [
     {
-      t: "learn", art: "🧋🧋🧋👥👥👥 → 📉?", cap: { vi: "Đông khách ≠ có lời", en: "Busy ≠ profitable" },
+      t: "learn", photo: { query: "bubble tea shop" }, art: "🧋🧋🧋👥👥👥 → 📉?", cap: { vi: "Đông khách ≠ có lời", en: "Busy ≠ profitable" },
       title: { vi: "Quán đông mà vẫn lỗ?", en: "Busy, yet losing money?" },
       text: {
         vi: "Linh mở quán trà sữa gần trường. Tháng nào cũng bán khoảng <b>3.000 ly</b>, giờ tan học khách xếp hàng. Vậy mà cuối tháng, Linh gần như không còn đồng lời nào. Chuyện gì đang xảy ra? Để trả lời, ta cần tách <b>chi phí</b> thành hai loại.",

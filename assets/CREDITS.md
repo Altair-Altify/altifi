@@ -9,4 +9,5 @@ Không dùng ảnh có bản quyền, ảnh nhân vật/thương hiệu nổi ti
 | public/icon*.png, icon.svg | Nhóm Altair (Alti Lion, vẽ bằng code) | src/mascot/lion.ts | Của nhóm | — |
 | Font Nunito | Vernon Adams, Cyreal, Jacques Le Bailly | fonts.google.com | SIL Open Font License 1.1 | tải từ Google Fonts |
 
-_Chưa có ảnh thật nào trong bản 18/10 (xem PROGRESS.md)._ Khi thêm ảnh vào bài học, dùng trường `img: { src, alt, credit }` của bước `learn` — `credit` hiện ngay dưới ảnh.
+**Ảnh từ Wikimedia Commons (RealImage):** ảnh được tải lúc chạy, và tác giả · giấy phép · link Commons hiện ngay trên ảnh. Component chỉ nhận ảnh có `LicenseShortName` là Public domain / CC0 / CC BY / CC BY-SA. Khi nhóm **ghim** một ảnh (`imageFile`), hãy chép thêm một dòng vào bảng trên (tên file, tác giả, giấy phép) để có nguồn trong proposal.
+Mọi icon, minh họa SVG (thị trấn, con đường học, ảnh bìa) và họa tiết nền do nhóm vẽ bằng code (`src/ui/icons.ts`, `src/ui/scenes.ts`). Khi thêm ảnh vào bài học, dùng trường `img: { src, alt, credit }` của bước `learn` — `credit` hiện ngay dưới ảnh.
