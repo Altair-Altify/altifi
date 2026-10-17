@@ -1,0 +1,1449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Altifi Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F3FF;--card:#fff;--ink:#1E1B3A;--muted:#6B6890;--line:#E3E3F2;
+  --pri:#5B5BD6;--pri-d:#4342B0;--sun:#FFC93C;--sun-d:#E0A800;
+  --good:#2BB673;--good-d:#1E8E58;--bad:#EF4E4E;--bad-d:#C53333;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:Nunito,system-ui,-apple-system,sans-serif;color:var(--ink);background:linear-gradient(160deg,#DCDDFE,#FFF1C7);display:flex;justify-content:center}
+button{font-family:inherit;cursor:pointer}
+.phone{width:100%;max-width:400px;height:100vh;height:100dvh;background:var(--bg);position:relative;display:flex;flex-direction:column;overflow:hidden}
+@media(min-width:520px){body{align-items:center;padding:20px}.phone{height:820px;max-height:calc(100vh - 40px);border-radius:40px;border:10px solid #1E1B3A;box-shadow:0 30px 60px rgba(30,27,58,.25)}}
+.top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#fff;border-bottom:2px solid var(--line);font-weight:900}
+.top .logo{color:var(--pri);font-size:20px;letter-spacing:-.5px}
+.stats{display:flex;gap:12px;font-size:14px}
+.screen{flex:1;overflow-y:auto;padding:16px 16px 28px}
+.nav{display:flex;background:#fff;border-top:2px solid var(--line)}
+.nav button{flex:1;border:none;background:none;padding:10px 0 12px;font-size:11px;font-weight:800;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav button span{font-size:22px;filter:grayscale(1);opacity:.6}
+.nav button.on{color:var(--pri)}
+.nav button.on span{filter:none;opacity:1}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:16px;font-weight:900;font-size:16px;color:#fff;background:var(--pri);box-shadow:0 4px 0 var(--pri-d);letter-spacing:.3px}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--pri-d)}
+.btn.good{background:var(--good);box-shadow:0 4px 0 var(--good-d)}
+.btn.bad{background:var(--bad);box-shadow:0 4px 0 var(--bad-d)}
+.btn.sun{background:var(--sun);color:#4A3300;box-shadow:0 4px 0 var(--sun-d)}
+.btn.ghost{background:#fff;color:var(--pri);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.btn:disabled{background:#CFCEE3;box-shadow:0 4px 0 #B3B2CC;color:#fff;transform:none;border-color:transparent}
+.card{background:#fff;border:2px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px}
+.muted{color:var(--muted)}
+h2{margin:0 0 6px;font-size:20px}
+h3{margin:0 0 4px;font-size:16px}
+p{margin:0 0 8px;line-height:1.45}
+.hello{display:flex;gap:10px;align-items:center}
+.bubble{background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px 12px;font-weight:700;font-size:14px;position:relative;flex:1;line-height:1.45}
+.bubble:before{content:"";position:absolute;left:-9px;top:22px;border:8px solid transparent;border-right-color:var(--line);border-left:0}
+.unit{border-radius:20px;padding:14px 16px;color:#fff;margin:18px 0 8px;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+.unit small{opacity:.85;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:1px}
+.unit h3{font-size:18px}
+.path{display:flex;flex-direction:column;align-items:center;gap:14px;padding:10px 0}
+.node{width:70px;height:66px;border-radius:50%;border:none;font-size:28px;position:relative;color:#fff}
+.node.locked{background:#D7D6EA;box-shadow:0 6px 0 #B9B8D2;cursor:not-allowed}
+.node.done{background:var(--sun);box-shadow:0 6px 0 var(--sun-d)}
+.node.current{box-shadow:0 6px 0 rgba(0,0,0,.25);animation:pulse 1.6s infinite}
+.node .tag{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:#fff;color:var(--pri);font-size:12px;font-weight:900;padding:4px 10px;border-radius:10px;border:2px solid var(--line);white-space:nowrap}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.overlay{position:absolute;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column}
+.overlay.show{display:flex}
+.ohead{display:flex;align-items:center;gap:12px;padding:16px}
+.x{border:none;background:none;font-size:24px;color:var(--muted);padding:0 4px}
+.prog{flex:1;height:14px;background:#DDDCF0;border-radius:10px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--good);border-radius:10px;transition:width .3s}
+.obody{flex:1;overflow-y:auto;padding:4px 18px 18px}
+.ofoot{padding:16px 18px 20px;border-top:2px solid var(--line);background:#fff}
+.ofoot.ok{background:#D9F7E7;border-color:#B6EBCF}
+.ofoot.no{background:#FFE1E1;border-color:#FBC3C3}
+.fb{font-weight:900;font-size:18px;margin-bottom:4px}
+.fb + p{font-size:14px;margin-bottom:12px}
+.q{font-size:20px;font-weight:900;margin:4px 0 16px;line-height:1.3}
+.opt{display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:10px;border-radius:16px;border:2px solid var(--line);background:#fff;font-weight:800;font-size:15px;color:var(--ink);box-shadow:0 3px 0 var(--line)}
+.opt.sel{border-color:var(--pri);background:#ECECFF;box-shadow:0 3px 0 #C8C8F5}
+.opt.right{border-color:var(--good);background:#D9F7E7}
+.opt.wrong{border-color:var(--bad);background:#FFE1E1}
+.center{text-align:center}
+.pill{display:inline-block;font-size:11px;font-weight:900;padding:3px 8px;border-radius:8px;background:#ECECFF;color:var(--pri);margin-top:4px}
+.valbar{height:10px;background:#E4E3F3;border-radius:8px;overflow:hidden;margin-top:6px}
+.valbar i{display:block;height:100%;border-radius:8px;transition:width .5s}
+.badge{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:38px;font-weight:900;margin:8px auto 10px;box-shadow:0 6px 0 rgba(0,0,0,.18);animation:pop .4s}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+.chatlog{display:flex;flex-direction:column;gap:10px}
+.msg{max-width:82%;padding:10px 13px;border-radius:16px;font-weight:700;font-size:14px;line-height:1.45}
+.msg.bot{background:#fff;border:2px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.bot.pro{border-color:#C9B6FF;background:#F7F4FF}
+.msg.me{background:var(--pri);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.mtag{font-size:10px;font-weight:900;color:var(--muted);margin:3px 0 0 42px;letter-spacing:.3px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}
+.chip{flex:none;border:2px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-weight:800;font-size:13px;color:var(--pri)}
+.chatbar{display:flex;gap:8px;padding:10px 16px 14px;background:#fff;border-top:2px solid var(--line)}
+.chatbar input{flex:1;font-family:inherit;font-size:15px;font-weight:700;border:2px solid var(--line);border-radius:14px;padding:10px 12px;outline:none}
+.chatbar button{border:none;background:var(--pri);color:#fff;border-radius:14px;padding:0 16px;font-weight:900}
+.lvlbar{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:8px 10px;margin-bottom:12px;font-size:12px;font-weight:800;color:var(--muted)}
+.lvlbtn{border:2px solid var(--pri);background:#ECECFF;color:var(--pri);border-radius:999px;padding:6px 10px;font-weight:900;font-size:13px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid .card{margin:0;text-align:center;padding:12px}
+.grid b{font-size:22px;display:block}
+.toast{position:absolute;top:-120px;left:12px;right:12px;background:rgba(255,255,255,.97);border-radius:18px;padding:12px 14px;box-shadow:0 12px 30px rgba(0,0,0,.18);display:flex;gap:10px;align-items:center;z-index:50;transition:top .4s}
+.toast.show{top:12px}
+.toast .ic{width:38px;height:38px;border-radius:10px;background:var(--pri);display:flex;align-items:center;justify-content:center;flex:none}
+.typing{display:inline-flex;gap:4px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bl 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,100%{opacity:.3}50%{opacity:1}}
+.warn{font-size:13px;font-weight:800;color:var(--bad);margin-top:8px}
+/* ---- Buddy & character customization ---- */
+.mascotbtn{position:relative;border:none;background:none;padding:0;flex:none;border-radius:50%;transition:transform .15s}
+.mascotbtn:hover{transform:scale(1.05) rotate(-3deg)}
+.mascotbtn:active{transform:scale(.95)}
+.editdot{position:absolute;right:0;bottom:4px;width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 0 var(--line)}
+.nav button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:25%}
+.chead{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;padding:14px 16px 10px}
+.chead b{font-size:18px;text-align:center}
+.backbtn{justify-self:start;border:none;background:#fff;border:2px solid var(--line);border-radius:14px;width:44px;height:40px;font-size:20px;font-weight:900;color:var(--ink);box-shadow:0 3px 0 var(--line)}
+.savebtn{justify-self:end;border:none;background:var(--good);color:#fff;font-weight:900;font-size:15px;padding:9px 18px;border-radius:14px;box-shadow:0 4px 0 var(--good-d);opacity:0;transform:scale(.4) translateY(-8px);pointer-events:none;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.savebtn.show{opacity:1;transform:none;pointer-events:auto}
+.savebtn.done{background:var(--pri);box-shadow:0 4px 0 var(--pri-d)}
+.stage{background:radial-gradient(circle at 50% 42%,#fff 0,#E8E9FF 72%);border-radius:28px;padding:14px 0 16px;text-align:center;margin-bottom:14px;border:2px solid var(--line)}
+.cprev{display:inline-block}
+.cprev.bump{animation:bump .45s}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.1) rotate(-4deg)}70%{transform:scale(.96) rotate(2deg)}100%{transform:scale(1)}}
+.nametag{display:inline-block;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#fff;border:2px solid var(--line);border-radius:999px;padding:5px 18px;font-weight:900;font-size:18px}
+.namebox{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:6px 6px 6px 14px;margin-bottom:16px}
+.namebox:focus-within{border-color:var(--pri)}
+.namebox label{font-weight:900;font-size:14px;color:var(--muted);white-space:nowrap}
+.namebox input{flex:1;min-width:0;border:none;outline:none;font-family:inherit;font-size:17px;font-weight:800;color:var(--ink);padding:8px 4px;background:none}
+.dice{border:none;background:var(--bg);border-radius:12px;font-size:20px;width:46px;height:42px}
+.ctabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:6px;scrollbar-width:none}
+.ctab{flex:none;border:2px solid var(--line);background:#fff;border-radius:14px;padding:8px 12px;font-weight:900;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:6px;box-shadow:0 3px 0 var(--line)}
+.ctab.on{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 3px 0 var(--pri-d)}
+.ctab .e{font-size:18px}
+.sub{font-weight:900;font-size:13px;color:var(--muted);margin:10px 2px 10px;text-transform:uppercase;letter-spacing:.6px}
+.tilegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.tile{position:relative;border:2px solid var(--line);background:#fff;border-radius:18px;padding:8px 4px 9px;box-shadow:0 3px 0 var(--line);display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:800;font-size:13px;color:var(--ink)}
+.tile .timg{height:66px;width:100%;display:flex;align-items:center;justify-content:center}
+.tile .none{font-size:30px;opacity:.5}
+.tile.on{border-color:var(--pri);background:#ECECFF;box-shadow:0 3px 0 #C8C8F5}
+.tile.on:after{content:"✓";position:absolute;top:-8px;right:-6px;width:24px;height:24px;border-radius:50%;background:var(--pri);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+.tile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.linkbtn{display:block;margin:10px auto 0;border:none;background:none;color:var(--muted);font-weight:800;font-size:13px;text-decoration:underline}
+.modalbg{position:absolute;inset:0;background:rgba(30,27,58,.45);display:flex;align-items:flex-end;z-index:30}
+.sheet{background:#fff;width:100%;border-radius:26px 26px 0 0;padding:20px 18px 24px;text-align:center;animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(100%)}}
+.sheet .btn{margin-top:10px}
+.minitoast{position:absolute;left:50%;top:66px;background:var(--ink);color:#fff;font-weight:800;font-size:14px;padding:9px 16px;border-radius:12px;white-space:nowrap;z-index:60;animation:fadeio 1.9s forwards;pointer-events:none}
+@keyframes fadeio{0%{opacity:0;transform:translate(-50%,-8px)}15%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
+
+/* ---- Lessons: mixed exercise types ---- */
+.ltag{font-weight:900;font-size:12px;letter-spacing:1px;color:var(--pri);margin:2px 0 6px}
+.scene{border-radius:24px;padding:20px 12px;text-align:center;font-size:50px;line-height:1.2;margin:4px 0 14px;background:linear-gradient(160deg,#E8E9FF,#FFF1C7);border:2px solid var(--line);animation:pop .4s}
+.scene .cap{font-size:13px;font-weight:800;color:var(--muted);margin-top:8px;line-height:1.3}
+.learnt{font-size:22px;font-weight:900;margin:2px 0 8px}
+.ltext{font-size:16px;font-weight:700;line-height:1.5}
+.ltext b{color:var(--pri)}
+.icons3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 0}
+.icons3 .card{margin:0;text-align:center;padding:10px 6px;font-size:12px;font-weight:800;line-height:1.3}
+.icons3 .card div{font-size:30px;margin-bottom:4px}
+.picgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pic{border:2px solid var(--line);background:#fff;border-radius:18px;padding:16px 8px 12px;box-shadow:0 4px 0 var(--line);font-weight:800;font-size:14px;color:var(--ink)}
+.pic div{font-size:48px;line-height:1.1;margin-bottom:6px}
+.pic.sel,.mbtn.sel{border-color:var(--pri);background:#ECECFF;box-shadow:0 4px 0 #C8C8F5}
+.pic.right,.oslot.right{border-color:var(--good);background:#D9F7E7;box-shadow:0 4px 0 #B6EBCF}
+.pic.wrong,.oslot.wrong{border-color:var(--bad);background:#FFE1E1;box-shadow:0 4px 0 #FBC3C3}
+.sortwrap{position:relative;height:214px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.sortcount{position:absolute;top:0;right:0;font-weight:900;font-size:13px;color:var(--muted)}
+.sortcard{width:200px;height:190px;background:#fff;border:2px solid var(--line);border-radius:24px;box-shadow:0 6px 0 var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:17px;text-align:center;padding:10px;transition:transform .32s ease-in,opacity .32s;animation:pop .3s}
+.sortcard div{font-size:70px;line-height:1.1;margin-bottom:8px}
+.sortcard.ok{border-color:var(--good);background:#D9F7E7}
+.sortcard.no{border-color:var(--bad);background:#FFE1E1}
+.bucketrow{display:flex;gap:10px}
+.bucket{flex:1;border:2px solid var(--line);background:#fff;border-radius:18px;padding:12px 6px;font-weight:900;font-size:15px;color:var(--ink);box-shadow:0 4px 0 var(--line);display:flex;flex-direction:column;align-items:center;gap:2px}
+.bucket span{font-size:28px}
+.bucket:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.srow{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:14px;margin-bottom:8px;font-weight:800;font-size:14px;border:2px solid}
+.srow.ok{background:#EAFBF2;border-color:#B6EBCF}
+.srow.no{background:#FFF0F0;border-color:#FBC3C3}
+.srow .se{font-size:24px}
+.srow b{font-size:12px;white-space:nowrap}
+.matchgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mcol{display:flex;flex-direction:column;gap:10px}
+.mbtn{min-height:62px;border:2px solid var(--line);background:#fff;border-radius:16px;padding:8px 10px;font-weight:800;font-size:14px;color:var(--ink);box-shadow:0 3px 0 var(--line);line-height:1.3}
+.mbtn.gone{opacity:.35;border-color:var(--good);background:#D9F7E7;box-shadow:none;pointer-events:none}
+.mbtn.bad{border-color:var(--bad);background:#FFE1E1;animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.oslots{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.oslot{display:flex;align-items:center;gap:10px;min-height:52px;border:2px solid var(--line);border-radius:16px;background:#fff;padding:8px 12px;font-weight:800;font-size:15px;color:var(--ink);box-shadow:0 3px 0 var(--line);text-align:left;width:100%}
+.oslot.empty{border-style:dashed;box-shadow:none;background:transparent;color:#B3B2CC;font-weight:900}
+.oslot .num{width:24px;height:24px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+.oslot .e{font-size:24px}
+.opool{display:flex;flex-wrap:wrap;gap:8px}
+.pchip{border:2px solid var(--line);background:#fff;border-radius:14px;padding:9px 12px;font-weight:800;font-size:14px;color:var(--ink);box-shadow:0 3px 0 var(--line)}
+.sval{text-align:center;font-size:34px;font-weight:900;color:var(--pri);margin:8px 0}
+.range{width:100%;accent-color:var(--pri);height:28px}
+.rlab{display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--muted)}
+.remain{text-align:center;font-weight:800;margin-bottom:12px}
+.jars{display:flex;gap:10px;align-items:flex-end}
+.jar{flex:1;text-align:center;font-weight:800}
+.jarval{font-size:12px;margin-bottom:4px}
+.jarlid{height:10px;margin:0 8px;background:#C9C8E0;border-radius:6px 6px 2px 2px}
+.jarbody{height:150px;border:3px solid #C9C8E0;border-top-width:1px;border-radius:4px 4px 24px 24px;position:relative;overflow:hidden;background:#fff}
+.jarbody i{position:absolute;left:0;right:0;bottom:0;transition:height .3s}
+.jarbody .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;color:var(--ink)}
+.jarlab{font-size:13px;margin:6px 0}
+.stepper{display:flex;gap:6px;justify-content:center}
+.stepper button{width:40px;height:36px;border-radius:12px;border:2px solid var(--line);background:#fff;font-weight:900;font-size:18px;color:var(--pri);box-shadow:0 3px 0 var(--line)}
+.jart{font-size:12px;font-weight:900;padding:4px;border-radius:8px}
+.jart.ok{background:#D9F7E7;color:var(--good-d)}.jart.no{background:#FFE1E1;color:var(--bad-d)}
+.post{background:#fff;border:2px solid var(--line);border-radius:20px;overflow:hidden}
+.phead{display:flex;gap:10px;align-items:center;padding:12px 14px;border-bottom:2px solid var(--line)}
+.pav{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#FF6FA5,#FFC93C);display:flex;align-items:center;justify-content:center;font-size:22px}
+.pbody{padding:14px;font-size:16px;line-height:2.2;font-weight:700}
+.flag{padding:3px 6px;border-radius:8px;cursor:pointer;border:2px dashed #D7D6EA;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.flag.sel{background:#FFE9B0;border-color:#F2A33A;border-style:solid}
+.flag.isflag{background:#FFE1E1;border-color:var(--bad);border-style:solid}
+.flag.notflag{text-decoration:line-through;opacity:.6}
+.pfoot{padding:10px 14px;border-top:2px solid var(--line);font-size:13px;font-weight:800;color:var(--muted)}
+.receipt{background:#FFFDF6;border:2px dashed #E8DDB8;border-radius:18px;padding:10px}
+.rhead{font-weight:900;text-align:center;padding:6px 0 10px;border-bottom:2px dashed #E8DDB8;margin-bottom:8px}
+.ritem{display:flex;gap:10px;align-items:center;width:100%;border:2px solid transparent;background:none;border-radius:12px;padding:9px 8px;font-weight:800;font-size:14px;color:var(--ink)}
+.ritem span:first-child{font-size:22px}
+.ritem.sel{background:#FFE9B0;border-color:#F2A33A}
+.ritem.isflag{background:#FFE1E1;border-color:var(--bad)}
+.ritem.notflag{opacity:.55;text-decoration:line-through}
+.split{display:flex;border-radius:14px;overflow:hidden;font-size:13px;font-weight:900;color:#fff;line-height:1.3}
+.split i{font-style:normal;padding:18px 4px}
+
+/* ---- Life game (My City) ---- */
+.hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.hud .card{margin:0;padding:8px 10px}
+.hud .muted{font-size:11px;font-weight:900}
+.hud b{display:block;font-size:16px}
+.rankcard{padding:12px 14px;margin-bottom:10px}
+.ladder{display:flex;gap:3px}
+.ladder i{width:9px;height:18px;border-radius:4px;background:#E4E3F3}
+.ladder i.on{background:var(--sun)}
+.town{position:relative;border-radius:24px;overflow:hidden;border:2px solid var(--line);margin-bottom:12px;background:#A5DC86}
+.town svg.map{display:block;width:100%;height:auto}
+.bld{cursor:pointer}
+.bld:hover{filter:brightness(1.06)}
+.mark{animation:bobm .5s infinite alternate;transform-box:fill-box}
+@keyframes bobm{to{transform:translateY(-5px)}}
+.avatar{position:absolute;transform:translate(-50%,-94%);transition:left var(--d,.6s) linear,top var(--d,.6s) linear;pointer-events:none;z-index:3}
+.flipper{transition:transform .15s}
+.avatar.flip .flipper{transform:scaleX(-1)}
+.avatar.walk .bobber{animation:bob .22s infinite alternate}
+@keyframes bob{to{transform:translateY(-4px) rotate(3deg)}}
+.avtip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#fff;border:2px solid var(--line);border-radius:12px;padding:4px 8px;font-size:11px;font-weight:900;white-space:nowrap}
+.todo{display:flex;flex-direction:column;gap:8px}
+.todoi{display:flex;align-items:center;gap:10px;border:2px solid var(--line);background:#fff;border-radius:16px;padding:10px 14px;font-weight:800;font-size:20px;color:var(--ink);box-shadow:0 3px 0 var(--line);text-align:left}
+.todoi span{flex:1;font-size:14px}
+.todoi b{font-size:12px;color:var(--muted)}
+.todoi.done{opacity:.6}
+.gsheet{text-align:left;max-height:90%;overflow-y:auto}
+.shead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.shead .ic{font-size:34px}
+.shead h2{margin:0}
+.choice{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:2px solid var(--line);background:#fff;border-radius:18px;padding:12px 14px;margin-bottom:10px;font-weight:800;font-size:15px;color:var(--ink);box-shadow:0 4px 0 var(--line);line-height:1.35}
+.choice span{font-size:30px;flex:none}
+.choice:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.paper{background:#FFFBEF;border:2px solid #E8DDB8;border-radius:16px;padding:14px;margin-bottom:12px;text-align:center}
+.paper .mast{font-family:Georgia,serif;font-weight:700;font-size:12px;letter-spacing:2px;border-bottom:3px double #1E1B3A;padding-bottom:6px;margin-bottom:8px}
+.paper .hl{font-family:Georgia,serif;font-weight:900;font-size:24px;line-height:1.1;margin:8px 0 4px}
+.paper .yr{display:inline-block;background:#1E1B3A;color:#FFC93C;font-weight:900;font-size:12px;border-radius:8px;padding:3px 8px}
+.shopgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{border:2px solid var(--line);background:#fff;border-radius:18px;padding:10px 8px;text-align:center;font-weight:800;font-size:13px;color:var(--ink);box-shadow:0 3px 0 var(--line)}
+.item div{font-size:34px}
+.item small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.item:disabled{opacity:.45}
+.moneyrow{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:2px solid var(--line);font-weight:800;font-size:14px}
+.btnrow{display:flex;gap:8px}
+.btnrow .btn{font-size:14px;padding:12px 6px;margin-top:0}
+.effs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.eff{font-size:12px;font-weight:900;padding:4px 8px;border-radius:8px}
+.eff.up{background:#D9F7E7;color:var(--good-d)}.eff.down{background:#FFE1E1;color:var(--bad-d)}
+.confetti{font-size:30px;letter-spacing:6px;animation:pop .5s}
+.recap{background:#ECECFF;border:2px solid #C8C8F5;border-radius:16px;padding:12px;margin-top:4px;font-weight:700;font-size:14px;line-height:1.45}
+.recap b{color:var(--pri)}
+.side{display:flex;gap:10px;align-items:flex-start;background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.side>span{font-size:28px;line-height:1}
+.side p{margin:2px 0 0;font-weight:700;font-size:13px;line-height:1.4;color:var(--muted)}
+.ratechip{margin-top:8px;font-size:12px;font-weight:800;color:var(--muted);background:var(--bg);border-radius:10px;padding:6px 8px}
+.fact{background:#FFF7DC;border:2px solid #FBE6A2;border-radius:16px;padding:12px;margin-top:12px;font-weight:700;font-size:14px;line-height:1.45}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top" id="top"></div>
+  <div class="screen" id="screen"></div>
+  <div id="chatbarSlot"></div>
+  <nav class="nav">
+    <button data-t="learn" onclick="go('learn')"><span>📚</span>Learn</button>
+    <button data-t="city" onclick="go('city')"><span>🏙️</span>My City</button>
+    <button data-t="chat" onclick="go('chat')"><span>🪙</span>Ask Tiko</button>
+    <button data-t="me" onclick="go('me')"><span>👤</span>Me</button>
+  </nav>
+  <div class="overlay" id="overlay"></div>
+  <div id="modal"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ---------- Mascot: a coin buddy the user can rename & dress up ---------- */
+const INK="#2A1B00", MOUTH="#5A3B00";
+const ln=(d,c=MOUTH,w=4)=>`<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+const ROUND_EYES=`<ellipse cx="38" cy="47" rx="5" ry="6.5" fill="${INK}"/><ellipse cx="62" cy="47" rx="5" ry="6.5" fill="${INK}"/><circle cx="39.6" cy="44.5" r="1.8" fill="#fff"/><circle cx="63.6" cy="44.5" r="1.8" fill="#fff"/>`;
+const EYES={
+  round:{n:"Round",svg:ROUND_EYES},
+  sparkly:{n:"Sparkly",svg:`<ellipse cx="38" cy="47" rx="6.5" ry="8" fill="${INK}"/><ellipse cx="62" cy="47" rx="6.5" ry="8" fill="${INK}"/><circle cx="40" cy="44" r="2.6" fill="#fff"/><circle cx="64" cy="44" r="2.6" fill="#fff"/><circle cx="36" cy="50" r="1.3" fill="#fff"/><circle cx="60" cy="50" r="1.3" fill="#fff"/>`},
+  happy:{n:"Happy",svg:ln("M32 49 Q38 41 44 49",INK)+ln("M56 49 Q62 41 68 49",INK)},
+  sleepy:{n:"Sleepy",svg:ln("M32 46 Q38 52 44 46",INK)+ln("M56 46 Q62 52 68 46",INK)},
+  wink:{n:"Wink",svg:`<ellipse cx="38" cy="47" rx="5" ry="6.5" fill="${INK}"/><circle cx="39.6" cy="44.5" r="1.8" fill="#fff"/>`+ln("M56 49 Q62 41 68 49",INK)},
+  cool:{n:"Cool",svg:`<path d="M32 45 H44 Q44 52 38 52 Q32 52 32 45Z" fill="${INK}"/><path d="M56 45 H68 Q68 52 62 52 Q56 52 56 45Z" fill="${INK}"/>`}
+};
+const MOUTHS={
+  smile:{n:"Smile",svg:ln("M38 57 Q50 70 62 57")},
+  grin:{n:"Big grin",svg:`<path d="M38 57 L62 57 Q62 72 50 72 Q38 72 38 57Z" fill="${MOUTH}"/><ellipse cx="50" cy="68" rx="6" ry="3.4" fill="#FF7B7B"/>`},
+  silly:{n:"Silly",svg:`<path d="M47 61 Q46 71 51.5 71 Q57 71 56 61Z" fill="#FF7B7B"/>`+ln("M40 58 Q50 65 60 58")},
+  cat:{n:"Kitty",svg:ln("M40 58 Q45 64 50 58 Q55 64 60 58")},
+  ooh:{n:"Ooh",svg:`<ellipse cx="50" cy="62" rx="5" ry="6" fill="${MOUTH}"/>`},
+  calm:{n:"Calm",svg:ln("M43 61 H57")}
+};
+const COLORS={
+  gold:{n:"Gold",main:"#FFC93C",dark:"#E0A800",ring:"#F5B400"},
+  mint:{n:"Mint",main:"#7EE0B5",dark:"#3FBF88",ring:"#5ED3A0"},
+  sky:{n:"Sky",main:"#8EC5FF",dark:"#4C93E6",ring:"#6FAEF5"},
+  pink:{n:"Bubblegum",main:"#FFB3C7",dark:"#E57A9A",ring:"#F598B2"},
+  grape:{n:"Grape",main:"#C9B6FF",dark:"#8E72E6",ring:"#B09BF7"},
+  silver:{n:"Silver",main:"#E6E9F0",dark:"#A9AFC0",ring:"#CBD0DC"}
+};
+const heart=(cx,cy,s)=>`M${cx} ${cy+7*s} C${cx-13*s} ${cy-s} ${cx-7*s} ${cy-11*s} ${cx} ${cy-4*s} C${cx+7*s} ${cy-11*s} ${cx+13*s} ${cy-s} ${cx} ${cy+7*s}Z`;
+const star=(x,y,r)=>`M${x} ${y-r} Q${x} ${y} ${x+r} ${y} Q${x} ${y} ${x} ${y+r} Q${x} ${y} ${x-r} ${y} Q${x} ${y} ${x} ${y-r}Z`;
+const petals=[0,72,144,216,288].map(a=>`<circle cx="${(79+6.5*Math.cos(a*Math.PI/180)).toFixed(1)}" cy="${(28+6.5*Math.sin(a*Math.PI/180)).toFixed(1)}" r="5.5" fill="#FF8FB1"/>`).join("");
+const ACC={
+  hat:[
+    {id:"party",n:"Party hat",vb:"24 -18 52 48",svg:`<g transform="rotate(8 50 20)"><polygon points="36,26 64,26 50,-8" fill="#FF6FA5"/>${ln("M41 16 H59","#fff",3)}${ln("M45 6 H55","#fff",3)}<circle cx="50" cy="-9" r="5" fill="#FFE066"/></g>`},
+    {id:"crown",n:"Crown",vb:"24 -2 52 34",svg:`<polygon points="30,28 30,8 40,17 50,2 60,17 70,8 70,28" fill="#FFD54F" stroke="#C99400" stroke-width="2.5" stroke-linejoin="round"/><circle cx="40" cy="23" r="2.8" fill="#EF4E4E"/><circle cx="50" cy="22" r="3.2" fill="#5B5BD6"/><circle cx="60" cy="23" r="2.8" fill="#2BB673"/>`},
+    {id:"cap",n:"Cap",vb:"20 0 76 36",svg:`<path d="M24 29 C24 4 76 4 76 29 Z" fill="#3D5AFE"/><path d="M62 27 Q88 23 93 32 Q76 34 62 31Z" fill="#2A3FC0"/><circle cx="50" cy="8" r="3" fill="#2A3FC0"/>`},
+    {id:"beanie",n:"Beanie",vb:"16 -8 68 46",svg:`<path d="M22 32 C22 2 78 2 78 32 Z" fill="#EF4E4E"/><rect x="19" y="25" width="62" height="11" rx="5.5" fill="#C53333"/>${ln("M36 12 V24","#D84444",2.5)}${ln("M50 7 V24","#D84444",2.5)}${ln("M64 12 V24","#D84444",2.5)}<circle cx="50" cy="1" r="7" fill="#fff" stroke="#E3E3F2" stroke-width="1.5"/>`},
+    {id:"grad",n:"Graduate",vb:"6 -4 90 40",svg:`<path d="M30 14 L30 27 Q50 34 70 27 L70 14Z" fill="#2C2850"/><polygon points="50,0 90,12 50,24 10,12" fill="#1E1B3A"/>${ln("M50 12 L82 14 L82 29","#FFC93C",2.5)}<circle cx="82" cy="31" r="3.5" fill="#FFC93C"/><circle cx="50" cy="12" r="2.5" fill="#FFC93C"/>`}
+  ],
+  glasses:[
+    {id:"round",n:"Round",vb:"14 32 72 30",svg:`<circle cx="38" cy="47" r="10" fill="rgba(255,255,255,.35)" stroke="#1E1B3A" stroke-width="3"/><circle cx="62" cy="47" r="10" fill="rgba(255,255,255,.35)" stroke="#1E1B3A" stroke-width="3"/>${ln("M48 46 Q50 43 52 46","#1E1B3A",3)}${ln("M28 45 L18 42","#1E1B3A",3)}${ln("M72 45 L82 42","#1E1B3A",3)}`},
+    {id:"sun",n:"Shades",vb:"14 34 72 26",svg:`<path d="M24 40 H48 V47 Q48 56 37 56 Q26 56 24 47Z" fill="#1E1B3A"/><path d="M52 40 H76 V47 Q74 56 63 56 Q52 56 52 47Z" fill="#1E1B3A"/>${ln("M48 43 H52","#1E1B3A",3)}${ln("M24 41 L17 39","#1E1B3A",3)}${ln("M76 41 L83 39","#1E1B3A",3)}${ln("M29 44 H34","#fff",2)}${ln("M57 44 H62","#fff",2)}`},
+    {id:"heart",n:"Hearts",vb:"18 30 64 32",svg:`<path d="${heart(38,47,1.25)}" fill="#FF4F8B" stroke="#D6336C" stroke-width="2"/><path d="${heart(62,47,1.25)}" fill="#FF4F8B" stroke="#D6336C" stroke-width="2"/>${ln("M48 45 H52","#D6336C",2.5)}`}
+  ],
+  extra:[
+    {id:"bow",n:"Bow tie",vb:"28 76 44 30",svg:`<path d="M50 91 L35 83 Q32 91 35 99Z" fill="#5B5BD6"/><path d="M50 91 L65 83 Q68 91 65 99Z" fill="#5B5BD6"/><circle cx="50" cy="91" r="4.5" fill="#4342B0"/>`},
+    {id:"flower",n:"Flower",vb:"62 11 34 34",svg:`${petals}<circle cx="79" cy="28" r="4.5" fill="#FFE680"/>`},
+    {id:"phones",n:"Headphones",vb:"4 4 92 66",svg:`<path d="M16 52 C16 4 84 4 84 52" stroke="#1E1B3A" stroke-width="6" fill="none" stroke-linecap="round"/><rect x="8" y="42" width="15" height="24" rx="7" fill="#5B5BD6"/><rect x="77" y="42" width="15" height="24" rx="7" fill="#5B5BD6"/>`},
+    {id:"sparkle",n:"Sparkles",vb:"0 0 60 50",tile:`<path d="${star(22,22,14)}" fill="#FFD54F"/><path d="${star(46,14,8)}" fill="#8EC5FF"/><path d="${star(44,38,7)}" fill="#FF8FB1"/>`,svg:`<path d="${star(8,22,8)}" fill="#FFD54F"/><path d="${star(94,66,7)}" fill="#FFD54F"/><path d="${star(88,10,5)}" fill="#8EC5FF"/><path d="${star(6,78,5)}" fill="#FF8FB1"/>`}
+  ]
+};
+const accOf=(part,id)=>ACC[part].find(a=>a.id===id);
+const defaultM=()=>({name:"Tiko",color:"gold",eyes:"round",mouth:"smile",hat:null,glasses:null,extra:null});
+const SPROUT=`<path d="M50 18 L50 12" stroke="#1E8E58" stroke-width="3" stroke-linecap="round"/><path d="M50 13 C44 3 33 5 32 11 C40 12 45 13 50 13Z" fill="#2BB673"/><path d="M50 13 C56 3 67 5 68 11 C60 12 55 13 50 13Z" fill="#45CC88"/>`;
+function tiko(size=80,mood="happy",cfg){
+  cfg=cfg||(S&&S.m)||defaultM();
+  const c=COLORS[cfg.color]||COLORS.gold;
+  const eyes=(EYES[cfg.eyes]||EYES.round).svg;
+  const mouth = mood==="sad" ? ln("M40 63 Q50 55 60 63") : mood==="wow" ? MOUTHS.ooh.svg : (MOUTHS[cfg.mouth]||MOUTHS.smile).svg;
+  const hat=cfg.hat&&accOf("hat",cfg.hat), gl=cfg.glasses&&accOf("glasses",cfg.glasses), ex=cfg.extra&&accOf("extra",cfg.extra);
+  return `<svg width="${size}" height="${size}" viewBox="-10 -18 120 120" aria-hidden="true" style="flex:none;overflow:visible">
+    ${hat?"":SPROUT}
+    <circle cx="50" cy="57" r="36" fill="${c.dark}"/>
+    <circle cx="50" cy="54" r="36" fill="${c.main}"/>
+    <circle cx="50" cy="54" r="28" fill="none" stroke="${c.ring}" stroke-width="3" stroke-dasharray="4 5"/>
+    ${eyes}
+    <ellipse cx="28" cy="58" rx="5" ry="3" fill="#FF8A80" opacity=".7"/><ellipse cx="72" cy="58" rx="5" ry="3" fill="#FF8A80" opacity=".7"/>
+    ${mouth}${gl?gl.svg:""}${hat?hat.svg:""}${ex?ex.svg:""}</svg>`;
+}
+const BN=()=>esc((S.m&&S.m.name)||"Tiko");
+
+/* ---------- Player character (for the life game) ---------- */
+const SKINS={s1:"#FFE3CC",s2:"#F6C9A0",s3:"#E2A878",s4:"#B97A50",s5:"#8A5534"};
+const HAIRC={black:"#2B2233",brown:"#7A4A2A",blonde:"#E9BE58",red:"#C8553D",pink:"#F48FB1",blue:"#5C8DF0"};
+const OUTFITS={sky:"#6FAEF5",mint:"#4CC79A",sun:"#FFC93C",rose:"#FF8FA3",grape:"#9B87F5",white:"#F4F4FA"};
+const PANTS={navy:"#2C3E73",denim:"#4A6FA5",khaki:"#B89B6A",black:"#2B2233"};
+const HAIRS={short:"Short",long:"Long",bun:"Bun",spiky:"Spiky",bob:"Bob",curly:"Curly"};
+const AVACC={none:"None",glasses:"Glasses",cap:"Cap",bow:"Bow",flower:"Flower"};
+const defaultLook=()=>({skin:"s2",hair:"short",hc:"black",shirt:"sky",pants:"navy",acc:"none"});
+function avatar(lk,w=48,rank=0){
+  const sk=SKINS[lk.skin]||SKINS.s2, hc=HAIRC[lk.hc]||HAIRC.black, sh=OUTFITS[lk.shirt]||OUTFITS.sky, pa=PANTS[lk.pants]||PANTS.navy, hs=lk.hair;
+  let back="",front="";
+  if(hs==="long") back=`<path d="M12 26 Q12 7 30 7 Q48 7 48 26 L50 58 Q42 62 37 52 L23 52 Q18 62 10 58Z" fill="${hc}"/>`;
+  if(hs==="bob") back=`<path d="M11 26 Q11 7 30 7 Q49 7 49 26 L49 41 Q30 46 11 41Z" fill="${hc}"/>`;
+  if(hs==="bun") back=`<circle cx="30" cy="6" r="7.5" fill="${hc}"/>`;
+  if(hs==="short"||hs==="bun") front=`<path d="M13 28 Q11 8 30 8 Q49 8 47 28 Q45 19 36 17 Q28 21 18 19 Q14 22 13 28Z" fill="${hc}"/>`;
+  if(hs==="long"||hs==="bob") front=`<path d="M13 27 Q12 9 30 9 Q48 9 47 27 Q41 17 31 18 Q21 17 13 27Z" fill="${hc}"/>`;
+  if(hs==="spiky") front=`<path d="M13 28 L12 15 L18 17 L19 7 L25 12 L30 3 L35 12 L41 7 L42 17 L48 15 L47 28 Q42 19 30 19 Q18 19 13 28Z" fill="${hc}"/>`;
+  if(hs==="curly") front=[[13,27],[15,19],[20,12],[27,9],[34,9],[41,12],[45,19],[47,27]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="6.5" fill="${hc}"/>`).join("");
+  let acc="";
+  if(lk.acc==="glasses") acc=`<g fill="rgba(255,255,255,.3)" stroke="#1E1B3A" stroke-width="1.6"><circle cx="24" cy="29.5" r="5"/><circle cx="36" cy="29.5" r="5"/></g><path d="M29 29.5 H31" stroke="#1E1B3A" stroke-width="1.6"/>`;
+  if(lk.acc==="cap") acc=`<path d="M12 22 Q12 4 30 4 Q48 4 48 22Z" fill="#EF4E4E"/><path d="M30 19 Q50 17 55 23 Q44 24 30 22Z" fill="#C53333"/><circle cx="30" cy="5" r="2" fill="#C53333"/>`;
+  if(lk.acc==="bow") acc=`<g transform="translate(41 11) rotate(20)"><path d="M0 0 L-8 -5 L-8 5Z" fill="#FF6FA5"/><path d="M0 0 L8 -5 L8 5Z" fill="#FF6FA5"/><circle r="2.6" fill="#E04F87"/></g>`;
+  if(lk.acc==="flower") acc=`<g transform="translate(43 13)">${[0,72,144,216,288].map(a=>`<circle cx="${(4*Math.cos(a*Math.PI/180)).toFixed(1)}" cy="${(4*Math.sin(a*Math.PI/180)).toFixed(1)}" r="3.4" fill="#fff" stroke="#F7C6D8" stroke-width=".8"/>`).join("")}<circle r="2.4" fill="#FFD54F"/></g>`;
+  const armC = rank>=4 ? "#2C2850" : sh;
+  const blazer = rank>=4 ? `<path d="M17 66 Q17 46 26 45 L30 57 L28 66Z" fill="#2C2850"/><path d="M43 66 Q43 46 34 45 L30 57 L32 66Z" fill="#2C2850"/>` : "";
+  const tie = rank>=2 ? `<path d="M26.5 45 L30 49 L33.5 45Z" fill="#fff"/><path d="M30 48 L28 51 L30 61 L32 51Z" fill="${rank>=4?"#FFC93C":"#EF4E4E"}"/>` : "";
+  const crown = rank>=5 && lk.acc!=="cap" ? `<path d="M22 8 L22 0 L26 4 L30 -3 L34 4 L38 0 L38 8Z" fill="#FFD54F" stroke="#C99400" stroke-width="1.2" stroke-linejoin="round"/>` : "";
+  return `<svg width="${w}" height="${Math.round(w*86/60)}" viewBox="0 -6 60 86" aria-hidden="true" style="overflow:visible;display:block">
+    <ellipse cx="30" cy="77" rx="15" ry="3.5" fill="rgba(0,0,0,.18)"/>
+    <rect x="22" y="62" width="7" height="13" rx="3" fill="${pa}"/><rect x="31" y="62" width="7" height="13" rx="3" fill="${pa}"/>
+    <ellipse cx="25" cy="75.5" rx="5" ry="2.6" fill="#3A2E4A"/><ellipse cx="35" cy="75.5" rx="5" ry="2.6" fill="#3A2E4A"/>
+    ${back}
+    <ellipse cx="15.5" cy="55" rx="4" ry="7.5" fill="${armC}"/><ellipse cx="44.5" cy="55" rx="4" ry="7.5" fill="${armC}"/>
+    <circle cx="15.5" cy="62" r="3.3" fill="${sk}"/><circle cx="44.5" cy="62" r="3.3" fill="${sk}"/>
+    <path d="M17 66 Q17 44 30 44 Q43 44 43 66Z" fill="${sh}"/>
+    ${blazer}${tie}
+    <rect x="27" y="40" width="6" height="6" fill="${sk}"/>
+    <circle cx="12.5" cy="29" r="3.5" fill="${sk}"/><circle cx="47.5" cy="29" r="3.5" fill="${sk}"/>
+    <circle cx="30" cy="27" r="17" fill="${sk}"/>
+    ${front}
+    <ellipse cx="24" cy="29.5" rx="2.2" ry="2.9" fill="#2A1B00"/><ellipse cx="36" cy="29.5" rx="2.2" ry="2.9" fill="#2A1B00"/>
+    <circle cx="24.8" cy="28.4" r=".8" fill="#fff"/><circle cx="36.8" cy="28.4" r=".8" fill="#fff"/>
+    <ellipse cx="20" cy="34.5" rx="3" ry="1.8" fill="#FF8A80" opacity=".55"/><ellipse cx="40" cy="34.5" rx="3" ry="1.8" fill="#FF8A80" opacity=".55"/>
+    <path d="M27 35.5 Q30 38.5 33 35.5" stroke="#7A3B2A" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    ${acc}${crown}</svg>`;
+}
+
+/* ---------- State ---------- */
+const KEY="altifi-demo-v2";
+const fresh=()=>({xp:0,streak:1,done:0,lastDay:new Date().toDateString(),lastOpen:Date.now(),m:defaultM(),life:null,lvl:"auto"});
+let S=null;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+if(!S){S=fresh();try{const o=JSON.parse(localStorage.getItem("altifi-demo-v1"));if(o&&o.m)S.m=o.m}catch(e){}}
+if(!S.m)S.m=defaultM();
+if(!S.lvl)S.lvl="auto";
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+(function onOpen(){
+  const today=new Date().toDateString(), y=new Date(Date.now()-864e5).toDateString();
+  if(S.lastDay!==today){S.streak = S.lastDay===y ? S.streak+1 : 1; S.lastDay=today;}
+  S.lastOpen=Date.now(); save();
+})();
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const vnd=n=>(n<0?"−":"")+Math.abs(Math.round(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")+"₫";
+const short=n=>{const a=Math.abs(n),s=n<0?"−":"";if(a>=1e6)return s+(a/1e6).toFixed(1).replace(/\.0$/,"")+"M₫";if(a>=1e3)return s+Math.round(a/1e3)+"k₫";return s+Math.round(a)+"₫"};
+function mtoast(t){const e=document.createElement("div");e.className="minitoast";e.textContent=t;$(".phone").appendChild(e);setTimeout(()=>e.remove(),1900)}
+
+/* ---------- Lessons (mixed exercise types) ---------- */
+const UNITS=[
+ {title:"Money Basics",desc:"What money is and how to use it",color:"#5B5BD6",icons:["💵","🛒"]},
+ {title:"Budgeting",desc:"Plan before you spend",color:"#2BB673",icons:["📊","🔍"]},
+ {title:"Saving & Interest",desc:"Make your money grow",color:"#F28C28",icons:["🐷","📈"]},
+ {title:"Risks & Scams",desc:"Learn how others lose money",color:"#EF4E4E",icons:["💳","🚩"]},
+ {title:"Rates & Bonds",desc:"How interest rates and bonds really work",color:"#0E9F9A",icons:["🔒","📜"]},
+ {title:"Business Builder",desc:"Profit, cash flow & growing smart",color:"#8E44AD",icons:["🏪","🚀"]}
+];
+function compoundArt(){
+  const yrs=[0,2,4,6,8,10],max=Math.pow(1.06,10);let g="";
+  yrs.forEach((t,i)=>{const s=1+0.06*t,c=Math.pow(1.06,t),x=22+i*46,h1=s/max*110,h2=c/max*110;
+    g+=`<rect x="${x}" y="${(130-h1).toFixed(1)}" width="16" height="${h1.toFixed(1)}" rx="4" fill="#B3B2CC"/><rect x="${x+18}" y="${(130-h2).toFixed(1)}" width="16" height="${h2.toFixed(1)}" rx="4" fill="#2BB673"/><text x="${x+17}" y="146" text-anchor="middle" font-size="11" font-weight="800" fill="#6B6890">${t}y</text>`});
+  return `<svg viewBox="0 0 300 175" width="100%" style="max-width:300px">${g}<g font-size="11" font-weight="800"><rect x="40" y="158" width="10" height="10" rx="2" fill="#B3B2CC"/><text x="54" y="167" fill="#6B6890">Simple</text><rect x="120" y="158" width="10" height="10" rx="2" fill="#2BB673"/><text x="134" y="167" fill="#6B6890">Compound (6%/yr)</text></g></svg>`;
+}
+const SPLIT=`<div class="split"><i style="flex:50;background:#5B5BD6">50%<br>🧱 Needs</i><i style="flex:30;background:#F28C28">30%<br>✨ Wants</i><i style="flex:20;background:#2BB673">20%<br>🐷 Save</i></div>`;
+const TYPE_LABEL={learn:"NEW IDEA 💡",pick:"TAP THE PICTURE",mcq:"CHOOSE THE ANSWER",sort:"SORT IT",match:"MATCH THE PAIRS",order:"PUT IN ORDER",slider:"ESTIMATE IT",jars:"SPLIT THE MONEY",spot:"SPOT THE RED FLAGS",tap:"FIND THE LEAKS"};
+
+const LESSONS=[
+ {name:"What is money?",steps:[
+  {t:"learn",art:"🐔 ⇄ 🍚",cap:"Barter: swapping goods for goods",title:"Before money, there was barter",text:"A farmer with chickens wants rice. She must find a rice farmer who <b>also</b> wants chickens. Hard, right? Money fixes this: everyone accepts it, so trading becomes easy.",tiko:"That's why money was invented! 🪙"},
+  {t:"order",q:"Put the history of money in order (oldest first)",items:[["🐚","Shells & barter"],["🪙","Metal coins"],["💵","Paper money"],["📱","Digital money (cards, QR)"]],why:"From swapping goods, to coins, to paper, to your phone — money keeps getting easier to carry."},
+  {t:"learn",art:"🔁 🏺 📏",title:"Money has 3 jobs",text:"Anything that does these three jobs well can work as money.",items:[["🔁","Exchange: buy & sell"],["🏺","Store: keep value for later"],["📏","Measure: compare prices"]]},
+  {t:"match",q:"Match each job to an example",pairs:[["🔁 Exchange","Buy bánh mì with cash"],["🏺 Store of value","Keep money for next month"],["📏 Unit of account","Compare 20k vs 25k prices"]],why:"Every time you pay, save or compare prices, money is doing one of its jobs."},
+  {t:"pick",q:"Which one can you spend the fastest?",opts:[["🏠","A house"],["💵","Cash"],["🥇","A gold bar"],["🖼️","A painting"]],a:1,why:"Cash is the most <b>liquid</b> asset — you can use it right now. Selling a house can take months."}]},
+ {name:"Needs vs wants",steps:[
+  {t:"learn",art:"🍚 🚌 💊<br>👟 🎮 🧋",cap:"Top row: needs · Bottom row: wants",title:"Needs vs wants",text:"<b>Needs</b> keep your life running: food, transport, health, school. <b>Wants</b> make life more fun, but you can live without them. Both are OK — needs just come first!"},
+  {t:"sort",q:"Need or want?",buckets:[["🧱","Need"],["✨","Want"]],items:[["🚌","Bus pass to school",0],["👟","Limited sneakers",1],["🍚","Lunch",0],["🎮","Game skin",1],["📚","School books",0],["🧋","Bubble tea",1],["💊","Medicine",0],["🎤","Concert ticket",1]],why:"Pay for needs first, then enjoy wants with what's left."},
+  {t:"learn",art:"🛍️ ⏰",title:"The 24-hour rule",text:"Buying something just because you feel like it is called <b>impulse buying</b>. Trick: wait 24 hours. If you still want it tomorrow, it's probably worth it.",tiko:"Most cravings disappear overnight 😴"},
+  {t:"slider",q:"You get 200,000₫ a week. Bubble tea every day costs 35,000₫. How much do you OVERSPEND each week?",art:"🧋🧋🧋🧋🧋🧋🧋",min:0,max:100000,step:5000,a:45000,tol:0,why:"7 × 35,000₫ = 245,000₫. That's 45,000₫ more than your 200,000₫."},
+  {t:"mcq",q:"Your friend says “Treat yourself, it's only 35k!” every single day. Best reply?",o:["“Let's make it a Friday treat instead!”","“Sure, every day!”","“I'll borrow money for it.”","“Never invite me again.”"],a:0,why:"Keep the fun, cut the frequency. Small changes protect your budget AND your friendships."}]},
+ {name:"Make a budget",steps:[
+  {t:"learn",art:SPLIT,title:"The 50/30/20 rule",text:"A simple starting plan for any money you get: <b>50%</b> for needs, <b>30%</b> for wants, <b>20%</b> for savings."},
+  {t:"jars",q:"You earn 1,000,000₫ tutoring this month. Split it using 50/30/20.",total:1000000,step:100000,jars:[["🧱 Needs","#5B5BD6",500000],["✨ Wants","#F28C28",300000],["🐷 Savings","#2BB673",200000]],why:"500,000₫ for needs · 300,000₫ for wants · 200,000₫ for savings."},
+  {t:"sort",q:"Which jar does it go in?",buckets:[["🧱","Needs"],["✨","Wants"],["🐷","Savings"]],items:[["🍱","Lunch at school",0],["🎬","Movie night",1],["🆘","Emergency fund",2],["🚌","Bus fare",0],["🎧","New earbuds",1],["💻","Saving for a laptop",2]],why:"Goals and emergencies are savings, even if you'll spend them one day."},
+  {t:"mcq",q:"The best FIRST step to budgeting is…",o:["Track what you already spend","Cut all fun forever","Borrow from friends","Ignore small purchases"],a:0,why:"You can't fix what you can't see. Track first."}]},
+ {name:"Find money leaks",steps:[
+  {t:"learn",art:"🍪 × 365 = 💸",title:"Money leaks",text:"Small purchases you barely notice can add up to a lot. That's a <b>money leak</b> — like a tiny hole in a bucket."},
+  {t:"slider",q:"10,000₫ a day on snacks. How much is that in ONE year?",art:"🍪 × 365",min:0,max:5000000,step:50000,start:1000000,a:3650000,tol:100000,why:"10,000₫ × 365 = 3,650,000₫ — enough for a new phone!"},
+  {t:"tap",q:"Here's Lan's spending this week. Tap the money leaks.",head:"Lan's week",items:[["🚌","Bus pass","50,000₫",false],["🍪","Snacks ×7","140,000₫",true],["🎲","Game gacha pulls","120,000₫",true],["📗","Textbook","60,000₫",false],["📺","Streaming app she never opens","70,000₫",true],["🍱","Lunch","150,000₫",false]],why:"Snacks, gacha pulls and an unused subscription quietly drain 330,000₫ a week."},
+  {t:"mcq",q:"You notice 40% of your spending is snacks. Smartest move?",o:["Set a weekly snack limit","Stop tracking","Spend more to feel better","Borrow for snacks"],a:0,why:"A limit keeps the fun but stops the leak."}]},
+ {name:"Why save?",steps:[
+  {t:"learn",art:"☂️ 🌧️",title:"The emergency fund",text:"Life has surprises: a broken phone, a sick day, a lost job. An <b>emergency fund</b> is money saved just for that — ideally 3–6 months of expenses."},
+  {t:"learn",art:"🧋 30k → 🧋 33k",cap:"Same drink, higher price",title:"Inflation",text:"Prices slowly rise over time. Money hidden in a drawer buys a little <b>less</b> every year. Saving in an account that pays interest helps you keep up."},
+  {t:"mcq",q:"Inflation means…",o:["Prices rise, so money buys less","Prices fall every year","Banks give free money","Your savings double"],a:0,why:"Cash under the bed slowly loses value."},
+  {t:"order",q:"Put “pay yourself first” in the right order",items:[["💰","Get your money"],["🐷","Save 20% right away"],["🧱","Pay for needs"],["🎉","Enjoy wants with the rest"]],why:"Save BEFORE you spend — not with whatever is left over."},
+  {t:"pick",q:"Where should your emergency fund live?",opts:[["🎰","Lottery tickets"],["📈","A coin your friend hyped"],["🏦","Savings account"],["🛏️","Under the bed"]],a:2,why:"Safe, easy to reach, and it earns a little interest."}]},
+ {name:"Interest magic",steps:[
+  {t:"learn",art:"🏦 → 🪙",title:"Interest = the price of money",text:"When you <b>save</b>, the bank pays you interest. When you <b>borrow</b>, you pay the bank."},
+  {t:"slider",q:"You save 1,000,000₫ at 5% interest per year. How much do you have after 1 year?",art:"💵 + 5%",min:1000000,max:1200000,step:10000,a:1050000,tol:0,why:"5% of 1,000,000₫ = 50,000₫ → 1,050,000₫."},
+  {t:"learn",art:compoundArt(),title:"Compound interest ⛄",text:"With compound interest you earn interest on your interest too. Like a snowball, it grows faster the longer it rolls. <b>Starting young</b> is a superpower."},
+  {t:"match",q:"Match the words",pairs:[["💰 Saving","The bank pays you"],["💳 Borrowing","You pay the bank"],["⛄ Compound","Interest on interest"],["％ Interest rate","Percent per year"]],why:"Interest works FOR you when saving and AGAINST you when borrowing."},
+  {t:"mcq",q:"When you BORROW money, interest is…",o:["A cost you pay","A reward you get","Always free","A tax refund"],a:0,why:"That's why debt gets bigger over time if you don't pay it back."}]},
+ {name:"Debt & credit",steps:[
+  {t:"learn",art:"📱 → 💳 → 😰",title:"Buy now, pay later",text:"BNPL and credit cards let you buy today and pay later. Sounds great — but it's still <b>debt</b>, often with fees and interest if you're late."},
+  {t:"sort",q:"Smart debt or risky debt?",buckets:[["👍","Smart"],["⚠️","Risky"]],items:[["🎓","Loan for a course that raises income",0],["📱","BNPL phone to impress friends",1],["🏪","Small business loan with a clear plan",0],["✈️","Borrowing for a spontaneous trip",1],["💳","Paying only the card minimum",1],["🛠️","Loan for tools you need for work",0]],why:"Smart debt helps you earn more later. Risky debt pays for things that lose value fast."},
+  {t:"mcq",q:"Paying only the minimum on a credit card leads to…",o:["More interest over time","Less debt","A bonus","Nothing"],a:0,why:"The rest keeps growing with interest — sometimes for years."}]},
+ {name:"Spot the scam",steps:[
+  {t:"learn",art:"🚩 🚩 🚩",title:"Red flags",text:"Scams usually promise <b>guaranteed</b> big returns, rush you to <b>act fast</b>, and pay you to <b>recruit friends</b>."},
+  {t:"spot",q:"Tap the red flags in this post",post:{user:"@richkid.invest",av:"😎",parts:[["Join my trading group 📈",false],["GUARANTEED 30% profit every week!",true],["Only 3 slots left — act NOW ⏰",true],["Invite 5 friends to unlock your bonus 🎁",true],["Link in bio",false]]},why:"Guaranteed returns, fake urgency and recruiting rewards are the classic scam trio."},
+  {t:"mcq",q:"A Ponzi scheme pays old investors with…",o:["Money from new investors","Real profits","Government money","Interest from banks"],a:0,why:"It collapses when new money stops coming in."},
+  {t:"sort",q:"Scam or legit?",buckets:[["🚩","Scam"],["✅","Legit"]],items:[["📩","SMS: “Your bank account is locked, send your OTP”",0],["🏦","Bank savings at 5%/year",1],["💎","“Double your crypto in 24h”",0],["📗","Licensed fund with audited reports",1],["👥","“Earn money by recruiting members”",0]],why:"Real banks never ask for your OTP. Real investments never promise to double overnight."}]},
+ {name:"Fixed vs floating",steps:[
+  {t:"learn",art:"🔒 vs 🌊",cap:"Fixed stays put · Floating moves with the market",title:"Fixed vs floating rates",text:"A <b>fixed</b> rate stays the same for the whole term. A <b>floating</b> (variable) rate moves up and down with the market — usually following the central bank's rate."},
+  {t:"sort",q:"Rates just went UP. Who is happy?",buckets:[["😀","Happy"],["😟","Unhappy"]],items:[["🌊🐷","Saver with a floating rate",0],["🌊🏠","Borrower with a floating rate",1],["🔒🏠","Borrower who locked a fixed rate",0],["🔒🐷","Saver who locked a low fixed rate",1]],why:"Rising rates help floating savers and fixed borrowers — and hurt floating borrowers and fixed savers."},
+  {t:"learn",art:"🏛️ 🔥 📈",title:"Why do rates move?",text:"When inflation is high, the central bank usually <b>raises</b> rates to cool spending. When the economy is weak, it <b>cuts</b> them so borrowing gets cheaper.",tiko:"Watch what the central bank says — it often hints before it moves!"},
+  {t:"mcq",q:"Inflation is rising and the central bank hints at more hikes. You're borrowing for 3 years. Usually safer?",o:["Lock a fixed rate","Choose floating","Borrow as much as possible","It doesn't matter"],a:0,why:"If rates are likely to rise, locking a fixed rate keeps your payments predictable."},
+  {t:"pick",q:"Rates are expected to FALL soon. As a saver, which keeps today's higher rate?",opts:[["🌊","Floating deposit"],["🔒","Fixed-term deposit"],["🛏️","Cash at home"],["🎰","Lottery tickets"]],a:1,why:"A fixed term locks today's rate before it drops."}]},
+ {name:"Bonds vs deposits",steps:[
+  {t:"learn",art:"🏦 🐷 vs 📜 🏢",title:"Deposit or bond?",text:"A <b>deposit</b> is money you keep at a bank, usually protected by deposit insurance up to a limit. A <b>bond</b> is a loan you give to a company or government. If that company fails, you can lose your money."},
+  {t:"sort",q:"Deposit or bond?",buckets:[["🏦","Deposit"],["📜","Bond"]],items:[["📒","Savings book at a bank",0],["🏗️","Lend to a real-estate company at 11%/yr",1],["🏛️","Government bond",1],["⏳","6-month term deposit",0],["🏭","Paper from a company promising 10%/yr",1]],why:"If the money goes to a company and not a bank account, it's a bond — not a deposit."},
+  {t:"match",q:"Match the bond words",pairs:[["🏢 Issuer","Who borrows your money"],["💵 Coupon","Interest the bond pays"],["📅 Maturity","When you get your money back"],["💥 Default","Issuer can't pay back"]],why:"Know the words and nobody can confuse you at the counter."},
+  {t:"mcq",q:"A product pays much MORE interest than a bank deposit. That usually means…",o:["More risk","A free gift","Government protection","It's always a deposit"],a:0,why:"Higher return almost always comes with higher risk. Ask: who is borrowing my money?"}]},
+ {name:"Profit & cash flow",steps:[
+  {t:"learn",art:"💰 − 🧾 = 📈",title:"Revenue, costs, profit",text:"<b>Revenue</b> is all the money customers pay you. <b>Costs</b> are what you spend to run the business. <b>Profit</b> = revenue − costs."},
+  {t:"slider",q:"Your tea shop sells 1,000 cups at 30,000₫ each. Costs are 22,000,000₫. What's the profit?",art:"🧋 × 1,000",min:0,max:15000000,step:500000,start:5000000,a:8000000,tol:0,why:"Revenue 30,000,000₫ − costs 22,000,000₫ = 8,000,000₫ profit."},
+  {t:"sort",q:"Fixed cost or variable cost?",buckets:[["📌","Fixed"],["📦","Variable"]],items:[["🏠","Shop rent",0],["🥛","Milk & tapioca",1],["🥤","Cups & straws",1],["👩‍🍳","Monthly staff salaries",0],["🛵","Delivery fee per order",1]],why:"Fixed costs stay the same each month; variable costs grow with every cup you sell."},
+  {t:"learn",art:"📈 ≠ 💵",title:"Profit is not cash",text:"A business can be profitable on paper and still run out of <b>cash</b> — if customers pay late, money is stuck in stock, or a loan payment is due. Many businesses fail from cash problems, not from lack of profit."},
+  {t:"mcq",q:"Why should a business keep a cash reserve?",o:["To survive surprises like a cost jump","To look rich","Because banks require 100%","It's never needed"],a:0,why:"Cash buys time when costs jump or sales drop."}]},
+ {name:"Grow smart",steps:[
+  {t:"learn",art:"🏪 → 🏪🏪 → 🏪🏪🏪",title:"Grow step by step",text:"Before opening many branches, <b>test</b> one, <b>measure</b> if it makes money, <b>fix</b> what's wrong — then expand."},
+  {t:"order",q:"Put the smart expansion steps in order",items:[["🧪","Open 1 test branch"],["📊","Measure its profit"],["🔧","Fix the problems"],["🚀","Open more branches"]],why:"Test → measure → fix → scale."},
+  {t:"learn",art:"🎞️ → 📱",title:"Disruption",text:"New technology can make a profitable product old very fast: digital photos replaced film, streaming replaced DVDs. Smart owners <b>test new ideas</b> while the old business still pays the bills."},
+  {t:"pick",q:"Which question matters MOST before borrowing to expand?",opts:[["🎨","What color is the sign?"],["🧯","Can we repay if sales drop 30%?"],["🏆","Will we be famous?"],["😎","Will competitors be jealous?"]],a:1,why:"Always test the worst case before taking on debt."},
+  {t:"mcq",q:"Borrowing money to grow faster is called…",o:["Leverage","Liquidity","Dividends","Inflation"],a:0,why:"Leverage makes gains bigger — and losses bigger too."}]}
+];
+
+/* ---------- Navigation ---------- */
+let tab="learn";
+function go(t){tab=t;render()}
+function render(){
+  $("#top").innerHTML=`<div class="logo">altifi</div><div class="stats"><span>🔥 ${S.streak}</span><span>⭐ ${S.xp}</span>${S.life?`<span>💵 ${short(S.life.cash)}</span>`:""}</div>`;
+  $("#screen").innerHTML=({learn:learnView,city:cityView,chat:chatView,me:meView})[tab]();
+  $("#chatbarSlot").innerHTML = tab==="chat" ? `<div class="chatbar"><input id="ci" placeholder="Ask ${BN()} anything about money…" onkeydown="if(event.key==='Enter')sendChat()"><button onclick="sendChat()">Send</button></div>` : "";
+  document.querySelector('[data-t="chat"]').innerHTML=`<span>🪙</span>Ask ${BN()}`;
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
+  if(tab==="chat"){const s=$("#screen");s.scrollTop=s.scrollHeight}
+}
+function openO(html){const o=$("#overlay");o.innerHTML=html;o.classList.add("show")}
+function closeO(){$("#overlay").classList.remove("show");render()}
+function showModal(h){$("#modal").innerHTML=`<div class="modalbg"><div class="sheet gsheet">${h}</div></div>`}
+function closeModal(){$("#modal").innerHTML="";render()}
+
+/* ---------- Learn ---------- */
+const PEP=["5 minutes a day builds big money habits!","Every coin has a story. Let's learn yours!","Smart money starts with one small lesson.","You're doing great — keep that streak alive! 🔥"];
+function learnView(){
+  const isDefault=JSON.stringify(S.m)===JSON.stringify(defaultM());
+  const say=isDefault?`Hi, I'm ${BN()}! Tap my face to give me a new name and look 👈`:PEP[S.done%PEP.length];
+  let h=`<div class="hello"><button class="mascotbtn" onclick="openCustom()" aria-label="Customize your buddy">${tiko(84)}<span class="editdot">✏️</span></button><div class="bubble">${say}</div></div>`;
+  UNITS.forEach((u,ui)=>{
+    h+=`<div class="unit" style="background:${u.color}"><small>Unit ${ui+1}</small><h3>${u.title}</h3><div style="font-weight:700;font-size:13px;opacity:.9">${u.desc}</div></div><div class="path">`;
+    [0,1].forEach(k=>{
+      const i=ui*2+k, off=[0,-50,50,0][(i)%4];
+      const st=i<S.done?"done":i===S.done?"current":"locked";
+      h+=`<button class="node ${st}" style="margin-left:${off*2}px;${st==="current"?`background:${u.color}`:""}" ${st==="locked"?"disabled":`onclick="startLesson(${i})"`} aria-label="${LESSONS[i].name}">
+        ${st==="current"?'<span class="tag">START</span>':""}${st==="locked"?"🔒":st==="done"?"⭐":u.icons[k]}</button>
+        <div style="margin-left:${off*2}px;margin-top:-6px;font-size:12px;font-weight:800;color:var(--muted)">${LESSONS[i].name}</div>`;
+    });
+    h+="</div>";
+  });
+  if(S.done>=LESSONS.length) h+=`<div class="card center">${tiko(60,"wow")}<h3>All units complete!</h3><p class="muted">More lessons coming soon. Try running your life in My City!</p></div>`;
+  return h;
+}
+
+let L=null;
+const curStep=()=>LESSONS[L.i].steps[L.s];
+function startLesson(i){L={i,s:0,ok:0,graded:0};initStep();lessonRender()}
+function initStep(){
+  const st=curStep(); L.checked=false; L.right=false; L.st={};
+  if(st.t==="pick") L.st.sel=null;
+  if(st.t==="mcq"){L.st.order=shuffle(st.o.map((_,k)=>k));L.st.sel=null}
+  if(st.t==="sort"){L.st.items=shuffle(st.items);L.st.idx=0;L.st.res=[];L.st.busy=false}
+  if(st.t==="match"){L.st.left=shuffle(st.pairs.map((_,k)=>k));L.st.rightO=shuffle(st.pairs.map((_,k)=>k));L.st.done=[];L.st.miss=0;L.st.sl=null;L.st.sr=null;L.st.bad=null}
+  if(st.t==="order"){L.st.pool=shuffle(st.items.map((_,k)=>k));L.st.picked=[]}
+  if(st.t==="slider") L.st.v=st.start!==undefined?st.start:st.min;
+  if(st.t==="jars") L.st.vals=st.jars.map(()=>0);
+  if(st.t==="spot"||st.t==="tap") L.st.sel=[];
+}
+function lessonRender(){
+  const les=LESSONS[L.i], st=curStep(), pct=(L.s/les.steps.length)*100;
+  let body="", ready=false, auto=false, hint="";
+  if(st.t==="learn"){
+    body=`<div class="scene"${st.fs?` style="font-size:${st.fs}px"`:""}>${st.art}${st.cap?`<div class="cap">${st.cap}</div>`:""}</div><div class="learnt">${st.title}</div><div class="ltext">${st.text}</div>`
+      +(st.items?`<div class="icons3">${st.items.map(([e,l])=>`<div class="card"><div>${e}</div>${l}</div>`).join("")}</div>`:"")
+      +(st.tiko?`<div class="hello" style="margin-top:14px">${tiko(48)}<div class="bubble">${st.tiko}</div></div>`:"");
+  }
+  if(st.t==="pick"){
+    body=`<div class="q">${st.q}</div><div class="picgrid">${st.opts.map(([e,l],k)=>{let c="pic";if(L.st.sel===k)c+=" sel";if(L.checked){if(k===st.a)c+=" right";else if(L.st.sel===k)c+=" wrong"}return `<button class="${c}" onclick="lsSet('sel',${k})"><div>${e}</div>${l}</button>`}).join("")}</div>`;
+    ready=L.st.sel!==null;
+  }
+  if(st.t==="mcq"){
+    body=`<div class="q">${st.q}</div>`+L.st.order.map((k,pos)=>{let c="opt";if(L.st.sel===pos)c+=" sel";if(L.checked){if(k===st.a)c+=" right";else if(L.st.sel===pos)c+=" wrong"}return `<button class="${c}" onclick="lsSet('sel',${pos})">${st.o[k]}</button>`}).join("");
+    ready=L.st.sel!==null;
+  }
+  if(st.t==="sort"){
+    auto=true; hint="SORT EVERY CARD";
+    const items=L.st.items;
+    if(!L.checked){const it=items[L.st.idx];
+      body=`<div class="q">${st.q}</div><div class="sortwrap"><div class="sortcount">${L.st.idx+1} / ${items.length}</div><div class="sortcard" id="sc"><div>${it[0]}</div>${it[1]}</div></div><div class="bucketrow">${st.buckets.map(([e,l],b)=>`<button class="bucket" onclick="sortPick(${b})"><span>${e}</span>${l}</button>`).join("")}</div>`;
+    } else {
+      body=`<div class="q">${st.q}</div>`+items.map((it,k)=>{const ok=L.st.res[k]===it[2];return `<div class="srow ${ok?"ok":"no"}"><span class="se">${it[0]}</span><span style="flex:1">${it[1]}</span><b>${st.buckets[it[2]][0]} ${st.buckets[it[2]][1]}</b><span>${ok?"✓":"✗"}</span></div>`}).join("");
+    }
+  }
+  if(st.t==="match"){
+    auto=true; hint="MATCH ALL PAIRS";
+    const mb=(side,k,txt)=>{let c="mbtn";if(L.st.done.includes(k))c+=" gone";else if((side==="l"&&L.st.sl===k)||(side==="r"&&L.st.sr===k))c+=" sel";if(L.st.bad&&L.st.bad[side]===k)c+=" bad";return `<button class="${c}" onclick="matchTap('${side}',${k})">${txt}</button>`};
+    body=`<div class="q">${st.q}</div><div class="matchgrid"><div class="mcol">${L.st.left.map(k=>mb("l",k,st.pairs[k][0])).join("")}</div><div class="mcol">${L.st.rightO.map(k=>mb("r",k,st.pairs[k][1])).join("")}</div></div>`+(L.checked?`<p class="muted center" style="font-weight:800;margin-top:12px">${L.st.miss} mistake${L.st.miss===1?"":"s"}</p>`:"");
+  }
+  if(st.t==="order"){
+    body=`<div class="q">${st.q}</div><div class="oslots">${st.items.map((_,p)=>{const k=L.st.picked[p];return k===undefined?`<div class="oslot empty"><span class="num">${p+1}</span>Tap below to fill</div>`:`<button class="oslot ${L.checked?(k===p?"right":"wrong"):""}" onclick="orderUn(${p})"><span class="num">${p+1}</span><span class="e">${st.items[k][0]}</span>${st.items[k][1]}</button>`}).join("")}</div><div class="opool">${L.st.pool.filter(k=>!L.st.picked.includes(k)).map(k=>`<button class="pchip" onclick="orderPick(${k})">${st.items[k][0]} ${st.items[k][1]}</button>`).join("")}</div>`
+      +(L.checked&&!L.right?`<div class="card" style="margin-top:12px"><div class="muted" style="font-size:12px;font-weight:900">CORRECT ORDER</div>${st.items.map((it,p)=>`<div style="font-weight:800;margin-top:4px">${p+1}. ${it[0]} ${it[1]}</div>`).join("")}</div>`:"");
+    ready=L.st.picked.length===st.items.length;
+  }
+  if(st.t==="slider"){
+    body=`<div class="q">${st.q}</div>${st.art?`<div class="scene" style="font-size:32px;padding:14px">${st.art}</div>`:""}<div class="sval" id="sv">${vnd(L.st.v)}</div><input type="range" class="range" min="${st.min}" max="${st.max}" step="${st.step}" value="${L.st.v}" oninput="L.st.v=+this.value;document.getElementById('sv').textContent=vnd(L.st.v)" ${L.checked?"disabled":""}><div class="rlab"><span>${short(st.min)}</span><span>${short(st.max)}</span></div>`
+      +(L.checked?`<div class="card center" style="margin-top:12px;font-weight:800">Answer: <b style="color:var(--good-d)">${vnd(st.a)}</b></div>`:"");
+    ready=true;
+  }
+  if(st.t==="jars"){
+    const sum=L.st.vals.reduce((a,b)=>a+b,0), rem=st.total-sum;
+    body=`<div class="q">${st.q}</div><div class="remain">Left to split: <b style="color:${rem?"var(--pri)":"var(--good-d)"}">${vnd(rem)}</b></div><div class="jars">${st.jars.map(([l,col,tg],k)=>{const v=L.st.vals[k],h=v/st.total*100;return `<div class="jar"><div class="jarval">${short(v)}</div><div class="jarlid"></div><div class="jarbody"><i style="height:${h}%;background:${col}"></i><span class="pct">${Math.round(h)}%</span></div><div class="jarlab">${l}</div>${L.checked?`<div class="jart ${v===tg?"ok":"no"}">goal ${Math.round(tg/st.total*100)}%</div>`:`<div class="stepper"><button onclick="jarStep(${k},-1)" aria-label="Less">−</button><button onclick="jarStep(${k},1)" aria-label="More">+</button></div>`}</div>`}).join("")}</div>`;
+    ready=rem===0;
+  }
+  if(st.t==="spot"){
+    const n=st.post.parts.filter(p=>p[1]).length;
+    body=`<div class="q">${st.q}</div><div class="post"><div class="phead"><span class="pav">${st.post.av}</span><div><b>${st.post.user}</b><div class="muted" style="font-size:12px;font-weight:700">Sponsored · 2h</div></div></div><div class="pbody">${st.post.parts.map(([tx,f],k)=>{const s=L.st.sel.includes(k);let c="flag";if(L.checked){if(f)c+=" isflag";else if(s)c+=" notflag"}else if(s)c+=" sel";return `<span class="${c}" onclick="tapToggle(${k})">${tx}</span>`}).join(" ")}</div><div class="pfoot">❤️ 12.4k · 💬 892 · ↗️ Share</div></div><p class="muted center" style="font-size:13px;font-weight:800;margin-top:10px">Tap every suspicious part (${n} to find)</p>`;
+    ready=L.st.sel.length>0;
+  }
+  if(st.t==="tap"){
+    body=`<div class="q">${st.q}</div><div class="receipt"><div class="rhead">🧾 ${st.head}</div>${st.items.map(([e,l,amt,f],k)=>{const s=L.st.sel.includes(k);let c="ritem";if(L.checked){if(f)c+=" isflag";else if(s)c+=" notflag"}else if(s)c+=" sel";return `<button class="${c}" onclick="tapToggle(${k})"><span>${e}</span><span style="flex:1;text-align:left">${l}</span><b>${amt}</b></button>`}).join("")}</div>`;
+    ready=L.st.sel.length>0;
+  }
+  let foot;
+  if(st.t==="learn") foot=`<div class="ofoot"><button class="btn" onclick="nextStep()">CONTINUE</button></div>`;
+  else if(!L.checked) foot=auto?`<div class="ofoot"><button class="btn" disabled>${hint}</button></div>`:`<div class="ofoot"><button class="btn good" ${ready?"":"disabled"} onclick="checkStep()">CHECK</button></div>`;
+  else foot=`<div class="ofoot ${L.right?"ok":"no"}"><div class="fb" style="color:${L.right?"var(--good-d)":"var(--bad-d)"}">${L.right?["Nice one! 🎉","Exactly right! ✨","You got it! 💪"][L.s%3]:"Not quite…"}</div><p>${st.why}</p><button class="btn ${L.right?"good":"bad"}" onclick="nextStep()">CONTINUE</button></div>`;
+  openO(`<div class="ohead"><button class="x" onclick="closeO()" aria-label="Close">✕</button><div class="prog"><i style="width:${pct}%"></i></div></div>
+    <div class="obody"><div class="ltag">${TYPE_LABEL[st.t]}</div>${body}</div>${foot}`);
+}
+function lsSet(k,v){if(L.checked)return;L.st[k]=v;lessonRender()}
+function finishStep(right){L.checked=true;L.right=right;L.graded++;if(right)L.ok++;lessonRender()}
+function checkStep(){
+  const st=curStep(); let r=false;
+  if(st.t==="pick") r=L.st.sel===st.a;
+  if(st.t==="mcq") r=L.st.order[L.st.sel]===st.a;
+  if(st.t==="order") r=L.st.picked.every((k,p)=>k===p);
+  if(st.t==="slider") r=Math.abs(L.st.v-st.a)<=st.tol;
+  if(st.t==="jars") r=st.jars.every((j,k)=>L.st.vals[k]===j[2]);
+  if(st.t==="spot"||st.t==="tap"){const list=st.t==="spot"?st.post.parts:st.items,fi=st.t==="spot"?1:3;const want=list.map((p,k)=>p[fi]?k:-1).filter(k=>k>=0);r=want.length===L.st.sel.length&&want.every(k=>L.st.sel.includes(k))}
+  finishStep(r);
+}
+function sortPick(b){
+  if(L.checked||L.st.busy)return; const st=curStep(), it=L.st.items[L.st.idx], ok=b===it[2], c=$("#sc");
+  L.st.busy=true; L.st.res.push(b);
+  if(c){c.classList.add(ok?"ok":"no");const dx=st.buckets.length===2?(b===0?-260:260):(b-1)*260;setTimeout(()=>{c.style.transform=`translate(${dx}px,${b===1&&st.buckets.length===3?140:40}px) rotate(${dx/14}deg)`;c.style.opacity="0"},220)}
+  setTimeout(()=>{L.st.busy=false;L.st.idx++;
+    if(L.st.idx>=L.st.items.length){const wrong=L.st.items.filter((x,k)=>L.st.res[k]!==x[2]).length;finishStep(wrong<=(L.st.items.length>=6?1:0))}
+    else lessonRender()},560);
+}
+function matchTap(side,k){
+  if(L.checked||L.st.done.includes(k))return;
+  L.st.bad=null;
+  if(side==="l")L.st.sl=k;else L.st.sr=k;
+  if(L.st.sl!==null&&L.st.sr!==null){
+    if(L.st.sl===L.st.sr)L.st.done.push(k);
+    else{L.st.miss++;L.st.bad={l:L.st.sl,r:L.st.sr}}
+    L.st.sl=null;L.st.sr=null;
+    if(L.st.done.length===curStep().pairs.length)return finishStep(L.st.miss<=1);
+  }
+  lessonRender();
+}
+function orderPick(k){if(L.checked)return;L.st.picked.push(k);lessonRender()}
+function orderUn(p){if(L.checked)return;L.st.picked.splice(p,1);lessonRender()}
+function jarStep(k,d){
+  if(L.checked)return; const st=curStep(),sum=L.st.vals.reduce((a,b)=>a+b,0);
+  if(d>0&&sum+st.step>st.total)return; if(d<0&&L.st.vals[k]<=0)return;
+  L.st.vals[k]+=d*st.step; lessonRender();
+}
+function tapToggle(k){if(L.checked)return;const i=L.st.sel.indexOf(k);if(i>=0)L.st.sel.splice(i,1);else L.st.sel.push(k);lessonRender()}
+function nextStep(){
+  L.s++;
+  if(L.s<LESSONS[L.i].steps.length){initStep();return lessonRender()}
+  const xp=10+L.ok*5; S.xp+=xp; if(L.i===S.done)S.done++; save();
+  openO(`<div class="obody center" style="display:flex;flex-direction:column;justify-content:center">
+    <div style="margin:0 auto">${tiko(140,"wow")}</div><h2 style="font-size:26px;margin-top:10px">Lesson complete!</h2>
+    <p class="muted">${L.ok} of ${L.graded} exercises perfect</p>
+    <div class="grid" style="margin:16px 0"><div class="card"><b style="color:var(--sun-d)">+${xp}</b><span class="muted">XP earned</span></div><div class="card"><b>🔥 ${S.streak}</b><span class="muted">day streak</span></div></div></div>
+    <div class="ofoot"><button class="btn" onclick="closeO()">CONTINUE</button></div>`);
+}
+
+/* ---------- Life game: My City ---------- */
+// Career: Intern → Staff → Senior Analyst → (brilliant moves) → own business → chain → empire
+const JOB=[{t:"Intern",pay:5e6,need:40},{t:"Staff",pay:8e6,need:50},{t:"Senior Analyst",pay:12e6,need:60}];
+const BIZ={
+ tea:{e:"🧋",n:"Bubble Tea",rev:18e6,cost:12e6,col:"#C98A5B"},
+ bakery:{e:"🥐",n:"Bakery",rev:20e6,cost:14e6,col:"#E0A040"},
+ tutor:{e:"📚",n:"Tutoring Center",rev:15e6,cost:9e6,col:"#4C93E6"}
+};
+const START_COST=30e6, BRANCH_COST=20e6, MAX_BR=4, RENT=2e6, FOOD=1.5e6;
+const LADDER=["Intern","Staff","Senior","Owner","Chain","Empire"];
+const R={
+ brilliant:{label:"Brilliant Move",sym:"!!",col:"#1BADA6"},
+ excellent:{label:"Excellent",sym:"!",col:"#2BB673"},
+ best:{label:"Good Move",sym:"★",col:"#7CB342"},
+ pgood:{label:"Okay Move",sym:"!?",col:"#8E9BFF"},
+ pbad:{label:"Risky Move",sym:"?!",col:"#F2A33A"},
+ terrible:{label:"Terrible Move",sym:"??",col:"#EF4E4E"}
+};
+const PERF={brilliant:40,excellent:30,best:20,pgood:10,pbad:-5,terrible:-20};
+const RM={brilliant:.08,excellent:.06,best:.04,pgood:0,pbad:-.05,terrible:-.12};
+const GOOD=k=>["brilliant","excellent","best"].includes(k);
+// Market interest rate (per month) rises over time, like 2022–23
+const rateNow=m=>{m=m||(S.life?S.life.month:1);return m<=4?0.004:m<=7?0.006:m<=10?0.008:0.01};
+const pctY=r=>(r*1200).toFixed(1).replace(/\.0$/,"")+"%/yr";
+const DEP_N={floating:"Floating (follows market)",fixed:"Fixed 6%/yr",split:"Half fixed, half floating"};
+const LT_N={fixed:"Fixed 9.6%/yr",floating:"Floating (market + 3.6%)",card:"Credit card 24%/yr"};
+const depRate=l=>l.dep==="fixed"?0.005:l.dep==="split"?(0.005+rateNow(l.month))/2:rateNow(l.month);
+const loanRate=b=>b.lt==="fixed"?0.008:b.lt==="card"?0.02:rateNow()+0.003;
+const isOwner=l=>!!l&&l.phase==="owner";
+const titleOf=l=>isOwner(l)?(l.biz.br>=MAX_BR?"Business Tycoon 👑":l.biz.br>=2?"Chain Owner":"Founder & Owner"):JOB[l.rank].t;
+const avR=l=>isOwner(l)?(l.biz.br>=MAX_BR?5:4):l.rank;
+const ladderIdx=l=>isOwner(l)?(l.biz.br>=MAX_BR?5:l.biz.br>=2?4:3):l.rank;
+const progScore=l=>!l?0:isOwner(l)?3+l.biz.br:l.rank;
+const bizName=l=>`${esc(l.name.split(" ").slice(-1)[0])}'s ${BIZ[l.biz.type].n}`;
+function bizProfit(l){const b=l.biz,bt=BIZ[b.type],cm=l.costMod>0?1.3:1,rev=Math.round(b.br*bt.rev*b.rm),cost=Math.round(b.br*bt.cost*cm);return {rev,cost,li:Math.round(b.loan*loanRate(b)),profit:rev-cost}}
+const stars=rm=>"⭐".repeat(clamp(Math.round((rm-0.6)/0.9*5),1,5));
+
+// Routine work (when no case is unlocked). opts: [emoji, choice, rating, effects, explanation]
+const WORK=[
+ [
+  {art:"📧 📅 🎉",sit:"Your boss needs a report by Friday. Your friends invite you to a party on Thursday night.",opts:[
+   ["🎉","Party on Thursday, rush the report Friday morning","pbad",{mood:10},"The report came out sloppy and your boss noticed. Fun matters — but plan it around your work, not instead of it."],
+   ["📝","Finish most of it by Wednesday, then enjoy the party","brilliant",{mood:8},"Planning ahead let you do both. Time management is a money skill too: good work → promotion → higher salary."],
+   ["😴","Skip the party and work all night","pgood",{mood:-10},"Solid work, but you're exhausted. Burning out isn't a long-term plan."]]},
+  {art:"🧑‍💻 📊 ❌",sit:"A coworker made a mistake in a spreadsheet, and the manager is upset with the whole team.",opts:[
+   ["👉","Point at the coworker in front of everyone","pbad",{mood:-3},"You were right, but the team stopped trusting you. Good teammates fix problems instead of blaming people."],
+   ["🙈","Stay quiet and keep my head down","pgood",{},"Safe — but invisible people rarely get promoted."],
+   ["🙋","Help fix it, then suggest a checklist so it won't happen again","excellent",{},"Fixing the problem AND preventing it next time — that's how future leaders get noticed."]]},
+  {art:"📚 💻 🗓️",sit:"The company offers a free Excel course on weekends for 2 months.",opts:[
+   ["✅","Join — new skills pay off later","excellent",{mood:-5},"Learning is an investment in yourself. Skills raise your future income."],
+   ["🛋️","Skip it, weekends are for resting","pbad",{mood:6},"Rest is important, but free training is rare. You missed an investment in yourself."],
+   ["🤏","Go to the first class and see","pgood",{},"A start! Skills come from practice, though."]]}
+ ],
+ [
+  {art:"💰 📊 📣",sit:"You help manage a 100,000,000₫ budget. Marketing wants ALL of it for TikTok ads.",opts:[
+   ["📣","Give it all to ads — let's go viral!","pbad",{},"All eggs in one basket. If the ads flop, there's nothing left."],
+   ["🧪","Test small ads first, keep a reserve, then scale what works","brilliant",{},"Test → measure → scale. Smart managers limit risk before spending big."],
+   ["🔒","Spend nothing, keep it all safe","pgood",{},"Safe, but money that's never invested can't grow the business."]]},
+  {art:"🤝 🎁 🕵️",sit:"A supplier offers you an expensive “gift” if you choose their company.",opts:[
+   ["🎁","Accept — nobody will know","terrible",{mood:-10},"An audit found out. Bribery is illegal and can end your career."],
+   ["⚖️","Refuse politely and compare all suppliers fairly","brilliant",{},"Integrity is priceless — and fair comparisons get the company the best deal."],
+   ["😶","Accept it, but still pick the cheapest supplier","pbad",{},"Even if your choice is fair, taking the gift creates a conflict of interest."]]},
+  {art:"📉 🧾 🔍",sit:"Sales fell 20% this quarter. Your boss wants a plan by Monday.",opts:[
+   ["🔥","Suggest firing half the sales team","terrible",{},"Cutting people before understanding WHY sales fell usually makes things worse."],
+   ["🔍","Dig into the data: which products and customers dropped?","excellent",{},"Find the cause before choosing the cure. Data beats panic."],
+   ["🏷️","Cut prices on everything","pbad",{},"Lower prices can kill profit if the real problem is something else."]]}
+ ],
+ [
+  {art:"⚖️ 👥 💰",sit:"Profits are up! Staff want raises, customers want lower prices, and you want to save for the next branch.",opts:[
+   ["🤝","Share fairly: small raises tied to results, keep the rest for growth","excellent",{},"Balancing everyone builds long-term trust — a boss's most valuable asset."],
+   ["💎","Keep it all for myself","pbad",{},"Your best staff start looking for other jobs."],
+   ["🎉","Throw a huge party with all of it","terrible",{},"Fun for one night, nothing left for growth or emergencies."]]},
+  {art:"🧾 🏛️ 🕶️",sit:"Your accountant says you could hide some income to pay less tax.",opts:[
+   ["🕶️","Hide it — everyone does it","terrible",{mood:-10},"Tax evasion is illegal. Fines and a ruined reputation cost far more."],
+   ["🔍","Ask a licensed tax advisor about legal options","best",{},"Good call — experts can find legal savings."],
+   ["✅","Pay taxes properly and use legal deductions","excellent",{},"Taxes fund schools, roads and hospitals. Legal planning is smart; hiding income is a crime."]]}
+ ]
+];
+
+// Real cases. req = index of the lesson the player must finish first (knowledge gate)
+const CASES=[
+ {id:"e1",phase:"emp",req:2,title:"Your first paycheck",art:"💸 📲 🎊",
+  recap:"50/30/20: about half for needs, 30% for wants, and 20% straight into savings.",
+  sit:"Payday! 5,000,000₫ lands in your account. Rent and food (3,500,000₫) are due at the end of the month. What's your plan?",
+  opts:[
+   ["🛍️","Celebrate with a big shopping trip first","terrible",{cash:-2500000,mood:15},"Fun today, stress later: rent is due and you're short. Needs come before wants."],
+   ["🐷","Save 1M₫ right away, keep the rest for bills and a small treat","brilliant",{save:1000000,mood:4},"Pay yourself first, cover needs, then enjoy a little. That's 50/30/20 in action."],
+   ["🤷","No plan — I'll see how it goes","pbad",{mood:2},"Without a plan, money leaks away and you won't know where it went."]],
+  sides:[["🧑","You today","Wants to celebrate the first salary — a totally normal feeling."],["🧓","Future you","Thanks you for every đồng saved early: it's the start of your emergency fund."],["🏠","Your landlord","Only cares that rent arrives on time."]],
+  fact:"In a famous 2001 study by Madrian & Shea, a US company started enrolling new workers in its savings plan automatically. Participation jumped from about 37% to 86%. Saving first, by default, works."},
+ {id:"e2",phase:"emp",req:7,year:2008,where:"USA",head:"STAR FUND MANAGER ARRESTED",title:"The fund that never loses",art:"📈 🕴️ 💼",
+  recap:"Red flags: guaranteed returns, returns that are too smooth, secrecy, and pressure to join.",
+  sit:"A famous investment manager offers you a spot in his fund. It has made about 1% EVERY month for years — never a losing month. Your coworkers are all in. Do you invest your savings?",
+  opts:[
+   ["💰","Invest all my savings — it never loses!","terrible",{saveLoss:0.8,mood:-10},"Real investments go up AND down. A fund that never dips is a giant red flag — and this one was a fraud."],
+   ["🔍","Ask how it makes money and who audits it","brilliant",{},"You asked the questions most investors didn't. Too-smooth returns deserve suspicion."],
+   ["🤏","Put in just a little to try","pbad",{saveLoss:0.2},"Even “a little” in a fraud is money you'll probably never see again."]],
+  sides:[["👵","Investors","Loved the steady, calm returns — they felt safe, not suspicious."],["🕴️","The fund manager","Paid old investors with new investors' money for decades. It only worked while new money kept coming in."],["🔎","Whistleblower & regulator","Analyst Harry Markopolos warned the US regulator (SEC) for years that the returns were impossible. The warnings were not acted on."]],
+  fact:"In December 2008 Bernard Madoff admitted that his famous fund was a giant Ponzi scheme. About 65 billion dollars of reported wealth turned out not to exist, and he was sentenced to 150 years in prison."},
+ {id:"e3",phase:"emp",req:9,year:2022,where:"Vietnam",head:"CROWDS QUEUE OUTSIDE BANK BRANCHES",title:"A “savings” product at the bank counter",art:"🏦 📜 😰",
+  recap:"A deposit is money kept at a bank, protected by deposit insurance up to a limit. A bond is a loan to a company — if the company fails, you can lose it.",
+  sit:"A friendly bank employee offers you a product paying 11%/year — much more than the 6% deposit rate. She says it's “just like a savings book”. The papers mention a real-estate company's bonds.",
+  opts:[
+   ["✍️","Sign — the bank staff says it's safe","terrible",{saveLoss:0.6,mood:-10},"It was a corporate bond, not a deposit. When the company got into trouble, your money got stuck."],
+   ["📄","Read the papers: who borrows my money? Is it insured?","brilliant",{},"Exactly. Higher interest = higher risk. A bond sold at a bank counter is still a loan to that company."],
+   ["🏦","Keep a normal deposit instead","excellent",{},"Safe choice. You gave up some interest in exchange for protection."]],
+  sides:[["🧑‍🦳","Buyers","Many believed they were buying a bank savings product and trusted staff they had known for years."],["👩‍💼","Bank staff","Were pushed to hit sales targets, and some did not explain that the product was a corporate bond."],["🏛️","Regulators","Had begun tightening rules on selling corporate bonds to individuals, and authorities opened a major investigation."]],
+  fact:"In 2022 a large real-estate group in Vietnam fell into a major scandal. Tens of thousands of people had bought bonds linked to the group, many through the branches of a commercial bank, thinking they were as safe as deposits. Crowds rushed to withdraw money and the State Bank of Vietnam placed that bank under special control."},
+ {id:"e4",phase:"emp",req:8,year:2022,where:"Worldwide",head:"CENTRAL BANKS SIGNAL MORE RATE HIKES",title:"Fixed or floating savings?",art:"🏛️ 📈 🐷",
+  recap:"Fixed = the rate is locked. Floating = it moves with the market. When rates rise, floating savers win and fixed savers are stuck.",
+  sit:"Inflation is high and the central bank says it will keep raising rates (market rate now: {rate}). Your bank offers a fixed 6%/yr for 12 months, or a floating rate that follows the market.",
+  opts:[
+   ["🔒","Lock the fixed 6% for 12 months","pbad",{dep:"fixed"},"Fixed feels safe, but when rates climb you'll be stuck at 6% while the market pays more."],
+   ["🌊","Choose floating — rates are going up","brilliant",{dep:"floating"},"You read the signal: rising rates help floating savers. Watch your interest grow each time rates go up."],
+   ["⚖️","Split: half fixed, half floating","excellent",{dep:"split"},"Hedging! You don't need a perfect prediction — splitting reduces regret either way."]],
+  sides:[["🐷","Savers","Floating-rate savers earned more as rates climbed; fixed-rate savers were locked in."],["🏠","Borrowers","Families with floating-rate loans saw monthly payments jump."],["🏛️","Central bank","Raised rates to cool spending and bring inflation down, accepting slower growth for a while."]],
+  fact:"In 2022 central banks around the world raised interest rates fast to fight inflation. The US Federal Reserve went from near 0% to over 5% in about a year and a half, and the State Bank of Vietnam also raised its policy rates in late 2022."},
+ {id:"e5",phase:"emp",req:6,year:2007,where:"USA",head:"HOUSE PRICES CAN ONLY GO UP… RIGHT?",title:"A dream home with a teaser loan",art:"🏠 💳 📉",
+  recap:"Debt costs money. Before borrowing, ask: can I still repay if things get worse?",
+  sit:"A lender offers you an apartment loan: 0₫ down payment, super-low interest for 2 years, then it jumps. “Prices always rise — you can sell for a profit!”",
+  opts:[
+   ["✍️","Sign now before prices rise more","terrible",{cash:-4000000,mood:-15},"Rates reset higher and prices fell. You owed more than the home was worth."],
+   ["📄","Calculate the payment AFTER the teaser ends — only borrow if I can afford that","brilliant",{},"You planned for the worst case — exactly what many 2008 borrowers didn't do."],
+   ["🔍","Ask an expert or family first","best",{},"A second opinion can save you from a costly mistake."]],
+  sides:[["🏠","Borrowers","Were told prices always rise and they could refinance later. When prices fell, many lost their homes."],["🏦","Lenders","Earned fees on each loan, then sold the loans on as “safe” investments — so many stopped caring if borrowers could repay."],["🌍","Everyone else","When the loans failed, banks stopped lending to each other and a global recession followed."]],
+  fact:"Before 2008, US lenders gave millions of risky “subprime” mortgages with low teaser rates. When rates reset and house prices fell, defaults soared. Lehman Brothers went bankrupt in September 2008 and the crisis spread worldwide."},
+ {id:"f0",phase:"found",req:8,year:2022,where:"Worldwide",head:"RATES STILL CLIMBING",title:"Fund your business: fixed or floating loan?",art:"🏦 📝 🏪",
+  recap:"When rates are about to rise, borrowers like to lock a fixed rate — the payment stays the same.",
+  sit:"You need 30,000,000₫ to open your first shop. You'll put in your savings and borrow the rest. The central bank is still raising rates (market now: {rate}). Which loan?",
+  opts:[
+   ["🌊","Floating — it's cheaper right now","pbad",{},"Cheaper today, but every rate hike will raise your interest bill."],
+   ["🔒","Fixed — lock today's rate","brilliant",{},"When rates are rising, borrowers lock in. Your costs are now predictable."],
+   ["💳","Use credit cards instead of a bank loan","terrible",{},"Card interest is far higher than a business loan. This will eat your profit every month."]],
+  loans:["floating","fixed","card"],
+  sides:[["🧑‍🍳","Small business owners","Owners on floating loans saw interest costs jump in 2022–23; fixed-rate borrowers were protected."],["🏦","Banks","Like floating loans when rates rise — the risk moves to the borrower."],["🏛️","Central bank","Higher rates are meant to slow borrowing and spending to fight inflation."]],
+  fact:"From 2022 to 2023, as central banks raised rates, many small businesses with floating-rate loans saw their interest payments rise sharply, while those who had locked fixed rates kept the same payments."},
+ {id:"o1",phase:"own",req:10,year:1973,where:"Worldwide",head:"OIL PRICES QUADRUPLE!",title:"Your costs suddenly jump",art:"⛽ 🚚 🧾",costMod:3,
+  recap:"Profit = revenue − costs. If costs jump, profit can disappear fast.",
+  sit:"Fuel and delivery costs explode. Your ingredient and transport costs will be 30% higher for the next 3 months. What do you do?",
+  opts:[
+   ["🙈","Change nothing and wait it out","terrible",{cash:-3000000,rm:-0.1},"Your profit turned into a loss for months."],
+   ["🧾","Re-plan: cheaper suppliers, less waste, a small price rise","brilliant",{rm:0.05},"You attacked costs AND shared a small part with customers. Profit protected."],
+   ["💸","Double prices to cover everything","pbad",{rm:-0.12},"Customers left. Big price jumps can lose more than they save."]],
+  sides:[["🚚","Businesses","Costs for anything that used fuel — transport, plastic, food — jumped almost overnight."],["🛒","Families","Paid more for everything and waited in long lines for fuel."],["🛢️","Oil producers","Used oil supply as political pressure and earned far more per barrel."]],
+  fact:"In October 1973 Arab oil producers cut supply and stopped selling oil to some countries. Oil prices roughly quadrupled within months, causing high inflation and slow growth at the same time — “stagflation”."},
+ {id:"o2",phase:"own",req:11,year:2008,where:"USA",head:"COFFEE GIANT CLOSES 600 STORES",title:"Open 10 branches at once?",art:"☕ 🏪 🏪",
+  recap:"Grow step by step: test, measure, fix, then expand.",
+  sit:"Your shop is popular! An investor says: “Borrow big and open 10 branches this year before anyone copies you.”",
+  opts:[
+   ["🚀","Do it — go big fast","pbad",{cash:-5000000,rm:-0.1},"Quality dropped, some branches lost money, and the debt stayed."],
+   ["📋","Open one branch, measure, then decide","brilliant",{rm:0.05},"Test → measure → scale. Smart founders grow at the speed of quality."],
+   ["🛑","Never expand","pgood",{},"Safe, but a competitor may take the space you left."]],
+  sides:[["☕","Starbucks","Opened stores so fast that some were too close together and the coffee experience suffered."],["👨‍💼","Howard Schultz","Returned as CEO in 2008 and said fast growth had watered down the Starbucks experience."],["👩‍🍳","Employees","Thousands of jobs were affected when hundreds of stores closed."]],
+  fact:"After years of very fast expansion, Starbucks announced in July 2008 that it would close about 600 stores in the US. Its returning CEO, Howard Schultz, focused on fixing quality before growing again."},
+ {id:"o3",phase:"own",req:6,year:1929,where:"USA",head:"STOCK MARKET CRASHES!",title:"Invest company cash with borrowed money?",art:"📉 😱 🏦",
+  recap:"Leverage (borrowing to invest) makes gains AND losses bigger.",
+  sit:"Stocks have doubled in a few years. Your banker says: “Put your company's cash in stocks and borrow more to buy extra. Everyone's getting rich!”",
+  opts:[
+   ["💳","Borrow and buy as much as possible","terrible",{cash:-8000000,rm:-0.05},"The market crashed. Borrowed money + falling stocks wiped out a big chunk of your cash."],
+   ["🧘","Keep a cash reserve for the business — never borrow to speculate","brilliant",{},"Your business survived while others were forced to sell everything."],
+   ["🤏","Invest a small part of spare cash, no borrowing","best",{cash:-1000000},"You lost some, but not the business. Small, unborrowed bets limit the damage."]],
+  sides:[["🧑‍💼","Investors","Many bought stocks “on margin” with borrowed money. When prices fell, they were forced to sell and couldn't repay."],["🏦","Banks","Had lent heavily for stock buying; thousands of banks failed in the following years."],["👷","Workers","US unemployment rose to about 25% during the Great Depression."]],
+  fact:"In the 1920s many Americans bought stocks with borrowed money. When prices crashed in October 1929 they couldn't repay, thousands of banks failed, and the Great Depression lasted until about 1933."},
+ {id:"o4",phase:"own",req:11,year:2012,where:"USA",head:"PHOTO GIANT FILES FOR BANKRUPTCY",title:"A new technology could kill your product",art:"🎞️ ➡️ 📱",
+  recap:"Disruption: new technology can make a profitable product old fast. Adapt before you are forced to.",
+  sit:"Customers are starting to order through a new delivery app with AI recommendations. Your old way of selling still makes most of your profit.",
+  opts:[
+   ["🙅","Ignore it — our current model works fine","terrible",{rm:-0.15},"Slowly, customers moved to competitors who adapted."],
+   ["🧪","Test the new channel while keeping the old one running","brilliant",{rm:0.1},"Protect today's profit while building tomorrow's. That's how companies survive change."],
+   ["🔥","Shut the old model and go all-in on the app","pbad",{cash:-3000000,rm:-0.05},"Too fast — you lost loyal customers before the new channel was ready."]],
+  sides:[["📸","Kodak","One of its engineers built an early digital camera in 1975, but the company kept protecting its profitable film business."],["🧑‍🤝‍🧑","Customers","Happily switched to digital cameras and then smartphones."],["📈","Competitors","Companies that embraced digital took the market Kodak had led for a century."]],
+  fact:"Kodak dominated photography for about 100 years. Its engineer Steve Sasson built a digital camera prototype in 1975, but the company was slow to move away from film. Kodak filed for bankruptcy in January 2012."}
+];
+
+const SHOP=[
+ {e:"🧋",n:"Bubble tea",p:35000,mood:3},
+ {e:"🍜",n:"Dinner with friends",p:300000,mood:8},
+ {e:"🎁",n:"Gift for family",p:400000,mood:7},
+ {e:"🧘",n:"Gym month",p:500000,mood:8},
+ {e:"🎮",n:"New game",p:600000,mood:12},
+ {e:"👔",n:"Work outfit",p:700000,perf:6,mood:3},
+ {e:"📚",n:"Online course",p:1500000,perf:15},
+ {e:"📱",n:"Latest phone",p:9000000,mood:25}
+];
+const POS={home:[126,378],office:[314,202],bank:[142,208],market:[322,392]};
+const PLAZA=[180,268];
+const LOTS=[[186,170],[184,412],[40,262]];
+const newLife=(name,look)=>({name,look,month:1,cash:2000000,save:0,dep:"floating",mood:70,rank:0,perf:0,phase:"emp",founder:false,pendingBiz:null,biz:null,worked:false,pos:"home",seenW:[],curW:null,caseDone:[],costMod:0,spent:0,won:false});
+const billsNow=()=>RENT+FOOD;
+const moodFace=m=>m>=70?"😄":m>=50?"🙂":m>=30?"😐":"😩";
+let walking=false;
+
+function tree(x,y,s=1){return `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="0" cy="2" rx="14" ry="4" fill="rgba(0,0,0,.12)"/><rect x="-3" y="-12" width="6" height="14" rx="2" fill="#9C6B43"/><circle cx="0" cy="-24" r="15" fill="#4FAE5A"/><circle cx="-8" cy="-18" r="10" fill="#5DBB63"/><circle cx="8" cy="-19" r="10" fill="#5DBB63"/><circle cx="-4" cy="-29" r="7" fill="#7ACF79"/></g>`}
+function flower(x,y,c){return `<g transform="translate(${x} ${y})"><circle cx="-2.5" r="2.5" fill="${c}"/><circle cx="2.5" r="2.5" fill="${c}"/><circle cy="-2.5" r="2.5" fill="${c}"/><circle cy="2.5" r="2.5" fill="${c}"/><circle r="1.6" fill="#FFE066"/></g>`}
+function sign(x,y,txt,col){const w=Math.max(44,txt.length*6.6+16);return `<rect x="${x-w/2}" y="${y}" width="${w}" height="18" rx="9" fill="${col}" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y+13}" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="900" font-size="10" fill="#fff">${txt}</text>`}
+function miniShop(x,y,bt,n){return `<g class="bld" onclick="walkTo('office')"><ellipse cx="${x}" cy="${y+3}" rx="28" ry="5" fill="rgba(0,0,0,.12)"/><rect x="${x-22}" y="${y-30}" width="44" height="32" rx="4" fill="#FFF7E6" stroke="#EAD9B5" stroke-width="2"/>${[0,1,2,3].map(i=>`<rect x="${x-25+i*12.5}" y="${y-40}" width="12.5" height="11" fill="${i%2?"#fff":bt.col}"/>`).join("")}<rect x="${x-7}" y="${y-16}" width="14" height="18" rx="7" fill="#B9825A"/><circle cx="${x+14}" cy="${y-17}" r="7" fill="#fff" stroke="${bt.col}" stroke-width="2"/><text x="${x+14}" y="${y-13.5}" text-anchor="middle" font-size="9">${bt.e}</text>${sign(x,y+5,"BRANCH "+n,bt.col)}</g>`}
+function forSale(x,y){return `<g class="bld" onclick="walkTo('office')"><rect x="${x-1.5}" y="${y-24}" width="3" height="26" fill="#9C6B43"/><rect x="${x-22}" y="${y-38}" width="44" height="17" rx="4" fill="#fff" stroke="#E3E3F2" stroke-width="2"/><text x="${x}" y="${y-26}" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8" font-weight="900" fill="#EF4E4E">FOR SALE</text></g>`}
+function townSVG(preview){
+  const l=S.life, owner=!preview&&isOwner(l), worked=preview||!l?true:l.worked;
+  const offLabel=owner?(BIZ[l.biz.type].n.toUpperCase()+" HQ"):"OFFICE";
+  const flagCol=owner&&l.biz.br>=MAX_BR?"#FFC93C":"#EF4E4E";
+  let g=`<svg class="map" viewBox="0 0 360 440" aria-label="Altifi City map">
+  <defs><pattern id="grass" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="#A5DC86"/><path d="M5 9 l2 -4 l2 4 M16 19 l2 -4 l2 4" stroke="#8ECF70" stroke-width="1.6" fill="none" stroke-linecap="round"/></pattern></defs>
+  <rect width="360" height="440" fill="url(#grass)"/>
+  <ellipse cx="178" cy="54" rx="40" ry="20" fill="#7CC6EC"/><ellipse cx="178" cy="51" rx="36" ry="16" fill="#9ADAF7"/><ellipse cx="166" cy="48" rx="7" ry="3" fill="#7ACF79"/><ellipse cx="193" cy="56" rx="5" ry="2.4" fill="#7ACF79"/>
+  <g fill="none" stroke-linecap="round"><path d="M180 268 Q130 236 90 222 M180 268 Q240 236 262 216 M180 268 Q120 300 78 396 M180 268 Q236 306 268 406" stroke="#E2CE97" stroke-width="24"/><path d="M180 268 Q130 236 90 222 M180 268 Q240 236 262 216 M180 268 Q120 300 78 396 M180 268 Q236 306 268 406" stroke="#F3E5BC" stroke-width="18"/></g>
+  <circle cx="180" cy="268" r="34" fill="#F3E5BC" stroke="#E2CE97" stroke-width="3"/><circle cx="180" cy="268" r="17" fill="#D9D6EA"/><circle cx="180" cy="268" r="13" fill="#8FD3F4"/><circle cx="180" cy="266" r="4" fill="#fff"/><path d="M180 262 Q176 254 172 260 M180 262 Q184 254 188 260" stroke="#BFE9FB" stroke-width="2" fill="none"/>
+  ${[[100,240,"#FF8FB1"],[126,258,"#fff"],[236,252,"#FFD54F"],[304,232,"#FF8FB1"],[156,330,"#fff"],[212,336,"#FF8FB1"],[34,410,"#FFD54F"],[322,418,"#fff"],[140,190,"#FFD54F"],[320,300,"#fff"]].map(f=>flower(...f)).join("")}
+  ${[[16,160,.75],[338,262,.9],[26,84,1],[146,172,.75],[236,432,.8],[338,96,.85],[118,428,.7],[344,436,.75],[60,30,.8],[300,24,.7]].map(t=>tree(...t)).join("")}`;
+  if(owner) LOTS.forEach(([x,y],i)=>{g+= l.biz.br>=i+2 ? miniShop(x,y,BIZ[l.biz.type],i+2) : forSale(x,y)});
+  g+=`<g class="bld" onclick="walkTo('bank')"><ellipse cx="90" cy="182" rx="50" ry="7" fill="rgba(0,0,0,.12)"/><rect x="46" y="172" width="88" height="10" rx="3" fill="#D9D6EA"/><rect x="52" y="122" width="76" height="52" fill="#F4F2FB"/>${[0,1,2,3].map(i=>`<rect x="${57+i*19}" y="124" width="8" height="48" rx="2" fill="#fff" stroke="#D9D6EA"/>`).join("")}<rect x="82" y="148" width="16" height="26" rx="3" fill="#6B5CC9"/><polygon points="44,124 90,94 136,124" fill="#E8E4F7" stroke="#C9C3E6" stroke-width="3" stroke-linejoin="round"/><circle cx="90" cy="113" r="9" fill="#FFC93C" stroke="#E0A800" stroke-width="2"/><text x="90" y="117" text-anchor="middle" font-size="11" font-weight="900" fill="#7A5600">₫</text>${sign(90,184,"BANK","#8E72E6")}</g>`;
+  g+=`<g class="bld" onclick="walkTo('office')"><ellipse cx="262" cy="176" rx="50" ry="7" fill="rgba(0,0,0,.12)"/><rect x="224" y="58" width="76" height="118" rx="6" fill="${owner?BIZ[l.biz.type].col:"#9DB8F5"}" stroke="${owner?"rgba(0,0,0,.18)":"#7E9BE0"}" stroke-width="2"/><rect x="220" y="52" width="84" height="10" rx="4" fill="${owner?"#5B4A3A":"#7E9BE0"}"/><line x1="290" y1="52" x2="290" y2="30" stroke="#55557A" stroke-width="2"/><path d="M290 30 l14 5 l-14 5z" fill="${flagCol}"/>`;
+  for(let r=0;r<4;r++)for(let c=0;c<3;c++)g+=`<rect x="${234+c*20}" y="${68+r*20}" width="14" height="12" rx="2" fill="#E8F2FF"/>`;
+  g+=`<rect x="250" y="150" width="24" height="26" rx="2" fill="#CFE3FF" stroke="#fff" stroke-width="2"/><line x1="262" y1="150" x2="262" y2="176" stroke="#fff" stroke-width="2"/>${owner?`<circle cx="236" cy="52" r="12" fill="#fff" stroke="${BIZ[l.biz.type].col}" stroke-width="3"/><text x="236" y="57" text-anchor="middle" font-size="13">${BIZ[l.biz.type].e}</text>`:""}${sign(262,178,offLabel,owner?"#5B4A3A":"#5B5BD6")}${!worked?`<g class="mark"><circle cx="304" cy="50" r="11" fill="#FFC93C" stroke="#fff" stroke-width="3"/><text x="304" y="55" text-anchor="middle" font-size="14" font-weight="900" fill="#4A3300">!</text></g>`:""}</g>`;
+  g+=`<g class="bld" onclick="walkTo('home')"><ellipse cx="78" cy="354" rx="46" ry="7" fill="rgba(0,0,0,.12)"/><rect x="94" y="278" width="9" height="18" fill="#C97B63"/><rect x="44" y="308" width="68" height="46" rx="6" fill="#FFF3DD" stroke="#E8D3AE" stroke-width="2"/><polygon points="34,312 78,272 122,312" fill="#FF8FA3" stroke="#E5677F" stroke-width="3" stroke-linejoin="round"/><rect x="50" y="318" width="14" height="13" rx="3" fill="#BFE6FF" stroke="#fff" stroke-width="2"/><rect x="92" y="318" width="14" height="13" rx="3" fill="#BFE6FF" stroke="#fff" stroke-width="2"/><rect x="69" y="326" width="18" height="28" rx="9" fill="#B9825A"/><circle cx="82" cy="341" r="1.6" fill="#FFE066"/>${sign(78,356,"HOME","#FF6F8F")}</g>`;
+  g+=`<g class="bld" onclick="walkTo('market')"><ellipse cx="268" cy="362" rx="50" ry="7" fill="rgba(0,0,0,.12)"/><rect x="228" y="314" width="80" height="48" rx="4" fill="#FFF7E6" stroke="#EAD9B5" stroke-width="2"/><rect x="224" y="294" width="88" height="8" rx="3" fill="#C53333"/>`;
+  for(let i=0;i<6;i++){const x=224+i*88/6,c=i%2?"#fff":"#EF4E4E";g+=`<rect x="${x}" y="301" width="${88/6}" height="14" fill="${c}"/><circle cx="${x+88/12}" cy="315" r="${88/12}" fill="${c}"/>`}
+  g+=`<rect x="232" y="342" width="72" height="20" fill="#C99A6B"/>${[[244,"#FF9F43"],[254,"#FF9F43"],[249,"#FF9F43"],[280,"#EF4E4E"],[290,"#8BC34A"],[285,"#EF4E4E"]].map(([x,c],i)=>`<circle cx="${x}" cy="${i%3===2?334:339}" r="5" fill="${c}"/>`).join("")}${sign(268,366,"MARKET","#F28C28")}</g>`;
+  return g+`</svg>`;
+}
+function cityIntro(){
+  return `<div class="card center" style="padding:18px 16px"><h2>🏙️ Altifi City</h2><p class="muted" style="font-weight:700">Start as an ordinary intern. Solve real money cases from history, get promoted for brilliant moves, open your own business — and grow it into an <b style="color:var(--ink)">empire 👑</b>.</p>
+   <div class="town" style="margin:12px 0">${townSVG(true)}</div>
+   <div class="icons3"><div class="card"><div>📚</div>Lessons unlock cases</div><div class="card"><div>📰</div>Real cases from history</div><div class="card"><div>🏪</div>Build your business</div></div>
+   <button class="btn sun" style="margin-top:14px" onclick="openCreator(true)">CREATE MY CHARACTER</button></div>`;
+}
+function caseStats(l){
+  const ph=isOwner(l)?"own":"emp", list=CASES.filter(c=>c.phase===ph);
+  return {done:list.filter(c=>l.caseDone.includes(c.id)).length,total:list.length,locked:list.filter(c=>!l.caseDone.includes(c.id)&&S.done<=c.req).length};
+}
+function cityView(){
+  const l=S.life; if(!l) return cityIntro();
+  const [ax,ay]=POS[l.pos]||POS.home, own=isOwner(l), cs=caseStats(l), li=ladderIdx(l);
+  let prog;
+  if(own){const p=bizProfit(l);prog=`<div class="valbar"><i style="width:${l.biz.br/MAX_BR*100}%;background:var(--sun)"></i></div><div class="muted" style="font-size:12px;font-weight:800;margin-top:4px">${l.biz.br}/${MAX_BR} branches · Profit ${short(p.profit-p.li)}/month · ${stars(l.biz.rm)}</div>`}
+  else {const r=JOB[l.rank];prog=`<div class="valbar"><i style="width:${Math.min(100,l.perf/r.need*100)}%;background:var(--pri)"></i></div><div class="muted" style="font-size:12px;font-weight:800;margin-top:4px">Performance ${l.perf}/${r.need} · Salary ${short(r.pay)}/month</div>`}
+  const next=own?(l.biz.br>=MAX_BR?"You built an empire! 👑":"Next: grow to "+MAX_BR+" branches"):l.founder?"Ready: start your own business! 🚀":l.rank<2?"Next: "+JOB[l.rank+1].t:"Next: your own business 🚀";
+  return `<div class="hud">
+    <div class="card"><span class="muted">💵 Cash</span><b style="color:${l.cash<0?"var(--bad)":"var(--ink)"}">${short(l.cash)}</b></div>
+    <div class="card"><span class="muted">🏦 Savings</span><b>${short(l.save)}</b></div>
+    <div class="card"><span class="muted">${moodFace(l.mood)} Mood</span><div class="valbar"><i style="width:${l.mood}%;background:${l.mood>=50?"var(--good)":l.mood>=30?"var(--sun)":"var(--bad)"}"></i></div></div></div>
+   <div class="card rankcard"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div class="muted" style="font-size:11px;font-weight:900;letter-spacing:1px">MONTH ${l.month} · ${titleOf(l).toUpperCase()}</div><b>${next}</b></div><div class="ladder" title="${LADDER.join(" → ")}">${LADDER.map((x,i)=>`<i class="${i<=li?"on":""}"></i>`).join("")}</div></div>${prog}
+   <div class="ratechip">🏛️ Market rate ${pctY(rateNow())} · 📰 Cases ${cs.done}/${cs.total}${cs.locked?` · 🔒 ${cs.locked} need lessons`:""}</div></div>
+   <div class="town" id="town">${townSVG(false)}<div class="avatar" id="av" style="left:${ax/360*100}%;top:${ay/440*100}%"><div class="flipper"><div class="bobber">${avatar(l.look,38,avR(l))}</div></div>${l.month===1&&!l.worked?`<div class="avtip">Tap the office! 👆</div>`:""}</div></div>
+   <div class="todo">
+    <button class="todoi ${l.worked&&!l.founder?"done":""}" onclick="walkTo('office')">${own?"🏪":l.founder?"🚀":"🏢"}<span>${own?"Run your business (HQ)":l.founder?"Start your own business!":"Work: this month's case"}</span><b>${l.founder?"NEW":l.worked?"✓ done":"1× / month"}</b></button>
+    <button class="todoi" onclick="walkTo('market')">🛒<span>Shop at the market</span><b>optional</b></button>
+    <button class="todoi" onclick="walkTo('bank')">🏦<span>Bank: save${own?" & repay loans":""}</span><b>${short(l.save)}</b></button>
+    <button class="todoi" onclick="walkTo('home')">🏠<span>Go home & end the month</span><b>→</b></button>
+   </div>`;
+}
+function walkTo(p){
+  const l=S.life, av=$("#av"); if(!l||walking)return;
+  if(!av||l.pos===p) return openPlace(p);
+  const tip=av.querySelector(".avtip"); if(tip)tip.remove();
+  walking=true; const dest=POS[p], from=POS[l.pos]||POS.home;
+  const d1=Math.hypot(PLAZA[0]-from[0],PLAZA[1]-from[1]), d2=Math.hypot(dest[0]-PLAZA[0],dest[1]-PLAZA[1]);
+  stepTo(av,PLAZA,d1*5.5,()=>stepTo(av,dest,d2*5.5,()=>{walking=false;av.classList.remove("walk");l.pos=p;save();openPlace(p)}));
+}
+function stepTo(av,[x,y],ms,cb){
+  const curX=parseFloat(av.style.left)/100*360;
+  av.classList.toggle("flip",x<curX); av.classList.add("walk");
+  av.style.setProperty("--d",Math.round(ms)+"ms");
+  requestAnimationFrame(()=>{av.style.left=x/360*100+"%";av.style.top=y/440*100+"%"});
+  setTimeout(cb,ms+40);
+}
+function openPlace(p){({office:openOffice,bank:openBank,market:openMarket,home:openHome})[p]()}
+const shead=(ic,t,s)=>`<div class="shead"><div class="ic">${ic}</div><div><h2>${t}</h2><div class="muted" style="font-weight:800;font-size:13px">${s}</div></div></div>`;
+function effChips(e){
+  const c=[];
+  if(e.perf) c.push([e.perf>0,`${e.perf>0?"+":""}${e.perf} performance`]);
+  if(e.cash) c.push([e.cash>0,`${e.cash>0?"+":"−"}${short(Math.abs(e.cash))} cash`]);
+  if(e.save) c.push([true,`+${short(e.save)} saved`]);
+  if(e.saveLoss) c.push([false,`−${short(e.saveLoss)} savings lost`]);
+  if(e.dep) c.push([true,`Savings: ${DEP_N[e.dep]}`]);
+  if(e.loan) c.push([e.loan==="fixed",`Loan: ${LT_N[e.loan]}`]);
+  if(e.rm) c.push([e.rm>0,`${e.rm>0?"+":""}${Math.round(e.rm*100)}% customers`]);
+  if(e.costMod) c.push([false,`Costs +30% for ${e.costMod} months`]);
+  if(e.mood) c.push([e.mood>0,`${e.mood>0?"+":""}${e.mood} mood`]);
+  return c.length?`<div class="effs">${c.map(([up,t])=>`<span class="eff ${up?"up":"down"}">${t}</span>`).join("")}</div>`:"";
+}
+function applyEff(e){
+  const l=S.life, out={};
+  if(e.cash){l.cash+=e.cash;out.cash=e.cash}
+  if(e.save){const a=Math.max(0,Math.min(e.save,l.cash));l.cash-=a;l.save+=a;if(a)out.save=a}
+  if(e.saveLoss){const a=Math.round(l.save*e.saveLoss);l.save-=a;if(a)out.saveLoss=a}
+  if(e.dep){l.dep=e.dep;out.dep=e.dep}
+  if(e.rm&&l.biz){l.biz.rm=clamp(l.biz.rm+e.rm,0.6,1.5);out.rm=e.rm}
+  if(e.mood){l.mood=clamp(l.mood+e.mood,0,100);out.mood=e.mood}
+  return out;
+}
+// returns "promo" | "founder" | false
+function checkPromo(){
+  const l=S.life; if(isOwner(l)||l.founder)return false;
+  const r=JOB[l.rank]; if(l.perf<r.need)return false;
+  if(l.rank<JOB.length-1){l.rank++;l.perf=0;S.xp+=30;save();return "promo"}
+  l.founder=true; S.xp+=30; save(); return "founder";
+}
+const afterPromo=p=>p==="promo"?"showPromo()":p==="founder"?"founderOffer()":"closeModal()";
+function nextCase(l){
+  const ph=isOwner(l)?"own":"emp", list=CASES.filter(c=>c.phase===ph&&!l.caseDone.includes(c.id));
+  return {open:list.find(c=>S.done>c.req),locked:list.find(c=>S.done<=c.req)};
+}
+function openOffice(){
+  const l=S.life;
+  if(isOwner(l)) return openHQ();
+  if(l.founder) return founderOffer();
+  if(l.worked) return showModal(`${shead("🏢",titleOf(l),"Month "+l.month)}<div class="hello">${tiko(52)}<div class="bubble">You already made this month's move! Shop, save, or go home to start the next month.</div></div><button class="btn" style="margin-top:14px" onclick="closeModal()">OK</button>`);
+  monthDecision();
+}
+function monthDecision(){
+  const l=S.life, {open,locked}=nextCase(l);
+  if(open) return caseIntro(open.id);
+  if(locked) return lockView(locked);
+  routineWork();
+}
+function lockView(c){
+  const l=S.life;
+  showModal(`${shead("🔒","Case locked",c.title)}<div class="scene" style="font-size:44px;margin-top:0;filter:grayscale(.6)">${c.art}</div>
+   <div class="hello">${tiko(52,"wow")}<div class="bubble">${c.year?`This is a real case from <b>${c.where}, ${c.year}</b>. `:""}To make a smart move here you need the lesson <b>“${LESSONS[c.req].name}”</b> (Unit ${Math.floor(c.req/2)+1}). Learn it first — then I can judge your move fairly!</div></div>
+   <button class="btn sun" style="margin-top:14px" onclick="closeModal();go('learn')">📚 GO TO LESSONS</button>
+   <button class="btn ghost" onclick="routineWork()">${isOwner(l)?"Handle a routine decision instead":"Do routine work instead (half points)"}</button>
+   <button class="linkbtn" onclick="closeModal()">Later</button>`);
+}
+function routineWork(){
+  const l=S.life, t=isOwner(l)?2:l.rank>=1?1:0;
+  if(!l.curW||l.curW[0]!==t){
+    let pool=WORK[t].map((_,i)=>i).filter(i=>!l.seenW.includes(t+"-"+i));
+    if(!pool.length){l.seenW=l.seenW.filter(s=>!s.startsWith(t+"-"));pool=WORK[t].map((_,i)=>i)}
+    l.curW=[t,pool[Math.floor(Math.random()*pool.length)]]; save();
+  }
+  const sc=WORK[l.curW[0]][l.curW[1]];
+  showModal(`${shead(isOwner(l)?"🏪":"🏢",titleOf(l),"Routine decision · Month "+l.month)}<div class="scene" style="font-size:44px;margin-top:0">${sc.art}</div><p style="font-weight:800;font-size:16px">${sc.sit}</p>${sc.opts.map((o,k)=>`<button class="choice" onclick="workPick(${k})"><span>${o[0]}</span>${o[1]}</button>`).join("")}<button class="linkbtn" onclick="closeModal()">Decide later</button>`);
+}
+function workPick(k){
+  const l=S.life,[t,i]=l.curW,o=WORK[t][i].opts[k],r=R[o[2]];
+  const out=applyEff(o[3]); let promo=false, tired=false;
+  if(isOwner(l)){const d=RM[o[2]];l.biz.rm=clamp(l.biz.rm+d,0.6,1.5);if(d)out.rm=d}
+  else {let perf=Math.round(PERF[o[2]]/2);if(perf>0&&l.mood<30){perf=Math.round(perf/2);tired=true}l.perf=Math.max(0,l.perf+perf);out.perf=perf}
+  l.worked=true; l.seenW.push(t+"-"+i); l.curW=null; S.xp+=GOOD(o[2])?6:2; save();
+  promo=checkPromo();
+  showModal(`<div class="center"><div class="badge" style="background:${r.col}">${r.sym}</div><h2 style="color:${r.col}">${r.label}</h2></div>
+   <div class="card"><div class="muted" style="font-size:12px;font-weight:900">YOUR CHOICE</div><p style="font-weight:800;margin:4px 0 0">${o[0]} ${o[1]}</p>${effChips(out)}</div>
+   <div class="hello">${tiko(52,GOOD(o[2])?"happy":"sad")}<div class="bubble">${o[4]}${tired?"<br><b>😩 Low mood halved your performance gain.</b>":""}</div></div>
+   <button class="btn" style="margin-top:14px" onclick="${afterPromo(promo)}">CONTINUE</button>`);
+}
+function caseIntro(id){
+  const c=CASES.find(x=>x.id===id), l=S.life;
+  const head=c.year?`<div class="paper"><div class="mast">THE ALTIFI TIMES · MONTH ${l.month}</div><span class="yr">📜 Real case · ${c.where} ${c.year}</span><div class="hl">${c.head}</div><div style="font-size:40px;margin:4px 0">${c.art}</div></div>`
+    :`${shead("💼","New case",titleOf(l)+" · Month "+l.month)}<div class="scene" style="font-size:44px;margin-top:0">${c.art}</div>`;
+  showModal(`${head}<div class="recap"><b>📖 Quick revise · ${LESSONS[c.req].name}</b><br>${c.recap}</div>
+   <h3 style="margin-top:14px">${c.title}</h3><p style="font-weight:800">${c.sit.replace("{rate}",pctY(rateNow()))}</p>
+   ${c.opts.map((o,k)=>`<button class="choice" onclick="casePick('${c.id}',${k})"><span>${o[0]}</span>${o[1]}</button>`).join("")}
+   <button class="linkbtn" onclick="closeModal()">Decide later</button>`);
+}
+function casePick(id,k){
+  const c=CASES.find(x=>x.id===id), o=c.opts[k], r=R[o[2]], l=S.life, good=GOOD(o[2]);
+  const out=applyEff(o[3]); let promo=false, tired=false;
+  l.caseDone.push(c.id);
+  if(c.costMod){l.costMod=c.costMod;out.costMod=c.costMod}
+  if(c.loans) out.loan=c.loans[k];
+  if(c.phase==="emp"){let perf=PERF[o[2]];if(perf>0&&l.mood<30){perf=Math.round(perf/2);tired=true}l.perf=Math.max(0,l.perf+perf);out.perf=perf;l.worked=true;promo=checkPromo()}
+  if(c.phase==="own") l.worked=true;
+  S.xp+=good?20:4; save();
+  const next=c.phase==="found"?`openBusiness('${c.loans[k]}')`:afterPromo(promo);
+  showModal(`<div class="center"><div class="badge" style="background:${r.col}">${r.sym}</div><h2 style="color:${r.col}">${r.label}</h2></div>
+   <div class="card"><div class="muted" style="font-size:12px;font-weight:900">YOUR MOVE</div><p style="font-weight:800;margin:4px 0 0">${o[0]} ${o[1]}</p>${effChips(out)}</div>
+   <div class="sub">🤖 ${BN()}'s analysis</div>
+   <div class="hello">${tiko(52,good?"happy":"sad")}<div class="bubble">${o[4]}${tired?"<br><b>😩 Low mood halved your performance gain.</b>":""}</div></div>
+   <div class="sub">👀 How each side saw it</div>
+   ${c.sides.map(([e,who,v])=>`<div class="side"><span>${e}</span><div><b>${who}</b><p>${v}</p></div></div>`).join("")}
+   ${c.year?`<div class="fact"><b>📖 What really happened · ${c.where} ${c.year}</b><br>${c.fact}</div>`:`<div class="fact"><b>📊 Real data</b><br>${c.fact}</div>`}
+   <button class="btn" style="margin-top:14px" onclick="${next}">CONTINUE</button>`);
+}
+function showPromo(){
+  const l=S.life,r=JOB[l.rank];
+  showModal(`<div class="center"><div class="confetti">🎉 ✨ 🎊</div><div style="display:inline-block">${avatar(l.look,100,avR(l))}</div><h2 style="font-size:24px;margin-top:6px">PROMOTED!</h2><p class="muted" style="font-weight:800">${esc(l.name)} is now <b style="color:var(--ink)">${r.t}</b></p>
+   <div class="grid" style="margin:12px 0"><div class="card"><b style="color:var(--good)">${short(r.pay)}</b><span class="muted">new monthly salary</span></div><div class="card"><b style="color:var(--sun-d)">+30</b><span class="muted">XP</span></div></div>
+   <p style="font-weight:700">Brilliant moves get noticed. ${l.rank===JOB.length-1?"One more step and you could run your <b>own business</b>! 🚀":"Bigger salary — but don't let your spending grow just as fast!"}</p></div>
+   <button class="btn sun" onclick="closeModal()">AWESOME!</button>`);
+}
+function founderOffer(){
+  const l=S.life, need=CASES.find(c=>c.id==="f0").req;
+  if(S.done<=need) return showModal(`<div class="center"><div class="confetti">🚀</div><div style="display:inline-block">${avatar(l.look,90,avR(l))}</div><h2>You're ready to be your own boss!</h2></div>
+   <div class="hello">${tiko(52,"wow")}<div class="bubble">Your brilliant moves got noticed. But opening a business means taking a loan — finish the lesson <b>“${LESSONS[need].name}”</b> (Unit ${Math.floor(need/2)+1}) so you can choose the right one!</div></div>
+   <button class="btn sun" style="margin-top:14px" onclick="closeModal();go('learn')">📚 GO TO LESSONS</button><button class="linkbtn" onclick="closeModal()">Later</button>`);
+  showModal(`<div class="center"><div class="confetti">🚀 ✨</div><div style="display:inline-block">${avatar(l.look,90,avR(l))}</div><h2>Time to be your own boss!</h2><p class="muted" style="font-weight:700">You have the skills — now build something of your own. Pick a business:</p></div>
+   <div class="shopgrid">${Object.entries(BIZ).map(([k,b])=>`<button class="item" onclick="pickBiz('${k}')"><div>${b.e}</div>${b.n}<small>~${short(b.rev-b.cost)} profit/month per shop</small></button>`).join("")}</div>
+   <p class="muted" style="font-size:12px;font-weight:700;margin-top:10px">Opening costs ${short(START_COST)}. You'll put in your savings (${short(l.save)}) and borrow the rest.</p><button class="linkbtn" onclick="closeModal()">Later</button>`);
+}
+function pickBiz(k){S.life.pendingBiz=k;save();caseIntro("f0")}
+function openBusiness(lt){
+  const l=S.life, own=Math.max(0,Math.min(l.save,START_COST-5e6)), loan=START_COST-own;
+  l.save-=own; l.biz={type:l.pendingBiz||"tea",br:1,rm:1,loan,lt}; l.phase="owner"; l.pendingBiz=null; l.founder=false; l.worked=true; l.perf=0; S.xp+=50; save();
+  const bt=BIZ[l.biz.type], p=bizProfit(l);
+  showModal(`<div class="center"><div class="confetti">🎉 ${bt.e} 🎉</div><div style="display:inline-block">${avatar(l.look,90,avR(l))}</div><h2 style="font-size:22px">Grand opening: ${bizName(l)}!</h2><p class="muted" style="font-weight:700">You went from intern to business owner. 🚀</p></div>
+   <div class="moneyrow"><span>🐷 Your savings put in</span><span>${vnd(own)}</span></div>
+   <div class="moneyrow"><span>🏦 Bank loan</span><span>${vnd(loan)}</span></div>
+   <div class="moneyrow"><span>📝 Loan type</span><span>${LT_N[lt]}</span></div>
+   <div class="moneyrow" style="border:none"><span>📈 Expected profit / month</span><b>${vnd(p.profit-p.li)}</b></div>
+   <div class="fact">🏪 Your office is now your <b>HQ</b>. Open branches on the empty lots around town. Reach <b>${MAX_BR} branches</b> to build your business empire 👑</div>
+   <button class="btn sun" style="margin-top:14px" onclick="closeModal()">LET'S GROW!</button>`);
+}
+function openHQ(){
+  const l=S.life,b=l.biz,p=bizProfit(l),net=p.profit-p.li;
+  const tip=net<0?"You're losing money every month! Cut costs, fix customer love, or pay down the loan.":b.loan>net*6?"Your loan is big compared to your profit. Before borrowing more, ask: could you still repay if sales dropped 30%?":b.br>=MAX_BR?"An empire! Now protect it: keep a cash reserve and keep learning.":"Profit is healthy. Growing one branch at a time is the smart way to build an empire.";
+  showModal(`${shead(BIZ[b.type].e,bizName(l),titleOf(l)+" · Month "+l.month)}
+   <div class="grid" style="margin-bottom:12px"><div class="card"><b>${b.br}/${MAX_BR}</b><span class="muted">branches</span></div><div class="card"><b style="font-size:16px">${stars(b.rm)}</b><span class="muted">customer love</span></div></div>
+   <div class="moneyrow"><span>💰 Revenue / month</span><span style="color:var(--good)">+${vnd(p.rev)}</span></div>
+   <div class="moneyrow"><span>🧾 Costs / month</span><span style="color:var(--bad)">−${vnd(p.cost)}</span></div>
+   <div class="moneyrow"><span>🏦 Loan interest (${vnd(b.loan)} · ${b.lt==="floating"?"floating "+pctY(loanRate(b)):LT_N[b.lt]})</span><span style="color:var(--bad)">−${vnd(p.li)}</span></div>
+   <div class="moneyrow" style="border:none"><span>📈 Your profit / month</span><b style="color:${net<0?"var(--bad)":"var(--ink)"}">${vnd(net)}</b></div>
+   ${l.costMod>0?`<div class="warn">⛽ Cost shock: costs +30% (${l.costMod} more month${l.costMod>1?"s":""})</div>`:""}
+   <button class="btn sun" style="margin-top:12px" onclick="monthDecision()" ${l.worked?"disabled":""}>${l.worked?"✓ Decision made this month":"📰 THIS MONTH'S DECISION"}</button>
+   ${b.br<MAX_BR?`<div class="sub">Open branch #${b.br+1} · ${short(BRANCH_COST)}</div><div class="btnrow"><button class="btn good" onclick="expand('cash')" ${l.cash<BRANCH_COST?"disabled":""}>Pay cash</button><button class="btn ghost" onclick="expand('loan')">Borrow it</button></div>`:`<div class="fact">👑 You've built a business empire!</div>`}
+   <div class="hello" style="margin-top:12px">${tiko(46)}<div class="bubble">${tip}</div></div>
+   <button class="btn" style="margin-top:12px" onclick="closeModal()">DONE</button>`);
+}
+function expand(how){
+  const l=S.life,b=l.biz; if(b.br>=MAX_BR)return;
+  if(how==="cash"){if(l.cash<BRANCH_COST)return;l.cash-=BRANCH_COST}else b.loan+=BRANCH_COST;
+  b.br++; S.xp+=25; save(); mtoast(`${BIZ[b.type].e} Branch #${b.br} is open!`);
+  if(b.br>=MAX_BR&&!l.won) return showEmpire();
+  openHQ();
+}
+function showEmpire(){
+  const l=S.life; l.won=true; S.xp+=150; save();
+  showModal(`<div class="center"><div class="confetti">👑 🎉 🏙️</div><div style="display:inline-block">${avatar(l.look,110,avR(l))}</div><h2 style="font-size:24px">BUSINESS EMPIRE!</h2><p class="muted" style="font-weight:800">${esc(l.name)} is now a <b style="color:var(--ink)">Business Tycoon</b> with ${MAX_BR} branches.</p></div>
+   <div class="fact">From intern to tycoon — built on knowledge: budgeting, saving, spotting scams, choosing the right loan and growing step by step. +150 XP</div>
+   <button class="btn sun" style="margin-top:14px" onclick="closeModal()">👑 AMAZING</button>`);
+}
+function openBank(){
+  const l=S.life, goal=billsNow()*3, own=isOwner(l);
+  const tip=l.cash<0?"You're in debt! Negative cash costs 3% interest every month. Pay it back first.":l.save===0?"Pay yourself first: try saving 20% of your income the moment it arrives.":l.save<goal?`Next goal: an emergency fund of 3 months of bills (${short(goal)}).`:"Your emergency fund is solid! 🎉 That's real financial safety.";
+  showModal(`${shead("🏦","Altifi Bank","Market rate now: "+pctY(rateNow()))}
+   <div class="moneyrow"><span>💵 Cash in wallet</span><span style="color:${l.cash<0?"var(--bad)":"inherit"}">${vnd(l.cash)}</span></div>
+   <div class="moneyrow"><span>🐷 Savings</span><span>${vnd(l.save)}</span></div>
+   <div class="moneyrow"><span>📄 Savings type</span><span>${DEP_N[l.dep]}</span></div>
+   <div class="moneyrow" style="border:none"><span>📈 Interest next month</span><span style="color:var(--good)">+${vnd(Math.round(l.save*depRate(l)))}</span></div>
+   <div class="sub">Deposit</div><div class="btnrow"><button class="btn good" onclick="bankMove(500000)" ${l.cash<500000?"disabled":""}>+500k</button><button class="btn good" onclick="bankMove(1000000)" ${l.cash<1e6?"disabled":""}>+1M</button><button class="btn good" onclick="bankMove('all')" ${l.cash<=0?"disabled":""}>All</button></div>
+   <div class="sub">Withdraw</div><div class="btnrow"><button class="btn ghost" onclick="bankMove(-500000)" ${l.save<500000?"disabled":""}>−500k</button><button class="btn ghost" onclick="bankMove('-all')" ${l.save<=0?"disabled":""}>All</button></div>
+   ${own?`<div class="sub">Business loan · ${vnd(l.biz.loan)}</div><div class="muted" style="font-size:13px;font-weight:800;margin-bottom:8px">${LT_N[l.biz.lt]} · now ${pctY(loanRate(l.biz))}</div><div class="btnrow"><button class="btn ghost" onclick="repay(5e6)" ${l.cash<5e6||l.biz.loan<=0?"disabled":""}>Repay 5M</button><button class="btn ghost" onclick="repay('all')" ${l.cash<=0||l.biz.loan<=0?"disabled":""}>Repay max</button></div>`:""}
+   <div class="hello" style="margin-top:14px">${tiko(46)}<div class="bubble">${tip}</div></div>
+   <button class="btn" style="margin-top:14px" onclick="closeModal()">DONE</button>`);
+}
+function bankMove(a){
+  const l=S.life; let amt=a==="all"?Math.max(0,l.cash):a==="-all"?-l.save:a;
+  if(amt>0)amt=Math.min(amt,Math.max(0,l.cash)); else amt=-Math.min(-amt,l.save);
+  l.cash-=amt; l.save+=amt; save(); openBank();
+}
+function repay(a){
+  const l=S.life,b=l.biz; let amt=a==="all"?Math.min(Math.max(0,l.cash),b.loan):Math.min(a,b.loan,Math.max(0,l.cash));
+  l.cash-=amt; b.loan-=amt; save(); mtoast(`Repaid ${short(amt)} 💪`); openBank();
+}
+function openMarket(){
+  const l=S.life;
+  showModal(`${shead("🛒","Market","Wallet: "+vnd(l.cash))}<div class="shopgrid">${SHOP.map((it,i)=>`<button class="item" onclick="buy(${i})" ${l.cash<it.p?"disabled":""}><div>${it.e}</div>${it.n}<small>${short(it.p)} · ${it.perf?`+${it.perf} perf`:`+${it.mood} mood`}</small></button>`).join("")}</div>
+   <p class="muted" style="font-size:12px;font-weight:700;margin:12px 0 0">😊 Wants lift your mood (low mood hurts your work). 📈 Courses boost performance. 🏠 Rent & food (${vnd(billsNow())}) are paid automatically at month end.</p>
+   <button class="btn" style="margin-top:12px" onclick="closeModal()">DONE</button>`);
+}
+function buy(i){
+  const it=SHOP[i],l=S.life; if(l.cash<it.p)return;
+  l.cash-=it.p; l.spent+=it.p; if(it.mood)l.mood=clamp(l.mood+it.mood,0,100); if(it.perf&&!isOwner(l))l.perf+=it.perf; save();
+  mtoast(l.cash<billsNow()&&!isOwner(l)&&l.cash+JOB[l.rank].pay<billsNow()?`${it.e} Bought! ⚠️ Careful, rent is due soon`:`${it.e} ${it.n} · ${it.perf?`+${it.perf} perf`:`+${it.mood} mood`}`);
+  const p=checkPromo(); if(p) return p==="promo"?showPromo():founderOffer();
+  openMarket();
+}
+function monthIncome(l){
+  if(isOwner(l)){const p=bizProfit(l);return {inc:p.profit-p.li,p}}
+  return {inc:JOB[l.rank].pay,p:null};
+}
+function openHome(){
+  const l=S.life,b=billsNow(),{inc,p}=monthIncome(l),est=l.cash+inc-b;
+  showModal(`${shead("🏠","Home sweet home","End of month "+l.month)}
+   ${p?`<div class="moneyrow"><span>🏪 Business profit after loan interest</span><span style="color:${inc<0?"var(--bad)":"var(--good)"}">${inc<0?"":"+"}${vnd(inc)}</span></div>`:`<div class="moneyrow"><span>💼 Salary (${titleOf(l)})</span><span style="color:var(--good)">+${vnd(inc)}</span></div>`}
+   <div class="moneyrow"><span>🏠 Rent</span><span style="color:var(--bad)">−${vnd(RENT)}</span></div>
+   <div class="moneyrow"><span>🍚 Food & bills</span><span style="color:var(--bad)">−${vnd(FOOD)}</span></div>
+   <div class="moneyrow" style="border:none"><span>Cash after this month</span><b style="color:${est<0?"var(--bad)":"var(--ink)"}">${vnd(est)}</b></div>
+   ${!l.worked&&!isOwner(l)?`<div class="warn">You haven't made this month's move! Skipping costs −10 performance.</div>`:""}
+   <button class="btn sun" style="margin-top:14px" onclick="endMonth()">🌙 SLEEP & END MONTH</button>
+   <button class="btn ghost" onclick="closeModal();openCreator(false)">👕 CHANGE MY LOOK</button>
+   <button class="linkbtn" onclick="closeModal()">Not yet</button>`);
+}
+function endMonth(){
+  const l=S.life,bills=billsNow(),rBefore=rateNow(l.month),interest=Math.round(l.save*depRate(l)),{inc,p}=monthIncome(l);
+  l.cash+=inc-bills; l.save+=interest;
+  if(!l.worked&&!isOwner(l))l.perf=Math.max(0,l.perf-10);
+  let debtInt=0; if(l.cash<0){debtInt=Math.round(-l.cash*0.03);l.cash-=debtInt}
+  l.mood=clamp(l.mood-12,0,100);
+  if(l.costMod>0)l.costMod--;
+  const sum={m:l.month,inc,p,bills,interest,debtInt,spent:l.spent,skipped:!l.worked&&!isOwner(l),nw:l.cash+l.save-(l.biz?l.biz.loan:0)};
+  l.month++; l.worked=false; l.spent=0; l.curW=null; l.pos="home"; save();
+  const rAfter=rateNow(l.month), up=rAfter>rBefore;
+  const tip=up?`The central bank raised rates to ${pctY(rAfter)}! ${l.dep==="fixed"?"Your fixed savings stay at 6%.":"Your floating savings now earn more."}${l.biz&&l.biz.lt==="floating"?" But your floating loan just got more expensive.":""}`
+    :l.cash<0?"You ended the month in debt. Debt grows 3% a month — spend less on wants until it's gone."
+    :l.mood<30?"You're burning out 😩. Spending a little on things you enjoy is part of a healthy budget too."
+    :sum.interest===0?"Your money isn't working for you yet. Put some savings in the bank to earn interest!"
+    :"Nice month! Keep learning — new lessons unlock new cases. 💪";
+  showModal(`<div class="center">${tiko(76,l.cash<0||l.mood<30?"sad":"wow")}<h2>Month ${sum.m} report</h2></div>
+   ${p?`<div class="moneyrow"><span>🏪 Business revenue</span><span style="color:var(--good)">+${vnd(p.rev)}</span></div><div class="moneyrow"><span>🧾 Business costs</span><span style="color:var(--bad)">−${vnd(p.cost)}</span></div><div class="moneyrow"><span>🏦 Loan interest</span><span style="color:var(--bad)">−${vnd(p.li)}</span></div>`
+      :`<div class="moneyrow"><span>💼 Salary</span><span style="color:var(--good)">+${vnd(sum.inc)}</span></div>`}
+   <div class="moneyrow"><span>🏠 Rent & food</span><span style="color:var(--bad)">−${vnd(sum.bills)}</span></div>
+   <div class="moneyrow"><span>🛍️ Spent at the market</span><span>${vnd(sum.spent)}</span></div>
+   <div class="moneyrow"><span>📈 Savings interest</span><span style="color:var(--good)">+${vnd(sum.interest)}</span></div>
+   ${sum.debtInt?`<div class="moneyrow"><span>💳 Debt interest (3%)</span><span style="color:var(--bad)">−${vnd(sum.debtInt)}</span></div>`:""}
+   ${sum.skipped?`<div class="moneyrow"><span>🏢 Skipped work</span><span style="color:var(--bad)">−10 perf</span></div>`:""}
+   <div class="moneyrow" style="border:none"><span>💎 Net worth${l.biz?" (minus loans)":""}</span><b>${vnd(sum.nw)}</b></div>
+   <div class="hello" style="margin-top:10px">${tiko(46)}<div class="bubble">${tip}</div></div>
+   <button class="btn" style="margin-top:14px" onclick="closeModal()">START MONTH ${l.month} →</button>`);
+}
+
+/* ---------- Character creator ---------- */
+let Cr=null, crTab="skin";
+const CRTABS=[["skin","🖐️","Skin"],["hair","💇","Hair"],["hc","🎨","Hair color"],["shirt","👕","Top"],["pants","👖","Pants"],["acc","🎀","Extras"]];
+const CROPTS={skin:SKINS,hair:HAIRS,hc:HAIRC,shirt:OUTFITS,pants:PANTS,acc:AVACC};
+function openCreator(isNew){
+  const l=S.life;
+  Cr={isNew,name:l?l.name:"Minh Hân",look:clone(l?l.look:defaultLook()),rank:l?avR(l):0}; crTab="skin";
+  openO(`<div class="chead"><button class="backbtn" onclick="closeO()" aria-label="Back">←</button><b>${isNew?"New character":"My character"}</b><span></span></div>
+   <div class="obody"><div class="stage" style="background:radial-gradient(circle at 50% 55%,#fff 0,#D6F0C8 75%)"><div class="cprev" id="crprev">${avatar(Cr.look,110,Cr.rank)}</div><div style="margin-top:6px"><span class="nametag" id="crname">${esc(Cr.name)}</span></div></div>
+   <div class="namebox"><label for="crIn">✏️ Name</label><input id="crIn" maxlength="16" autocomplete="off" value="${esc(Cr.name)}" oninput="Cr.name=this.value;document.getElementById('crname').textContent=this.value.trim()||'…'"></div>
+   <div class="ctabs" id="crtabs"></div><div id="crtiles"></div></div>
+   <div class="ofoot"><button class="btn ${isNew?"sun":"good"}" onclick="crSave()">${isNew?"START MY LIFE 🚀":"SAVE"}</button></div>`);
+  crDraw();
+}
+function crDraw(){
+  $("#crtabs").innerHTML=CRTABS.map(([k,e,n])=>`<button class="ctab ${crTab===k?"on":""}" onclick="crTab='${k}';crDraw()"><span class="e">${e}</span>${n}</button>`).join("");
+  const opts=CROPTS[crTab], named=crTab==="hair"||crTab==="acc";
+  $("#crtiles").innerHTML=`<div class="tilegrid">`+Object.entries(opts).map(([k,v])=>tile(Cr.look[crTab]===k,avatar({...Cr.look,[crTab]:k},44,Cr.rank),named?v:"",`crSet('${k}')`)).join("")+`</div>`;
+}
+function crSet(k){
+  Cr.look[crTab]=k; crDraw();
+  const p=$("#crprev"); p.innerHTML=avatar(Cr.look,110,Cr.rank); p.classList.remove("bump"); void p.offsetWidth; p.classList.add("bump");
+}
+function crSave(){
+  const name=(Cr.name||"").trim()||"Minh Hân";
+  if(Cr.isNew){
+    S.life=newLife(name,clone(Cr.look)); save(); tab="city"; closeO();
+    const l=S.life;
+    showModal(`<div class="center"><div style="display:flex;justify-content:center;align-items:flex-end;gap:4px">${avatar(l.look,70,0)}${tiko(60)}</div><h2 style="margin-top:8px">Welcome to Altifi City, ${esc(name)}!</h2><p class="muted" style="font-weight:700">You start as an <b style="color:var(--ink)">Intern</b> earning ${short(JOB[0].pay)} a month.</p></div>
+     <div class="card" style="font-weight:700;font-size:14px;line-height:1.7">📰 Each month, solve a real case at the office — brilliant moves get you promoted<br>📚 Some cases unlock only after the matching lesson<br>🚀 Get promoted enough and you'll open your own business<br>🏪 Grow it to ${MAX_BR} branches to build an empire 👑<br>🏦 Save at the bank, 🛒 keep your mood up, 🏠 end the month at home</div>
+     <button class="btn sun" onclick="closeModal()">LET'S GO!</button>`);
+  } else {
+    S.life.name=name; S.life.look=clone(Cr.look); save(); closeO(); mtoast("Looking great! ✨");
+  }
+}
+
+/* ---------- Ask Tiko: answers adapt to the user's level ---------- */
+const LV={
+ n:{label:"🌱 Newbie",who:"friendly buddy · simple words"},
+ l:{label:"📘 Learner",who:"tutor · clear facts & numbers"},
+ p:{label:"🎓 Pro",who:"professor · theory & key terms"}
+};
+const autoLvl=()=>{const sc=S.done+progScore(S.life)*1.5;return sc>=8?"p":sc>=3?"l":"n"};
+const curLvl=()=>S.lvl&&S.lvl!=="auto"?S.lvl:autoLvl();
+const ADV=["cpi","fisher","monetary","fiscal","yield","liquidity","leverage","margin","derivative","macro","nominal","real return","basis point","collateral","quantitative easing","stagflation","capm","beta","securiti","subprime","mbs","cdo","duration","swap","term premium","credit spread"];
+const KB=[
+ [["inflation","price go up","prices","cpi","fisher"],{
+  n:"Imagine bubble tea costs 30,000₫ this year and 33,000₫ next year. Same drink, more money! 🧋 That's inflation: prices slowly go up, so your money buys a little less. That's why keeping money in a savings account (which pays interest) beats hiding it in a drawer.",
+  l:"Inflation is the general rise in prices over time. If inflation is 4% a year, something that costs 100,000₫ today costs about 104,000₫ next year. Your savings only really grow if the interest rate beats inflation: bank pays 5%, inflation is 4% → you gain about 1% in real terms.",
+  p:"Inflation is a sustained increase in the general price level, typically measured by a consumer price index (CPI) — the cost of a representative basket of goods. Its key implication is the gap between nominal and real returns: by the Fisher approximation, real rate ≈ nominal rate − expected inflation. Moderate, predictable inflation is generally compatible with growth, which is why most central banks target a low positive rate; high or volatile inflation erodes savings, distorts price signals and redistributes wealth from creditors to debtors. A good follow-up: why do central banks raise interest rates to fight it?"}],
+ [["save","saving"],{
+  n:"Easy trick: when you get money, put a little away FIRST 🐷 — like 10–20%. Then spend the rest. Give your savings a goal (a new bike! 🚲) so it's fun to watch it grow.",
+  l:"Use “pay yourself first”: move 10–20% of any income into savings the moment you receive it. Keep it in a separate account so you're not tempted. Build an emergency fund first (3–6 months of expenses), then save for goals.",
+  p:"From a behavioural-finance standpoint, the most robust saving strategy is automation: “pay yourself first” exploits default bias and removes the need for repeated willpower (cf. Thaler & Benartzi's Save More Tomorrow). Sequence matters: (1) a liquid emergency buffer of 3–6 months' expenses, (2) eliminate high-interest debt — repaying a 30% APR balance is a guaranteed 30% return, (3) then allocate long-horizon savings to diversified assets with an expected real return above inflation."}],
+ [["budget","50/30/20"],{
+  n:"A budget is just a plan for your money 🗺️. Try this: half for things you NEED (food, bus), less than a third for fun stuff, and a little for saving. Write down what you spend for one week — you'll be surprised!",
+  l:"Try the 50/30/20 rule: 50% needs, 30% wants, 20% savings. Step one is tracking — log every expense for a week or a month. Then compare it to your plan and fix the categories that leak the most.",
+  p:"50/30/20 is a heuristic, not an optimum — a starting allocation across needs, wants and savings. More rigorous approaches include zero-based budgeting, where every unit of income is assigned a purpose, and envelope (“jar”) systems, which deliberately use mental accounting to constrain category spending. The real value of any budget is the feedback loop: track actuals, compute variances against plan, and revise."}],
+ [["fixed","floating","variable rate"],{
+  n:"Fixed rate = the interest stays the same, like a locked box 🔒. Floating rate = it moves up and down with the market, like a wave 🌊. If rates go UP: savers like floating, borrowers like fixed!",
+  l:"A fixed rate is set for the whole term; a floating (variable) rate follows a market or central-bank rate. When rates are expected to rise, savers prefer floating and borrowers prefer to lock a fixed rate. When rates are expected to fall, it's the opposite. Splitting between both reduces the risk of guessing wrong.",
+  p:"The fixed-versus-floating choice is a bet on the path of short-term rates relative to what is already priced in. A fixed rate embeds the market's expected future rates plus a term premium, so fixed only “wins” if rates rise more than the market expected. Floating exposure leaves interest-rate risk with the borrower; fixed exposure shifts it to the lender. Mixing the two — or, for firms, using interest-rate swaps — reduces the variance of cash flows, which often matters more than expected cost for a leveraged business."}],
+ [["bond","coupon","deposit insurance"],{
+  n:"A deposit is money you keep at a bank 🏦. A bond is money you LEND to a company or government 📜 — they promise to pay you back with interest. If the company gets in trouble, you might not get it back!",
+  l:"A bank deposit is usually protected by deposit insurance up to a limit. A bond is a loan to the issuer: it pays a coupon (interest) and returns your money at maturity — if the issuer doesn't default. Much higher interest than deposits almost always means higher risk.",
+  p:"A bond's price is the present value of its coupons and principal, discounted at a yield equal to a risk-free rate plus a credit spread compensating for default probability, loss-given-default and illiquidity. Corporate bonds sold to retail savers as deposit substitutes are a classic mis-selling problem: unlike insured deposits they carry unhedged issuer credit risk and are often hard to sell. Note also the inverse price–yield relation: when rates rise, existing fixed-coupon bonds lose value (duration risk)."}],
+ [["compound","interest"],{
+  n:"Interest is like a thank-you gift 🎁. When you keep money in the bank, the bank pays you a little extra. With compound interest, your extra money ALSO earns extra — like a snowball ⛄ rolling and getting bigger!",
+  l:"Interest is the price of using money. Saving: the bank pays you. Borrowing: you pay the bank. Compound interest means you also earn interest on past interest, so 1,000,000₫ at 6% becomes about 1,791,000₫ after 10 years, versus 1,600,000₫ with simple interest.",
+  p:"Interest reflects the time value of money: compensation for deferring consumption and bearing risk. Under discrete compounding, FV = PV·(1 + r/n)^(nt); in the continuous limit, FV = PV·e^(rt). The Rule of 72 gives a quick doubling time of roughly 72/r years (about 12 years at 6%). Note the symmetry: the same exponential that grows savings grows debt, which is why compounding high-APR balances is so destructive."}],
+ [["debt","loan","borrow","credit"],{
+  n:"Debt means you borrowed money and must give it back — usually MORE than you borrowed 😬. Borrowing to learn something useful can be OK. Borrowing for the newest phone? Not a great idea.",
+  l:"Debt is borrowed money you repay with interest. “Good” debt can raise your future income (education, a business with a plan). “Bad” debt pays for things that lose value fast. Watch out for “buy now, pay later” and paying only the minimum on a credit card — the rest keeps growing.",
+  p:"Debt is rational when the expected return on what it finances exceeds its all-in cost (interest plus fees) after adjusting for risk. Key metrics are APR versus effective annual rate, debt-service-to-income ratio, and whether the debt is secured. Consumer credit such as BNPL and revolving card balances often carries high effective rates and exploits present bias; minimum-payment structures can stretch repayment over years. Leverage amplifies outcomes in both directions."}],
+ [["2008","lehman","financial crisis","mortgage","subprime"],{
+  n:"In 2008, banks lent money for houses to people who couldn't really pay it back 🏠. When lots of people stopped paying, banks lost tons of money and some closed. Many people lost their jobs. Lesson: even if something is called “super safe”, check it yourself!",
+  l:"Before 2008, US banks gave risky “subprime” mortgages, bundled them into securities and sold them as safe. When house prices fell, borrowers defaulted, those securities collapsed, and Lehman Brothers went bankrupt in September 2008. Lending froze worldwide and governments had to rescue banks.",
+  p:"The 2007–09 crisis combined a housing bubble, lax underwriting (subprime and adjustable-rate mortgages), securitisation into MBS and CDOs with mis-rated tranches, and high leverage in the shadow-banking system. When house prices fell, losses spread through opaque counterparty exposures; Lehman's failure in September 2008 triggered a run on wholesale funding. The policy response — bank recapitalisation, near-zero rates, quantitative easing — and the regulatory aftermath (Dodd-Frank, Basel III) are central topics in modern macro-finance."}],
+ [["1929","depression","black tuesday"],{
+  n:"In 1929, lots of people borrowed money to buy stocks 📈 because they thought prices would always go up. Then prices crashed 📉! People couldn't pay back, banks closed, and many lost their jobs. Lesson: don't borrow money to gamble.",
+  l:"In the 1920s many Americans bought stocks “on margin” — with borrowed money. When the market crashed in October 1929 they were forced to sell and couldn't repay. Thousands of banks failed, spending collapsed, and the Great Depression followed, with US unemployment reaching about 25%.",
+  p:"The 1929 crash and the Great Depression illustrate the interaction of leverage, bank fragility and policy error. Margin-financed speculation amplified the decline; waves of bank failures contracted the money supply — the central argument of Friedman and Schwartz — while adherence to the gold standard deepened deflation. Irving Fisher's debt-deflation theory explains the spiral: falling prices raise the real burden of debt, forcing further asset sales. The episode shaped deposit insurance and lender-of-last-resort doctrine."}],
+ [["oil","opec","1973","stagflation"],{
+  n:"In 1973, some countries stopped selling oil ⛽. Oil got super expensive, so driving, shipping and even food cost more. People waited in long lines for fuel! Lesson: when prices jump, make a new plan fast.",
+  l:"In October 1973, Arab oil producers cut supply and stopped selling oil to some countries. Oil prices roughly quadrupled within months. Because oil is used almost everywhere, transport and goods got more expensive, causing high inflation and slow growth at the same time — “stagflation”.",
+  p:"The 1973 oil shock was a negative supply shock: the embargo roughly quadrupled crude prices, shifting aggregate supply left and producing stagflation, which the then-dominant Phillips-curve framework struggled to explain. It accelerated the shift toward expectations-augmented models and, later, the Volcker disinflation of the early 1980s. It is also a textbook case of cost-push inflation and of the macro risk of concentrated input dependence."}],
+ [["scam","tiktok","guarantee","ponzi","fake"],{
+  n:"Watch out for these 🚩: “Guaranteed big money!”, “Hurry, only today!”, “Invite friends to earn more!”. If it sounds too good to be true, it probably is. Ask an adult you trust before sending money.",
+  l:"Red flags: guaranteed high returns, pressure to act fast, payment to personal accounts, and rewards for recruiting others (often a Ponzi or pyramid scheme). Check whether the company is licensed, search its name plus “scam”, and never share OTP codes or passwords.",
+  p:"Investment fraud exploits predictable mechanisms: returns inconsistent with risk (no legitimate asset “guarantees” 30% a week), artificial scarcity and urgency to suppress deliberation, and social proof via fake testimonials. Ponzi schemes pay earlier investors with later investors' capital and therefore need exponentially growing inflows, which makes collapse mathematically inevitable. Due diligence: verify licensing with the securities regulator, demand audited statements, and treat unverifiable “secret strategies” as a red flag."}],
+ [["stock","invest","share","capm","beta"],{
+  n:"A stock is a tiny piece of a company 🍕. If the company does well, your piece can be worth more. But prices go up AND down, so only use money you won't need soon.",
+  l:"A share is part-ownership of a company. You can earn from price rises and dividends, but prices can fall too. Diversify — spread money across many companies or a fund — and only invest money you won't need for several years.",
+  p:"Equity is a residual claim on a firm's cash flows; its value can be framed as the present value of expected future cash flows discounted at a rate reflecting systematic risk (CAPM: E[R] = r_f + β(E[R_m] − r_f)). Diversification removes idiosyncratic but not market risk, which is why low-cost broad index funds outperform most active strategies after fees. Horizon matters because equity volatility is high over short periods."}],
+ [["hi","hello","hey","xin chào","chao"],{
+  n:"Hi hi! 👋 Ask me anything about money — no question is too small!",
+  l:"Hello! 👋 What would you like to learn about money today?",
+  p:"Good to see you. Which topic shall we examine today — macroeconomics, personal finance, or a historical crisis?"}]
+];
+const FALLBACK={
+ n:"Ooh, good question! 🤔 In the full app, AI answers anything in simple words. For this demo, try: inflation, saving, budget, interest, debt, stocks, scams, or 1929 / 1973 / 2008.",
+ l:"Great question. The full Altifi app answers anything with AI, adjusted to your level. In this demo, try: inflation, saving, budgeting, interest, debt, stocks, scams, or the 1929 / 1973 / 2008 crises.",
+ p:"An excellent question — the full version would generate a rigorous answer with AI. This demo's knowledge base covers inflation, saving, budgeting, interest, debt, equities, fraud, and the 1929, 1973 and 2008 crises."
+};
+const INTRO={
+ n:()=>`Hi! I'm ${S.m.name} 🪙 your money buddy. Ask me anything — I'll keep it super simple!`,
+ l:()=>`Hi! I'm ${S.m.name}. Ask me about saving, budgeting, interest or famous crises — I'll give you clear facts and numbers.`,
+ p:()=>`Welcome. I'm Professor ${S.m.name} 🎓. Ask me about inflation, compounding, or the mechanics of 1929, 1973 and 2008 — I'll answer in depth.`
+};
+let chat=[{b:1,intro:1}];
+const tikoFor=lv=>tiko(34,"happy",lv==="p"?{...S.m,hat:"grad"}:S.m);
+function chatView(){
+  const lv=curLvl(), auto=S.lvl==="auto";
+  const msgs=chat.map(m=>{
+    if(!m.b) return `<div class="msg me">${esc(m.t)}</div>`;
+    const mlv=m.intro?lv:(m.lv||"n");
+    const txt=m.typing?'<span class="typing"><i></i><i></i><i></i></span>':esc(m.intro?INTRO[lv]():m.t);
+    const tag=m.typing||m.intro?"":`<div class="mtag">${LV[mlv].label} mode${m.bumped?" · you used expert terms, so I went deeper":""}</div>`;
+    return `<div><div style="display:flex;gap:8px;align-items:flex-end">${tikoFor(mlv)}<div class="msg bot ${mlv==="p"?"pro":""}">${txt}</div></div>${tag}</div>`;
+  }).join("");
+  return `<div class="lvlbar">${tikoFor(lv)}<div style="flex:1;line-height:1.3">${BN()} talks to you like a<br><span style="color:var(--ink)">${LV[lv].who}</span><br><span style="font-size:11px">${auto?"Auto · based on your lessons & game rank":"Set by you"}</span></div><button class="lvlbtn" onclick="cycleLvl()">${LV[lv].label} ▾</button></div>
+   <div class="chatlog">${msgs}</div>
+   <div class="chips" style="margin-top:14px">${["What is inflation?","How do I start saving?","Fixed or floating rate?","What happened in 2008?","Explain the Fisher effect"].map(q=>`<button class="chip" onclick="sendChat('${q}')">${q}</button>`).join("")}</div>
+   <p class="muted center" style="font-size:11px;font-weight:700">Demo answers. In the full app, AI writes every answer for your level — based on your lessons, game rank and the words you use.</p>`;
+}
+function cycleLvl(){
+  const order=["auto","n","l","p"]; S.lvl=order[(order.indexOf(S.lvl)+1)%order.length]; save();
+  mtoast(S.lvl==="auto"?`Auto: ${LV[autoLvl()].label}`:`${LV[S.lvl].label} mode`); render();
+}
+function sendChat(q){
+  const i=$("#ci"); const t=(q||(i&&i.value)||"").trim(); if(!t)return;
+  chat.push({b:0,t}); chat.push({b:1,typing:true}); render();
+  setTimeout(()=>{
+    const low=t.toLowerCase(); let lv=curLvl(), bumped=false;
+    if(lv!=="p"&&ADV.some(w=>low.includes(w))){lv="p";bumped=true}
+    const hit=KB.find(([ks])=>ks.some(k=>low.includes(k)));
+    chat.pop(); chat.push({b:1,t:hit?hit[1][lv]:FALLBACK[lv],lv,bumped});
+    render(); const n=$("#ci"); n&&n.focus();
+  },800);
+}
+
+/* ---------- Me ---------- */
+function meView(){
+  const l=S.life, t=new Date(S.lastOpen).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  return `<div class="card center">${l?`<div style="display:inline-block">${avatar(l.look,84,avR(l))}</div>`:""}<h2 style="margin-top:6px">${esc(l?l.name:"Minh Hân")}</h2><p class="muted" style="font-weight:700;margin-bottom:12px">${l?`${titleOf(l)} in Altifi City · Month ${l.month}`:"No character yet"}</p>${l?`<button class="btn ghost" onclick="openCreator(false)">👕 CHANGE MY CHARACTER</button>`:`<button class="btn sun" onclick="openCreator(true)">CREATE MY CHARACTER</button>`}</div>
+   <div class="card"><div class="hello"><button class="mascotbtn" onclick="openCustom()" aria-label="Customize your buddy">${tiko(70)}<span class="editdot">✏️</span></button><div><h3>Your buddy: ${BN()}</h3><p class="muted" style="font-weight:700;margin:0">Tap to change its name & look</p></div></div></div>
+   <div class="grid" style="margin-bottom:14px">
+    <div class="card"><b>🔥 ${S.streak}</b><span class="muted">day streak</span></div>
+    <div class="card"><b style="color:var(--sun-d)">⭐ ${S.xp}</b><span class="muted">total XP</span></div>
+    <div class="card"><b>${S.done}/${LESSONS.length}</b><span class="muted">lessons</span></div>
+    <div class="card"><b style="font-size:18px">${l?short(l.cash+l.save):"—"}</b><span class="muted">net worth in game</span></div></div>
+   <div class="card"><h3>🔔 Daily reminder</h3><p class="muted" style="font-weight:700">We'll nudge you tomorrow at <b style="color:var(--ink)">${t}</b> — the same time you opened Altifi today. If you were free then, you'll probably be free again!</p><button class="btn ghost" onclick="toast()">PREVIEW NOTIFICATION</button></div>
+   <button class="btn bad" onclick="resetDemo()">RESET DEMO</button>`;
+}
+function toast(){
+  const el=$("#toast");
+  el.innerHTML=`<div class="ic">${tiko(30)}</div><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--muted)"><span>ALTIFI</span><span>now</span></div><div style="font-weight:900;font-size:14px">${BN()} misses you! 🪙</div><div style="font-size:13px;font-weight:700">5 minutes today keeps your 🔥 ${S.streak}-day streak alive.</div></div>`;
+  el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),3500);
+}
+function resetDemo(){S=fresh();save();chat=chat.slice(0,1);tab="learn";render()}
+
+/* ---------- Buddy customization page ---------- */
+let D=null, cTab="face";
+const NAMES=["Tiko","Xu","Bơ","Mochi","Penny","Coco","Lucky","Bún","Nugget","Sunny"];
+const CTABS=[["face","😊","Face"],["color","🎨","Color"],["hat","🎩","Hats"],["glasses","👓","Glasses"],["extra","🎀","Extras"]];
+const isDirty=()=>JSON.stringify({...D,name:D.name.trim()})!==JSON.stringify(S.m);
+
+function openCustom(){
+  D=clone(S.m); cTab="face";
+  openO(`<div class="chead"><button class="backbtn" onclick="custBack()" aria-label="Back">←</button><b>My Buddy</b><button class="savebtn" id="savebtn" onclick="custSave()">Save</button></div>
+    <div class="obody">
+      <div class="stage"><div class="cprev" id="cprev">${tiko(170,"happy",D)}</div><div><span class="nametag" id="cname">${esc(D.name)}</span></div></div>
+      <div class="namebox"><label for="nameIn">✏️ Name</label><input id="nameIn" maxlength="12" autocomplete="off" value="${esc(D.name)}" oninput="D.name=this.value;refresh(false)" placeholder="Give me a name!"><button class="dice" onclick="randName()" aria-label="Random name">🎲</button></div>
+      <div class="ctabs" id="ctabs"></div>
+      <div id="ctiles"></div>
+      <button class="linkbtn" onclick="resetBuddy()">↺ Back to the original look</button>
+    </div><div id="cmodal"></div>`);
+  drawTabs(); drawTiles();
+}
+function drawTabs(){
+  $("#ctabs").innerHTML=CTABS.map(([k,e,n])=>`<button class="ctab ${cTab===k?"on":""}" onclick="cTab='${k}';drawTabs();drawTiles()"><span class="e">${e}</span>${n}</button>`).join("");
+}
+const tile=(on,img,label,click)=>`<button class="tile ${on?"on":""}" onclick="${click}"><div class="timg">${img}</div>${label}</button>`;
+function drawTiles(){
+  let h="";
+  if(cTab==="face"){
+    h+=`<div class="sub">Eyes</div><div class="tilegrid">`+Object.entries(EYES).map(([k,v])=>tile(D.eyes===k,tiko(66,"happy",{...D,eyes:k,hat:null,glasses:null,extra:null}),v.n,`setPart('eyes','${k}')`)).join("")+`</div>`;
+    h+=`<div class="sub">Mouth</div><div class="tilegrid">`+Object.entries(MOUTHS).map(([k,v])=>tile(D.mouth===k,tiko(66,"happy",{...D,mouth:k,hat:null,glasses:null,extra:null}),v.n,`setPart('mouth','${k}')`)).join("")+`</div>`;
+  } else if(cTab==="color"){
+    h+=`<div class="sub">Pick a color</div><div class="tilegrid">`+Object.entries(COLORS).map(([k,v])=>tile(D.color===k,tiko(66,"happy",{...D,color:k}),v.n,`setPart('color','${k}')`)).join("")+`</div>`;
+  } else {
+    const label={hat:"Tap a hat to try it on",glasses:"Tap glasses to try them on",extra:"Tap to add something fun"}[cTab];
+    h+=`<div class="sub">${label}</div><div class="tilegrid">`+tile(!D[cTab],`<span class="none">🚫</span>`,"None",`setPart('${cTab}',null)`)
+      +ACC[cTab].map(a=>tile(D[cTab]===a.id,`<svg width="70" height="58" viewBox="${a.vb}" aria-hidden="true">${a.tile||a.svg}</svg>`,a.n,`setPart('${cTab}','${a.id}')`)).join("")+`</div>`;
+  }
+  $("#ctiles").innerHTML=h;
+}
+function setPart(part,val){
+  if(["hat","glasses","extra"].includes(part)&&val&&D[part]===val) val=null;
+  D[part]=val; drawTiles(); refresh(true);
+}
+function refresh(bump){
+  const p=$("#cprev"); if(!p)return;
+  p.innerHTML=tiko(170,"happy",D);
+  $("#cname").textContent=D.name.trim()||"…";
+  if(bump){p.classList.remove("bump");void p.offsetWidth;p.classList.add("bump")}
+  $("#savebtn").classList.toggle("show",isDirty());
+}
+function randName(){
+  let n; do{n=NAMES[Math.floor(Math.random()*NAMES.length)]}while(n===D.name&&NAMES.length>1);
+  D.name=n; $("#nameIn").value=n; refresh(true);
+}
+function resetBuddy(){D=defaultM(); $("#nameIn").value=D.name; drawTiles(); refresh(true)}
+function custSave(){
+  D.name=D.name.trim()||"Tiko"; $("#nameIn").value=D.name;
+  S.m=clone(D); save();
+  const b=$("#savebtn"); b.textContent="✓ Saved"; b.classList.add("done");
+  const p=$("#cprev"); p.innerHTML=tiko(170,"wow",D); p.classList.remove("bump");void p.offsetWidth;p.classList.add("bump");
+  mtoast(`Looking great, ${D.name}! 🎉`);
+  setTimeout(()=>{b.classList.remove("show");setTimeout(()=>{b.textContent="Save";b.classList.remove("done");if(p.isConnected)p.innerHTML=tiko(170,"happy",D)},300)},1100);
+}
+function custBack(){
+  if(!isDirty()) return closeO();
+  $("#cmodal").innerHTML=`<div class="modalbg" onclick="if(event.target===this)this.remove()"><div class="sheet">
+    <div style="display:inline-block">${tiko(80,"sad",D)}</div>
+    <h2>Leave without saving?</h2><p class="muted" style="font-weight:700">Your changes to ${esc(D.name.trim()||"your buddy")} will be lost.</p>
+    <button class="btn good" onclick="document.getElementById('cmodal').innerHTML='';custSave()">SAVE CHANGES</button>
+    <button class="btn ghost" onclick="closeO()">LEAVE WITHOUT SAVING</button></div></div>`;
+}
+
+/* ---------- Upgrade saves from older versions ---------- */
+(function migrate(){
+  const o=S.life; if(!o)return;
+  try{
+    const fresh=newLife(o.name||"Minh Hân",o.look||defaultLook());
+    const keep=o.caseDone?o:{name:fresh.name,look:fresh.look,month:o.month,cash:o.cash,save:o.save,mood:o.mood,rank:Math.min(o.rank||0,JOB.length-1)};
+    S.life=Object.assign(fresh,keep);
+    const l=S.life;
+    if(typeof l.cash!=="number")l.cash=2000000; if(typeof l.save!=="number")l.save=0; if(typeof l.mood!=="number")l.mood=70;
+    l.rank=clamp(l.rank||0,0,JOB.length-1); if(!POS[l.pos])l.pos="home";
+    if(l.phase==="owner"&&!(l.biz&&BIZ[l.biz.type])){l.phase="emp";l.biz=null}
+    if(l.curW&&!(WORK[l.curW[0]]&&WORK[l.curW[0]][l.curW[1]]))l.curW=null;
+  }catch(e){S.life=null}
+  save();
+})();
+window.addEventListener("error",e=>{try{mtoast("⚠️ "+(e.message||"Error"))}catch(_){}});
+
+render();
+</script>
+</body>
+</html>

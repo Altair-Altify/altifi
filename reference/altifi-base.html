@@ -1,0 +1,1166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Altifi Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F3FF;--card:#fff;--ink:#1E1B3A;--muted:#6B6890;--line:#E3E3F2;
+  --pri:#5B5BD6;--pri-d:#4342B0;--sun:#FFC93C;--sun-d:#E0A800;
+  --good:#2BB673;--good-d:#1E8E58;--bad:#EF4E4E;--bad-d:#C53333;
+  --soft:#ECECFF;--softd:#C8C8F5;--okbg:#D9F7E7;--okline:#B6EBCF;--nobg:#FFE1E1;--noline:#FBC3C3;--track:#E4E3F3;
+  --sunbg:#FFF7DC;--sunline:#FBE6A2;--lock:#D7D6EA;--lockd:#B9B8D2;--okt:#1E8E58;--not:#C53333;--glass:rgba(242,243,255,.84);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:Nunito,system-ui,-apple-system,sans-serif;color:var(--ink);background:linear-gradient(160deg,#DCDDFE,#FFF1C7);display:flex;justify-content:center}
+button{font-family:inherit;cursor:pointer}
+.phone{width:100%;max-width:400px;height:100vh;height:100dvh;background:var(--bg);position:relative;display:flex;flex-direction:column;overflow:hidden}
+@media(min-width:520px){body{align-items:center;padding:20px}.phone{height:820px;max-height:calc(100vh - 40px);border-radius:40px;border:10px solid #1E1B3A;box-shadow:0 30px 60px rgba(30,27,58,.25)}}
+.top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--card);border-bottom:2px solid var(--line);font-weight:900}
+.top .logo{color:var(--pri);font-size:20px;letter-spacing:-.5px}
+.stats{display:flex;gap:12px;font-size:14px}
+.screen{flex:1;overflow-y:auto;padding:16px 16px 28px}
+.nav{display:flex;background:var(--card);border-top:2px solid var(--line)}
+.nav button{flex:1;border:none;background:none;padding:10px 0 12px;font-size:11px;font-weight:800;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav button span{font-size:22px;filter:grayscale(1);opacity:.6}
+.nav button.on{color:var(--pri)}
+.nav button.on span{filter:none;opacity:1}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:16px;font-weight:900;font-size:16px;color:#fff;background:var(--pri);box-shadow:0 4px 0 var(--pri-d);letter-spacing:.3px}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--pri-d)}
+.btn.good{background:var(--good);box-shadow:0 4px 0 var(--good-d)}
+.btn.bad{background:var(--bad);box-shadow:0 4px 0 var(--bad-d)}
+.btn.sun{background:var(--sun);color:#4A3300;box-shadow:0 4px 0 var(--sun-d)}
+.btn.ghost{background:var(--card);color:var(--pri);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.btn:disabled{background:#CFCEE3;box-shadow:0 4px 0 #B3B2CC;color:#fff;transform:none}
+.card{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px}
+.muted{color:var(--muted)}
+h2{margin:0 0 6px;font-size:20px}
+h3{margin:0 0 4px;font-size:16px}
+p{margin:0 0 8px;line-height:1.45}
+.hello{display:flex;gap:10px;align-items:center}
+.bubble{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 12px;font-weight:700;font-size:14px;position:relative;flex:1}
+.bubble:before{content:"";position:absolute;left:-9px;top:22px;border:8px solid transparent;border-right-color:var(--line);border-left:0}
+.unit{border-radius:20px;padding:14px 16px;color:#fff;margin:18px 0 8px;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+.unit small{opacity:.85;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:1px}
+.unit h3{font-size:18px}
+.path{display:flex;flex-direction:column;align-items:center;gap:14px;padding:10px 0}
+.node{width:70px;height:66px;border-radius:50%;border:none;font-size:28px;position:relative;color:#fff}
+.node.locked{background:var(--lock);box-shadow:0 6px 0 var(--lockd);cursor:not-allowed}
+.node.done{background:var(--sun);box-shadow:0 6px 0 var(--sun-d)}
+.node.current{box-shadow:0 6px 0 rgba(0,0,0,.25);animation:pulse 1.6s infinite;margin-top:20px}
+.node .tag{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--pri);font-size:12px;font-weight:900;padding:4px 10px;border-radius:10px;border:2px solid var(--line);white-space:nowrap}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.overlay{position:absolute;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column}
+.overlay.show{display:flex}
+.ohead{display:flex;align-items:center;gap:12px;padding:16px}
+.x{border:none;background:none;font-size:24px;color:var(--muted);padding:0 4px}
+.prog{flex:1;height:14px;background:var(--track);border-radius:10px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--good);border-radius:10px;transition:width .3s}
+.obody{flex:1;overflow-y:auto;padding:4px 18px 18px}
+.ofoot{padding:16px 18px 20px;border-top:2px solid var(--line);background:var(--card)}
+.ofoot.ok{background:var(--okbg);border-color:var(--okline)}
+.ofoot.no{background:var(--nobg);border-color:var(--noline)}
+.fb{font-weight:900;font-size:18px;margin-bottom:4px}
+.fb + p{font-size:14px;margin-bottom:12px}
+.q{font-size:21px;font-weight:900;margin:10px 0 18px;line-height:1.3}
+.opt{display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:10px;border-radius:16px;border:2px solid var(--line);background:var(--card);font-weight:800;font-size:15px;color:var(--ink);box-shadow:0 3px 0 var(--line)}
+.opt.sel{border-color:var(--pri);background:var(--soft);box-shadow:0 3px 0 var(--softd)}
+.opt.right{border-color:var(--good);background:var(--okbg)}
+.opt.wrong{border-color:var(--bad);background:var(--nobg)}
+.center{text-align:center}
+.big{font-size:44px;font-weight:900;margin:6px 0}
+.case{display:flex;gap:12px;align-items:center;cursor:pointer}
+.case .yr{font-size:26px;font-weight:900;color:#fff;border-radius:16px;padding:12px 10px;min-width:82px;text-align:center}
+.case .meta{flex:1}
+.pill{display:inline-block;font-size:11px;font-weight:900;padding:3px 8px;border-radius:8px;background:var(--soft);color:var(--pri);margin-top:4px}
+.valbar{height:12px;background:var(--track);border-radius:8px;overflow:hidden;margin-top:6px}
+.valbar i{display:block;height:100%;border-radius:8px;transition:width .5s}
+.timerwrap{display:flex;align-items:center;gap:14px;margin:6px 0 14px}
+.timerwrap .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px}
+textarea{background:var(--card);width:100%;font-family:inherit;font-size:16px;font-weight:700;padding:14px;border-radius:16px;border:2px solid var(--line);resize:none;height:110px;color:var(--ink);outline:none}
+textarea:focus{border-color:var(--pri)}
+.count{text-align:right;font-size:12px;font-weight:800;color:var(--muted);margin:4px 2px 0}
+.badge{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:38px;font-weight:900;margin:8px auto 10px;box-shadow:0 6px 0 rgba(0,0,0,.18);animation:pop .4s}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+.mini{width:30px;height:30px;font-size:13px;margin:0;animation:none;box-shadow:none;flex:none}
+.reviewrow{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:2px solid var(--line);font-weight:800;font-size:14px}
+.reviewrow:last-child{border:none}
+.chatlog{display:flex;flex-direction:column;gap:10px}
+.msg{max-width:82%;padding:10px 13px;border-radius:16px;font-weight:700;font-size:14px;line-height:1.45}
+.msg.bot{background:var(--card);border:2px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.me{background:var(--pri);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}
+.chip{flex:none;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:7px 12px;font-weight:800;font-size:13px;color:var(--pri)}
+.chatbar{display:flex;gap:8px;padding:10px 16px 14px;background:var(--card);border-top:2px solid var(--line)}
+.chatbar input{background:var(--bg);color:var(--ink);flex:1;font-family:inherit;font-size:15px;font-weight:700;border:2px solid var(--line);border-radius:14px;padding:10px 12px;outline:none}
+.chatbar button{border:none;background:var(--pri);color:#fff;border-radius:14px;padding:0 16px;font-weight:900}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid .card{margin:0;text-align:center;padding:12px}
+.grid b{font-size:22px;display:block}
+.toast{position:absolute;top:-120px;left:12px;right:12px;background:rgba(255,255,255,.97);border-radius:18px;padding:12px 14px;box-shadow:0 12px 30px rgba(0,0,0,.18);display:flex;gap:10px;align-items:center;z-index:50;transition:top .4s}
+.toast.show{top:12px}
+.toast .ic{width:38px;height:38px;border-radius:10px;background:var(--pri);display:flex;align-items:center;justify-content:center;flex:none}
+.typing{display:inline-flex;gap:4px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bl 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,100%{opacity:.3}50%{opacity:1}}
+.warn{font-size:13px;font-weight:800;color:var(--bad);margin-top:8px}
+/* ---- Buddy customization ---- */
+.mascotbtn{position:relative;border:none;background:none;padding:0;flex:none;border-radius:50%;transition:transform .15s}
+.mascotbtn:hover{transform:scale(1.05) rotate(-3deg)}
+.mascotbtn:active{transform:scale(.95)}
+.editdot{position:absolute;right:0;bottom:4px;width:28px;height:28px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 0 var(--line)}
+.nav button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:20%}
+.chead{display:grid;grid-template-columns:96px 1fr 96px;align-items:center;padding:14px 16px 10px}
+.chead b{font-size:18px;text-align:center}
+.backbtn{justify-self:start;border:none;background:var(--card);border:2px solid var(--line);border-radius:14px;width:44px;height:40px;font-size:20px;font-weight:900;color:var(--ink);box-shadow:0 3px 0 var(--line)}
+.savebtn{justify-self:end;border:none;background:var(--good);color:#fff;font-weight:900;font-size:15px;padding:9px 18px;border-radius:14px;box-shadow:0 4px 0 var(--good-d);opacity:0;transform:scale(.4) translateY(-8px);pointer-events:none;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.savebtn.show{opacity:1;transform:none;pointer-events:auto}
+.savebtn.done{background:var(--pri);box-shadow:0 4px 0 var(--pri-d)}
+.savebtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--good-d)}
+.stage{background:radial-gradient(circle at 50% 42%,var(--card) 0,var(--soft) 72%);border-radius:28px;padding:14px 0 16px;text-align:center;margin-bottom:14px;border:2px solid var(--line)}
+.cprev{display:inline-block}
+.cprev.bump{animation:bump .45s}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.1) rotate(-4deg)}70%{transform:scale(.96) rotate(2deg)}100%{transform:scale(1)}}
+.nametag{display:inline-block;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:5px 18px;font-weight:900;font-size:18px}
+.namebox{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:6px 6px 6px 14px;margin-bottom:16px}
+.namebox:focus-within{border-color:var(--pri)}
+.namebox label{font-weight:900;font-size:14px;color:var(--muted);white-space:nowrap}
+.namebox input{flex:1;min-width:0;border:none;outline:none;font-family:inherit;font-size:17px;font-weight:800;color:var(--ink);padding:8px 4px;background:none}
+.dice{border:none;background:var(--bg);border-radius:12px;font-size:20px;width:46px;height:42px}
+.ctabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:6px;scrollbar-width:none}
+.ctab{flex:none;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:8px 12px;font-weight:900;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:6px;box-shadow:0 3px 0 var(--line)}
+.ctab.on{background:var(--pri);border-color:var(--pri);color:#fff;box-shadow:0 3px 0 var(--pri-d)}
+.ctab .e{font-size:18px}
+.sub{font-weight:900;font-size:13px;color:var(--muted);margin:6px 2px 10px;text-transform:uppercase;letter-spacing:.6px}
+.tilegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.tile{position:relative;border:2px solid var(--line);background:var(--card);border-radius:18px;padding:8px 4px 9px;box-shadow:0 3px 0 var(--line);display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:800;font-size:13px;color:var(--ink)}
+.tile .timg{height:66px;width:100%;display:flex;align-items:center;justify-content:center}
+.tile .none{font-size:30px;opacity:.5}
+.tile.on{border-color:var(--pri);background:var(--soft);box-shadow:0 3px 0 var(--softd)}
+.tile.on:after{content:"✓";position:absolute;top:-8px;right:-6px;width:24px;height:24px;border-radius:50%;background:var(--pri);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+.tile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.linkbtn{display:block;margin:4px auto 0;border:none;background:none;color:var(--muted);font-weight:800;font-size:13px;text-decoration:underline}
+.modalbg{position:absolute;inset:0;background:rgba(30,27,58,.45);display:flex;align-items:flex-end;z-index:30}
+.sheet{background:var(--card);width:100%;border-radius:26px 26px 0 0;padding:20px 18px 24px;text-align:center;animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(100%)}}
+.sheet .btn{margin-top:10px}
+.minitoast{position:absolute;left:50%;top:66px;background:var(--ink);color:#fff;font-weight:800;font-size:14px;padding:9px 16px;border-radius:12px;white-space:nowrap;z-index:25;animation:fadeio 1.9s forwards;pointer-events:none}
+@keyframes fadeio{0%{opacity:0;transform:translate(-50%,-8px)}15%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
+
+/* ---- v3: themes ---- */
+body.night{--bg:#1F2128;--card:#2A2D37;--ink:#ECEDF6;--muted:#A4A7BA;--line:#3A3E4B;--pri:#6E6EE6;--pri-d:#4B4BB8;--soft:#33365A;--softd:#4A4E80;--okbg:#1D3A2C;--okline:#2C5A44;--nobg:#45272A;--noline:#6A3A3F;--track:#3A3E4B;--sunbg:#38321F;--sunline:#5A4D2A;--lock:#454859;--lockd:#34374A;--okt:#5FE0A0;--not:#FF8A8A;--glass:rgba(31,33,40,.86);background:linear-gradient(160deg,#2B2D3A,#14151B)}
+body.night .btn:disabled{background:#454859;box-shadow:0 4px 0 #34374A;color:#8A8DA0}
+body.night .tile.on:after,body.night .themecard.on:after{border-color:var(--card)}
+body.imgbg .phone,body.imgbg .overlay{background:linear-gradient(rgba(242,243,255,.22),rgba(242,243,255,.22)),var(--bgimg) center/cover no-repeat}
+body.imgbg .top,body.imgbg .nav{background:rgba(255,255,255,.3);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);border:1px solid rgba(255,255,255,.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 6px 24px rgba(20,20,40,.14)}
+body.imgbg .top{margin:10px 10px 0;border-radius:22px}
+body.imgbg .nav{margin:0 10px 10px;border-radius:26px}
+/* ---- buddy talk & emotions ---- */
+.talk{min-height:44px;display:flex;align-items:center}
+.bubble.sm{font-size:13px;padding:8px 11px;min-height:40px}
+.bubble.sm:before{top:12px}
+.say{animation:sayin .28s ease-out}
+@keyframes sayin{from{opacity:0;transform:translateY(5px) scale(.96)}}
+.budrow{display:flex;gap:10px;align-items:center;margin:2px 0 10px}
+.bud{flex:none;line-height:0}
+.lname{font-weight:800;font-size:13px}
+.m-laugh svg{animation:laugh .45s ease-in-out 4}
+@keyframes laugh{0%,100%{transform:rotate(0)}25%{transform:rotate(-9deg) translateY(-3px)}75%{transform:rotate(9deg) translateY(-3px)}}
+.m-sad svg{animation:droop 2.4s ease forwards}
+@keyframes droop{0%{transform:none}12%,85%{transform:translateY(5px) scale(.93)}100%{transform:none}}
+.m-cheer svg{animation:hop .4s ease 2}
+@keyframes hop{50%{transform:translateY(-9px) scale(1.06)}}
+/* ---- effects (Potato Mode off) ---- */
+.pop{animation:popb .32s ease}
+@keyframes popb{0%{transform:scale(1)}35%{transform:scale(.93)}70%{transform:scale(1.04)}100%{transform:scale(1)}}
+.wave{animation:wave .8s ease-in-out}
+@keyframes wave{0%,100%{transform:none}20%{transform:translateY(-5px) skewY(.8deg)}40%{transform:translateY(4px) skewY(-.7deg)}60%{transform:translateY(-2px) skewY(.35deg)}80%{transform:translateY(1px) skewY(-.15deg)}}
+.fxin{animation:up .28s ease-out}
+body.potato .pop,body.potato .wave,body.potato .fxin,body.potato .say{animation:none!important}
+/* ---- settings ---- */
+.setlist{display:flex;flex-direction:column;gap:10px}
+.setrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:12px 14px;box-shadow:0 3px 0 var(--line);color:var(--ink)}
+.setrow:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.si{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:21px;flex:none}
+.st{flex:1;display:flex;flex-direction:column;min-width:0}
+.st b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st small{color:var(--muted);font-weight:700;font-size:13px}
+.chev{font-size:28px;color:var(--muted);font-weight:900;line-height:1}
+.sw{width:52px;height:31px;border-radius:999px;background:var(--lock);position:relative;flex:none;transition:background .2s}
+.sw i{position:absolute;top:3px;left:3px;width:25px;height:25px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:left .22s cubic-bezier(.34,1.56,.64,1)}
+.sw.on{background:var(--good)}
+.sw.on i{left:24px}
+.ilogo,.infobtn i{font-family:"Times New Roman",Times,serif;font-style:italic;font-weight:700;line-height:1}
+.si .ilogo{font-size:25px;color:#fff}
+.backlink{border:none;background:none;color:var(--pri);font-weight:900;font-size:16px;padding:0;margin-bottom:10px}
+.themegrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.themecard{position:relative;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:10px;box-shadow:0 3px 0 var(--line);color:var(--ink);font-weight:900;font-size:15px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.themecard.on{border-color:var(--pri);box-shadow:0 3px 0 var(--pri-d)}
+.themecard.on:after{content:"✓";position:absolute;top:-9px;right:-7px;width:26px;height:26px;border-radius:50%;background:var(--pri);color:#fff;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+.mock{width:100%;height:150px;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(0,0,0,.1)}
+.mock .mt,.mock .mn{height:15px;flex:none}
+.mock .mb{flex:1;padding:8px;display:flex;flex-direction:column;gap:6px}
+.mock .mc{height:20px;border-radius:6px}
+.upload{width:100%;border:2.5px dashed var(--line);background:var(--card);border-radius:18px;padding:22px 14px;color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-weight:900;font-size:16px}
+.upload span{font-size:36px;line-height:1.1}
+.upload small{color:var(--muted);font-weight:700;font-size:13px;text-align:center}
+.alertbg{position:absolute;inset:0;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;z-index:60;padding:30px;animation:fadein .2s}
+.permbox{background:rgba(248,248,250,.97);border-radius:16px;width:272px;text-align:center;overflow:hidden;color:#111;animation:popb .28s ease;font-family:-apple-system,system-ui,sans-serif}
+.permbox .pb{padding:18px 16px 14px}
+.permbox b{display:block;font-size:16px;margin-bottom:6px}
+.permbox p{font-size:13px;margin:0;color:#333}
+.permbtns{display:flex;border-top:1px solid rgba(0,0,0,.15)}
+.permbtns button{flex:1;border:none;background:none;padding:12px;font-size:17px;color:#0A7AFF;font-family:inherit}
+.permbtns button+button{border-left:1px solid rgba(0,0,0,.15);font-weight:700}
+/* ---- intelligence ---- */
+.infobtn{width:34px;height:34px;border-radius:50%;border:2px solid var(--pri);background:var(--card);color:var(--pri);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 2px 0 var(--line);padding:0}
+.infobtn i{font-size:21px}
+.infopop{position:absolute;top:60px;right:12px;max-width:245px;background:var(--card);border:2px solid var(--pri);border-radius:14px;padding:9px 12px;font-size:13px;font-weight:700;line-height:1.4;color:var(--ink);z-index:26;box-shadow:0 8px 22px rgba(30,27,58,.2);cursor:pointer;animation:sayin .25s ease-out;transition:opacity .4s}
+.infopop:before{content:"";position:absolute;top:-9px;right:12px;border:8px solid transparent;border-bottom-color:var(--pri);border-top:0}
+.infopop b{color:var(--pri)}
+.infopop .tap{display:block;margin-top:4px;font-size:11px;color:var(--muted);font-weight:900}
+.infopop.out{opacity:0}
+.infofull{position:absolute;inset:0;z-index:40;background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;flex-direction:column;animation:fadein .22s}
+@keyframes fadein{from{opacity:0}}
+.ifhead{display:flex;align-items:center;gap:10px;padding:16px}
+.ifhead b{flex:1;font-size:19px}
+.ifbody{flex:1;overflow-y:auto;padding:0 16px 12px}
+.ifcard{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px;font-weight:700;font-size:15px;line-height:1.5}
+.ifextra{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:14px;margin:10px 0 0}
+
+/* ---- v4: weather ---- */
+.wx-slot{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.phone>.top,.phone>.screen,.phone>#chatbarSlot,.phone>.nav{position:relative;z-index:1}
+.wx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;animation:fadein .8s}
+.overlay .ohead,.overlay .obody,.overlay .ofoot,.overlay .chead{position:relative;z-index:1}
+.wx-rain{background:linear-gradient(rgba(108,143,216,.12),transparent 65%)}
+.wx-snow{background:linear-gradient(rgba(170,195,240,.14),transparent 70%)}
+.wx-sunny{background:linear-gradient(rgba(255,201,60,.10),transparent 55%)}
+.drop{position:absolute;top:-30px;width:2px;height:16px;border-radius:2px;background:linear-gradient(transparent,#6C8FD8);animation:dropfall 1s linear infinite}
+@keyframes dropfall{from{transform:translate(0,0) rotate(12deg)}to{transform:translate(-190px,920px) rotate(12deg)}}
+.flake{position:absolute;top:-12px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(140,170,230,.55),0 0 6px rgba(140,170,230,.6);animation:snowfall 10s linear infinite}
+@keyframes snowfall{0%{transform:translate(0,0)}25%{transform:translate(14px,230px)}50%{transform:translate(-10px,460px)}75%{transform:translate(12px,690px)}100%{transform:translate(0,920px)}}
+.leaf{position:absolute;top:-30px;font-style:normal;opacity:.75;animation:leaffall 11s linear infinite}
+@keyframes leaffall{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(40px,460px) rotate(200deg)}100%{transform:translate(-20px,920px) rotate(400deg)}}
+.cloud{position:absolute;width:110px;height:34px;border-radius:40px;background:#A9B4E6;opacity:.3;transform:scale(var(--s,1));animation:drift 80s linear infinite}
+.cloud:before,.cloud:after{content:"";position:absolute;background:inherit;border-radius:50%}
+.cloud:before{width:50px;height:50px;top:-24px;left:18px}.cloud:after{width:38px;height:38px;top:-16px;left:56px}
+@keyframes drift{from{left:-35%}to{left:110%}}
+.wsun{position:absolute;top:-50px;right:-50px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,#FFE27A 0 32%,rgba(255,201,60,.35) 33% 50%,rgba(255,201,60,0) 70%);animation:sunpulse 6s ease-in-out infinite}
+.wsun:after{content:"";position:absolute;inset:-30px;border-radius:50%;background:repeating-conic-gradient(rgba(255,201,60,.3) 0 6deg,transparent 6deg 24deg);-webkit-mask:radial-gradient(circle,transparent 36%,#000 40%,transparent 70%);mask:radial-gradient(circle,transparent 36%,#000 40%,transparent 70%);animation:spin 40s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes sunpulse{50%{transform:scale(1.06)}}
+.hill{position:absolute;border-radius:50%;opacity:.2}
+.wh1{width:320px;height:150px;left:-70px;bottom:20px;background:#2BB673}
+.wh2{width:300px;height:130px;right:-90px;bottom:10px;background:#45CC88}
+.wx.wipe{animation:wipe .8s ease-in forwards}
+.wx.wipe:after{content:"";position:absolute;top:0;bottom:0;width:30px;left:-15px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);animation:wiper .8s ease-in forwards}
+@keyframes wipe{from{clip-path:inset(0 0 0 0)}to{clip-path:inset(0 0 0 100%)}}
+@keyframes wiper{to{left:calc(100% - 15px)}}
+/* ---- v4: answer effects ---- */
+.push{animation:push .17s ease forwards}
+@keyframes push{50%,100%{transform:translateY(4px);box-shadow:0 0 0 transparent}}
+.shake{animation:shake .55s ease}
+@keyframes shake{0%,100%{transform:none}15%{transform:translateX(-11px)}30%{transform:translateX(9px)}45%{transform:translateX(-6px)}60%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+.confetti{position:absolute;inset:0;pointer-events:none;z-index:35;overflow:hidden}
+.confetti i{position:absolute;top:-14px;animation:cfall 1.4s cubic-bezier(.2,.6,.4,1) forwards}
+@keyframes cfall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--dx),720px) rotate(var(--r));opacity:0}}
+.breaking{display:inline-block;animation:hbreak .9s ease}
+@keyframes hbreak{0%{transform:scale(1.7)}20%{transform:scale(1.7) rotate(-14deg)}40%{transform:scale(1.4) rotate(14deg)}60%{transform:scale(1.2) rotate(-8deg)}100%{transform:none}}
+.mb-r{animation:mbr .34s ease-out}.mb-l{animation:mbl .34s ease-out}
+@keyframes mbr{0%{transform:translateX(56px);filter:url(#mbS);opacity:.35}50%{filter:url(#mbW)}100%{transform:none;filter:none;opacity:1}}
+@keyframes mbl{0%{transform:translateX(-56px);filter:url(#mbS);opacity:.35}50%{filter:url(#mbW)}100%{transform:none;filter:none;opacity:1}}
+body.potato .push,body.potato .shake,body.potato .mb-r,body.potato .mb-l{animation:none!important}
+/* ---- v4: result pop-up ---- */
+.resultbg{position:absolute;inset:0;z-index:5;background:rgba(30,27,58,.45);display:flex;align-items:center;justify-content:center;padding:16px;animation:fadein .25s}
+.resultcard{background:var(--card);border-radius:28px;width:100%;max-width:350px;max-height:100%;overflow-y:auto;padding:20px 18px 18px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:popin .45s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popin{from{transform:scale(.7);opacity:0}}
+.rc-face{display:inline-block;background:radial-gradient(circle,var(--soft) 0 58%,transparent 60%);border-radius:50%;padding:2px}
+.resultcard h2{font-size:23px;margin:4px 0 2px}
+.rc-sub{font-weight:800;font-size:13px}
+.rc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 10px}
+.rc-stats div{background:var(--bg);border-radius:14px;padding:10px 4px}
+.rc-stats b{display:block;font-size:20px;font-weight:900}
+.rc-stats span{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.happy{text-align:left;background:var(--bg);border-radius:14px;padding:10px 12px;margin-bottom:12px}
+.hrow{display:flex;justify-content:space-between;font-size:13px;font-weight:800;margin-bottom:6px;gap:8px}
+.hbar{height:12px;border-radius:8px;background:var(--track);overflow:hidden}
+.hbar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#FF8A80,#FFC93C 50%,#2BB673);background-size:300px 100%;animation:grow 1s .25s ease-out both}
+@keyframes grow{from{width:0}}
+.rc-review{text-align:left;margin-bottom:10px;font-size:13px}
+.rc-review .reviewrow{padding:7px 0}
+.rc-btns{display:flex;flex-direction:column;gap:10px}
+.rc-btns .btn{padding:12px}
+/* ---- v4: tips mode & profile ---- */
+.tipmode{display:inline-block;background:var(--soft);color:var(--pri);font-weight:900;font-size:12px;padding:4px 10px;border-radius:999px;margin-bottom:8px}
+.ifsub{font-size:12px;font-weight:800}
+.avatar{width:84px;height:84px;border-radius:50%;margin:0 auto 8px;background:linear-gradient(135deg,#5B5BD6,#FF6FA5);color:#fff;font-weight:900;font-size:38px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+.avatarbtn{border:none;background:none;padding:0;display:block;margin:0 auto}
+.pname{font-size:22px;font-weight:900;word-break:break-word}
+.pbio{font-weight:700;font-size:14px;margin:4px auto 0;max-width:290px;line-height:1.4;word-break:break-word}
+.pchips{display:flex;justify-content:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.pchips span{background:var(--soft);border-radius:999px;padding:5px 12px;font-weight:800;font-size:13px}
+.pstage{padding:18px 14px}
+.flabel{display:flex;justify-content:space-between;font-weight:900;font-size:12px;color:var(--muted);margin:0 4px 6px;text-transform:uppercase;letter-spacing:.5px}
+.namebox.solo{padding-left:6px}
+textarea.biobox{height:84px;margin-bottom:16px}
+.prow{display:flex;gap:12px}
+.pcol{flex:1;min-width:0}.pcol.wide{flex:1.5}
+.selbox{width:100%;height:52px;border:2px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);font-family:inherit;font-weight:800;font-size:15px;padding:0 8px;outline:none}
+.selbox:focus{border-color:var(--pri)}
+.stepper{display:flex;align-items:center;justify-content:space-between;height:52px;border:2px solid var(--line);border-radius:16px;background:var(--card);padding:0 6px}
+.stepper button{width:36px;height:36px;border-radius:12px;background:var(--soft);color:var(--pri);font-size:22px;font-weight:900;border:none;line-height:1}
+.stepper button:active{transform:scale(.92)}
+.stepper b{font-size:20px}
+.wxnote{font-size:13px;font-weight:700;margin-top:14px}
+.budcard{display:flex;align-items:center;gap:12px}
+.btn.sm{width:auto;padding:10px 14px;font-size:14px;flex:none}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="mbS" x="-20%" width="140%"><feGaussianBlur stdDeviation="14 0"/></filter><filter id="mbW" x="-20%" width="140%"><feGaussianBlur stdDeviation="5 0"/></filter></svg>
+<div class="phone">
+  <div class="wx-slot" id="wxMain" aria-hidden="true"></div>
+  <div class="top" id="top"></div>
+  <div class="screen" id="screen"></div>
+  <div id="chatbarSlot"></div>
+  <nav class="nav">
+    <button data-t="learn" onclick="go('learn')"><span>📚</span>Learn</button>
+    <button data-t="crisis" onclick="go('crisis')"><span>⚡</span>Crisis Game</button>
+    <button data-t="chat" onclick="go('chat')"><span>🪙</span>Ask Tiko</button>
+    <button data-t="me" onclick="go('me')"><span>👤</span>Me</button>
+    <button data-t="settings" onclick="go('settings')"><span>⚙️</span>Settings</button>
+  </nav>
+  <div class="overlay" id="overlay"></div>
+  <div class="toast" id="toast"></div>
+  <div id="pmodal"></div>
+</div>
+<input type="file" id="filein" accept="image/*" hidden onchange="gotPhoto(this)">
+
+<script>
+/* ---------- Mascot: a coin buddy the user can rename & dress up ---------- */
+const INK="#2A1B00", MOUTH="#5A3B00";
+const ln=(d,c=MOUTH,w=4)=>`<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+const ROUND_EYES=`<ellipse cx="38" cy="47" rx="5" ry="6.5" fill="${INK}"/><ellipse cx="62" cy="47" rx="5" ry="6.5" fill="${INK}"/><circle cx="39.6" cy="44.5" r="1.8" fill="#fff"/><circle cx="63.6" cy="44.5" r="1.8" fill="#fff"/>`;
+const EYES={
+  round:{n:"Round",svg:ROUND_EYES},
+  sparkly:{n:"Sparkly",svg:`<ellipse cx="38" cy="47" rx="6.5" ry="8" fill="${INK}"/><ellipse cx="62" cy="47" rx="6.5" ry="8" fill="${INK}"/><circle cx="40" cy="44" r="2.6" fill="#fff"/><circle cx="64" cy="44" r="2.6" fill="#fff"/><circle cx="36" cy="50" r="1.3" fill="#fff"/><circle cx="60" cy="50" r="1.3" fill="#fff"/>`},
+  happy:{n:"Happy",svg:ln("M32 49 Q38 41 44 49",INK)+ln("M56 49 Q62 41 68 49",INK)},
+  sleepy:{n:"Sleepy",svg:ln("M32 46 Q38 52 44 46",INK)+ln("M56 46 Q62 52 68 46",INK)},
+  wink:{n:"Wink",svg:`<ellipse cx="38" cy="47" rx="5" ry="6.5" fill="${INK}"/><circle cx="39.6" cy="44.5" r="1.8" fill="#fff"/>`+ln("M56 49 Q62 41 68 49",INK)},
+  cool:{n:"Cool",svg:`<path d="M32 45 H44 Q44 52 38 52 Q32 52 32 45Z" fill="${INK}"/><path d="M56 45 H68 Q68 52 62 52 Q56 52 56 45Z" fill="${INK}"/>`}
+};
+const MOUTHS={
+  smile:{n:"Smile",svg:ln("M38 57 Q50 70 62 57")},
+  grin:{n:"Big grin",svg:`<path d="M38 57 L62 57 Q62 72 50 72 Q38 72 38 57Z" fill="${MOUTH}"/><ellipse cx="50" cy="68" rx="6" ry="3.4" fill="#FF7B7B"/>`},
+  silly:{n:"Silly",svg:`<path d="M47 61 Q46 71 51.5 71 Q57 71 56 61Z" fill="#FF7B7B"/>`+ln("M40 58 Q50 65 60 58")},
+  cat:{n:"Kitty",svg:ln("M40 58 Q45 64 50 58 Q55 64 60 58")},
+  ooh:{n:"Ooh",svg:`<ellipse cx="50" cy="62" rx="5" ry="6" fill="${MOUTH}"/>`},
+  calm:{n:"Calm",svg:ln("M43 61 H57")}
+};
+const COLORS={
+  gold:{n:"Gold",main:"#FFC93C",dark:"#E0A800",ring:"#F5B400"},
+  mint:{n:"Mint",main:"#7EE0B5",dark:"#3FBF88",ring:"#5ED3A0"},
+  sky:{n:"Sky",main:"#8EC5FF",dark:"#4C93E6",ring:"#6FAEF5"},
+  pink:{n:"Bubblegum",main:"#FFB3C7",dark:"#E57A9A",ring:"#F598B2"},
+  grape:{n:"Grape",main:"#C9B6FF",dark:"#8E72E6",ring:"#B09BF7"},
+  silver:{n:"Silver",main:"#E6E9F0",dark:"#A9AFC0",ring:"#CBD0DC"}
+};
+const heart=(cx,cy,s)=>`M${cx} ${cy+7*s} C${cx-13*s} ${cy-s} ${cx-7*s} ${cy-11*s} ${cx} ${cy-4*s} C${cx+7*s} ${cy-11*s} ${cx+13*s} ${cy-s} ${cx} ${cy+7*s}Z`;
+const star=(x,y,r)=>`M${x} ${y-r} Q${x} ${y} ${x+r} ${y} Q${x} ${y} ${x} ${y+r} Q${x} ${y} ${x-r} ${y} Q${x} ${y} ${x} ${y-r}Z`;
+const petals=[0,72,144,216,288].map(a=>`<circle cx="${(79+6.5*Math.cos(a*Math.PI/180)).toFixed(1)}" cy="${(28+6.5*Math.sin(a*Math.PI/180)).toFixed(1)}" r="5.5" fill="#FF8FB1"/>`).join("");
+const ACC={
+  hat:[
+    {id:"party",n:"Party hat",vb:"24 -18 52 48",svg:`<g transform="rotate(8 50 20)"><polygon points="36,26 64,26 50,-8" fill="#FF6FA5"/>${ln("M41 16 H59","#fff",3)}${ln("M45 6 H55","#fff",3)}<circle cx="50" cy="-9" r="5" fill="#FFE066"/></g>`},
+    {id:"crown",n:"Crown",vb:"24 -2 52 34",svg:`<polygon points="30,28 30,8 40,17 50,2 60,17 70,8 70,28" fill="#FFD54F" stroke="#C99400" stroke-width="2.5" stroke-linejoin="round"/><circle cx="40" cy="23" r="2.8" fill="#EF4E4E"/><circle cx="50" cy="22" r="3.2" fill="#5B5BD6"/><circle cx="60" cy="23" r="2.8" fill="#2BB673"/>`},
+    {id:"cap",n:"Cap",vb:"20 0 76 36",svg:`<path d="M24 29 C24 4 76 4 76 29 Z" fill="#3D5AFE"/><path d="M62 27 Q88 23 93 32 Q76 34 62 31Z" fill="#2A3FC0"/><circle cx="50" cy="8" r="3" fill="#2A3FC0"/>`},
+    {id:"beanie",n:"Beanie",vb:"16 -8 68 46",svg:`<path d="M22 32 C22 2 78 2 78 32 Z" fill="#EF4E4E"/><rect x="19" y="25" width="62" height="11" rx="5.5" fill="#C53333"/>${ln("M36 12 V24","#D84444",2.5)}${ln("M50 7 V24","#D84444",2.5)}${ln("M64 12 V24","#D84444",2.5)}<circle cx="50" cy="1" r="7" fill="#fff" stroke="#E3E3F2" stroke-width="1.5"/>`},
+    {id:"grad",n:"Graduate",vb:"6 -4 90 40",svg:`<path d="M30 14 L30 27 Q50 34 70 27 L70 14Z" fill="#2C2850"/><polygon points="50,0 90,12 50,24 10,12" fill="#1E1B3A"/>${ln("M50 12 L82 14 L82 29","#FFC93C",2.5)}<circle cx="82" cy="31" r="3.5" fill="#FFC93C"/><circle cx="50" cy="12" r="2.5" fill="#FFC93C"/>`}
+  ],
+  glasses:[
+    {id:"round",n:"Round",vb:"14 32 72 30",svg:`<circle cx="38" cy="47" r="10" fill="rgba(255,255,255,.35)" stroke="#1E1B3A" stroke-width="3"/><circle cx="62" cy="47" r="10" fill="rgba(255,255,255,.35)" stroke="#1E1B3A" stroke-width="3"/>${ln("M48 46 Q50 43 52 46","#1E1B3A",3)}${ln("M28 45 L18 42","#1E1B3A",3)}${ln("M72 45 L82 42","#1E1B3A",3)}`},
+    {id:"sun",n:"Shades",vb:"14 34 72 26",svg:`<path d="M24 40 H48 V47 Q48 56 37 56 Q26 56 24 47Z" fill="#1E1B3A"/><path d="M52 40 H76 V47 Q74 56 63 56 Q52 56 52 47Z" fill="#1E1B3A"/>${ln("M48 43 H52","#1E1B3A",3)}${ln("M24 41 L17 39","#1E1B3A",3)}${ln("M76 41 L83 39","#1E1B3A",3)}${ln("M29 44 H34","#fff",2)}${ln("M57 44 H62","#fff",2)}`},
+    {id:"heart",n:"Hearts",vb:"18 30 64 32",svg:`<path d="${heart(38,47,1.25)}" fill="#FF4F8B" stroke="#D6336C" stroke-width="2"/><path d="${heart(62,47,1.25)}" fill="#FF4F8B" stroke="#D6336C" stroke-width="2"/>${ln("M48 45 H52","#D6336C",2.5)}`}
+  ],
+  extra:[
+    {id:"bow",n:"Bow tie",vb:"28 76 44 30",svg:`<path d="M50 91 L35 83 Q32 91 35 99Z" fill="#5B5BD6"/><path d="M50 91 L65 83 Q68 91 65 99Z" fill="#5B5BD6"/><circle cx="50" cy="91" r="4.5" fill="#4342B0"/>`},
+    {id:"flower",n:"Flower",vb:"62 11 34 34",svg:`${petals}<circle cx="79" cy="28" r="4.5" fill="#FFE680"/>`},
+    {id:"phones",n:"Headphones",vb:"4 4 92 66",svg:`<path d="M16 52 C16 4 84 4 84 52" stroke="#1E1B3A" stroke-width="6" fill="none" stroke-linecap="round"/><rect x="8" y="42" width="15" height="24" rx="7" fill="#5B5BD6"/><rect x="77" y="42" width="15" height="24" rx="7" fill="#5B5BD6"/>`},
+    {id:"sparkle",n:"Sparkles",vb:"0 0 60 50",tile:`<path d="${star(22,22,14)}" fill="#FFD54F"/><path d="${star(46,14,8)}" fill="#8EC5FF"/><path d="${star(44,38,7)}" fill="#FF8FB1"/>`,svg:`<path d="${star(8,22,8)}" fill="#FFD54F"/><path d="${star(94,66,7)}" fill="#FFD54F"/><path d="${star(88,10,5)}" fill="#8EC5FF"/><path d="${star(6,78,5)}" fill="#FF8FB1"/>`}
+  ]
+};
+const accOf=(part,id)=>ACC[part].find(a=>a.id===id);
+const defaultM=()=>({name:"Tiko",color:"gold",eyes:"round",mouth:"smile",hat:null,glasses:null,extra:null});
+const SPROUT=`<path d="M50 18 L50 12" stroke="#1E8E58" stroke-width="3" stroke-linecap="round"/><path d="M50 13 C44 3 33 5 32 11 C40 12 45 13 50 13Z" fill="#2BB673"/><path d="M50 13 C56 3 67 5 68 11 C60 12 55 13 50 13Z" fill="#45CC88"/>`;
+function tiko(size=80,mood="happy",cfg){
+  cfg=cfg||(S&&S.m)||defaultM();
+  const c=COLORS[cfg.color]||COLORS.gold;
+  let eyes=(EYES[cfg.eyes]||EYES.round).svg, face="";
+  if(mood==="laugh"){eyes=ln("M32 43 L42 47 L32 51",INK,3.5)+ln("M68 43 L58 47 L68 51",INK,3.5);face=`<path d="M25 50 Q22 55 25 57 Q28 55 25 50Z" fill="#7CC4FF"/><path d="M75 50 Q72 55 75 57 Q78 55 75 50Z" fill="#7CC4FF"/>`}
+  if(mood==="cheer")eyes=EYES.sparkly.svg;
+  if(mood==="sad")face=ln("M31 39 L43 35",INK,3)+ln("M69 39 L57 35",INK,3)+`<path d="M31 54 Q27.5 60 31 62 Q34.5 60 31 54Z" fill="#7CC4FF"/>`;
+  const mouth = mood==="sad" ? ln("M40 64 Q50 56 60 64") : mood==="wow" ? MOUTHS.ooh.svg : (mood==="laugh"||mood==="cheer") ? MOUTHS.grin.svg : (MOUTHS[cfg.mouth]||MOUTHS.smile).svg;
+  const hat=cfg.hat&&accOf("hat",cfg.hat), gl=cfg.glasses&&accOf("glasses",cfg.glasses), ex=cfg.extra&&accOf("extra",cfg.extra);
+  return `<svg width="${size}" height="${size}" viewBox="-10 -18 120 120" aria-hidden="true" style="flex:none;overflow:visible">
+    ${hat?"":SPROUT}
+    <circle cx="50" cy="57" r="36" fill="${c.dark}"/>
+    <circle cx="50" cy="54" r="36" fill="${c.main}"/>
+    <circle cx="50" cy="54" r="28" fill="none" stroke="${c.ring}" stroke-width="3" stroke-dasharray="4 5"/>
+    ${eyes}
+    <ellipse cx="28" cy="58" rx="5" ry="3" fill="#FF8A80" opacity=".7"/><ellipse cx="72" cy="58" rx="5" ry="3" fill="#FF8A80" opacity=".7"/>
+    ${mouth}${face}${gl?gl.svg:""}${hat?hat.svg:""}${ex?ex.svg:""}</svg>`;
+}
+const BN=()=>esc((S.m&&S.m.name)||"Tiko");
+
+/* ---------- State ---------- */
+const KEY="altifi-demo-v1";
+const fresh=()=>({xp:0,streak:1,done:0,hearts:3,lockUntil:0,cleared:[],lastDay:new Date().toDateString(),lastOpen:Date.now(),m:defaultM(),set:defaultSet(),p:defaultP()});
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||fresh()}catch(e){S=fresh()}
+if(!S.m)S.m=defaultM();
+if(!S.set)S.set=defaultSet();
+if(!S.p)S.p=defaultP();
+if(S.set.wx===undefined)S.set.wx=true;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+(function onOpen(){
+  const today=new Date().toDateString(), y=new Date(Date.now()-864e5).toDateString();
+  if(S.lastDay!==today){S.streak = S.lastDay===y ? S.streak+1 : 1; S.lastDay=today;}
+  S.lastOpen=Date.now(); save();
+})();
+const $=s=>document.querySelector(s);
+const esc=t=>t.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+/* ---------- Lessons ---------- */
+const UNITS=[
+ {title:"Money Basics",desc:"What money is and how to use it",color:"#5B5BD6",icons:["💵","🛒"]},
+ {title:"Budgeting",desc:"Plan before you spend",color:"#2BB673",icons:["📊","🔍"]},
+ {title:"Saving & Interest",desc:"Make your money grow",color:"#F28C28",icons:["🐷","📈"]},
+ {title:"Risks & Scams",desc:"Learn how others lose money",color:"#EF4E4E",icons:["💳","🚩"]}
+];
+const LESSONS=[
+ {name:"What is money?",qs:[
+  {q:"Which of these is NOT a job of money?",o:["Medium of exchange","Store of value","Unit of account","Guarantee of happiness"],a:3,why:"Money helps us trade, save and compare prices. Happiness is not included!"},
+  {q:"Before money, people swapped goods directly. This is called…",o:["Barter","Credit","Inflation","Dividends"],a:0,why:"Barter = trading goods for goods, like rice for chickens."},
+  {q:"Which asset is the most liquid (easiest to spend right now)?",o:["Cash in your wallet","A house","A gold bar","A painting"],a:0,why:"Cash can be spent instantly. Selling a house takes months."}]},
+ {name:"Needs vs wants",qs:[
+  {q:"Which one is a NEED?",o:["New sneakers","Bus pass to get to school","Concert ticket","A game skin"],a:1,why:"Needs keep your life running. Wants are nice to have."},
+  {q:"You get 200,000₫ a week. Bubble tea every day costs 35,000₫. What happens?",o:["You overspend by 45,000₫","You save 45,000₫","Nothing changes","You save 200,000₫"],a:0,why:"7 × 35,000₫ = 245,000₫, which is 45,000₫ more than you have."},
+  {q:"Buying something without planning, just because you feel like it, is…",o:["Impulse buying","Budgeting","Investing","Saving"],a:0,why:"Impulse buys are the #1 budget killer. Wait 24 hours before buying!"}]},
+ {name:"Make a budget",qs:[
+  {q:"The 50/30/20 rule splits your money into…",o:["Needs / Wants / Savings","Food / Rent / Fun","Tax / Bills / Gifts","Me / Family / Friends"],a:0,why:"50% needs, 30% wants, 20% savings. A simple starting point."},
+  {q:"You earn 1,000,000₫ a month tutoring. Using 50/30/20, how much do you save?",o:["100,000₫","200,000₫","300,000₫","500,000₫"],a:1,why:"20% of 1,000,000₫ = 200,000₫."},
+  {q:"The best first step to budgeting is…",o:["Track what you already spend","Cut all fun forever","Borrow from friends","Ignore small purchases"],a:0,why:"You can't fix what you can't see. Track first."}]},
+ {name:"Find money leaks",qs:[
+  {q:"Small daily purchases that quietly add up are called…",o:["Money leaks","Dividends","Assets","Interest"],a:0,why:"10,000₫ a day is 3,650,000₫ a year!"},
+  {q:"You notice 40% of your spending is snacks. Smartest move?",o:["Set a weekly snack limit","Stop tracking","Spend more to feel better","Borrow for snacks"],a:0,why:"A limit keeps the fun but stops the leak."},
+  {q:"Which tool helps you track spending?",o:["A notebook or budgeting app","Throwing away receipts","Guessing at month end","Your credit limit"],a:0,why:"Writing it down (or using an app) is the simplest habit."}]},
+ {name:"Why save?",qs:[
+  {q:"An emergency fund should cover about…",o:["3–6 months of expenses","1 day","1 week","10 years"],a:0,why:"Enough to survive a lost job or a big surprise bill."},
+  {q:"Inflation means…",o:["Prices rise, so money buys less","Prices fall every year","Banks give free money","Your savings double"],a:0,why:"Cash under the bed slowly loses value."},
+  {q:"\"Pay yourself first\" means…",o:["Save before you spend","Buy yourself gifts first","Ask your parents first","Pay bills last"],a:0,why:"Put savings aside the moment money arrives."}]},
+ {name:"Interest magic",qs:[
+  {q:"You save 1,000,000₫ at 5% simple interest per year. After 1 year you have…",o:["1,005,000₫","1,050,000₫","1,500,000₫","2,000,000₫"],a:1,why:"5% of 1,000,000₫ = 50,000₫."},
+  {q:"Compound interest is interest earned on…",o:["Your money AND past interest","Only your original money","Only bank fees","Nothing"],a:0,why:"Interest on interest. Starting young is a superpower."},
+  {q:"When you BORROW money, interest is…",o:["A cost you pay","A reward you get","Always free","A tax refund"],a:0,why:"Interest works for you when saving, against you when borrowing."}]},
+ {name:"Debt & credit",qs:[
+  {q:"\"Buy now, pay later\" is…",o:["A form of debt","Free money","A savings account","A discount"],a:0,why:"You still owe the money, sometimes with fees."},
+  {q:"Paying only the minimum on a credit card leads to…",o:["More interest over time","Less debt","A bonus","Nothing"],a:0,why:"The rest keeps growing with interest."},
+  {q:"Which is the most reasonable reason to borrow?",o:["Education that raises your future income","The newest phone","Impressing friends","A holiday on impulse"],a:0,why:"Good debt helps you earn more later."}]},
+ {name:"Spot the scam",qs:[
+  {q:"A TikTok video promises 30% profit every week, guaranteed. This is most likely…",o:["A scam","A smart investment","A government program","Normal returns"],a:0,why:"Guaranteed high returns are the biggest red flag 🚩."},
+  {q:"Before trusting finance advice online you should…",o:["Check the source and credentials","Count the likes","Act fast before it's gone","Share it with friends"],a:0,why:"83% of Gen Z have seen false money info on social media."},
+  {q:"A Ponzi scheme pays old investors with…",o:["Money from new investors","Real profits","Government money","Interest from banks"],a:0,why:"It collapses when new money stops coming in."}]}
+];
+
+/* ---------- Crisis game cases ---------- */
+const CASES=[
+ {id:"1929",year:1929,title:"The Great Depression",color:"#8A5A44",role:"Owner of a small textile factory in Chicago",
+  chartLabel:"US stock market (Dow Jones)",chart:[100,115,130,75,55,40,25,20],
+  intro:"October 1929. Share prices have doubled in a few years and everyone is buying stocks with borrowed money. You are doing well… for now.",
+  rounds:[
+   {sit:"Black Tuesday: the stock market crashes. 40% of your company savings are in stocks bought on margin (borrowed money). Your broker demands more cash. What do you do?",
+    good:{"sell":1,"cut loss":2,"cut my loss":2,"stop loss":2,"repay":2,"pay back":2,"protect cash":2,"keep cash":2,"reduce debt":2,"close":1,"get out":1},
+    bad:{"borrow more":-3,"buy more":-2,"all in":-3,"ignore":-2,"wait it out":-1,"another loan":-2},
+    best:"Close the margin position and protect cash. Borrowing more to hold falling stocks can wipe out the whole firm."},
+   {sit:"1931: Banks are failing one after another. All your firm's money is in ONE local bank, and rumours say it may close.",
+    good:{"spread":2,"diversif":2,"different bank":2,"several bank":2,"other bank":2,"split":2,"withdraw":1,"some cash":1,"safe":1},
+    bad:{"do nothing":-2,"ignore":-2,"keep it all":-2,"stocks":-1,"trust":-1},
+    best:"Spread deposits across several banks and keep some cash. Never keep all your eggs in one basket."},
+   {sit:"1932: Demand has collapsed. Orders are down 60%. You have 50 workers and only 4 months of cash left.",
+    good:{"cut cost":2,"reduce cost":2,"cheaper":2,"new product":2,"pivot":2,"part-time":2,"fewer hours":2,"reduce hours":2,"negotiate":2,"budget":1,"supplier":1,"fair":1},
+    bad:{"expand":-2,"luxury":-2,"new machine":-2,"raise price":-1,"borrow":-1,"fire everyone":-2},
+    best:"Cut costs fairly (shorter hours instead of mass layoffs), negotiate with suppliers, and make cheaper products people still need."}]},
+ {id:"1973",year:1973,title:"The OPEC Oil Crisis",color:"#E07B22",role:"Manager of a delivery company in New York",
+  chartLabel:"Oil price per barrel (USD)",chart:[3,3,3.2,3.5,11,12,11.5,12.5],invert:true,
+  intro:"October 1973. Arab oil producers (OPEC) stop selling oil to the US. Your trucks run on fuel, and fuel just became very expensive.",
+  rounds:[
+   {sit:"Fuel prices have quadrupled in a few months. Fuel is 30% of your costs. What do you do?",
+    good:{"route":2,"efficien":2,"fuel surcharge":2,"surcharge":2,"combine":2,"smaller truck":2,"plan":1,"reduce fuel":2,"raise price a little":2,"small price":1},
+    bad:{"ignore":-2,"lower price":-2,"buy more truck":-2,"hoard":-1,"do nothing":-2},
+    best:"Plan smarter routes, combine deliveries and add a small fuel surcharge so costs are shared fairly."},
+   {sit:"There are long queues at petrol stations. Some days you can't get fuel at all. Customers still expect deliveries.",
+    good:{"schedule":2,"plan":1,"priorit":2,"rail":2,"train":2,"bike":2,"partner":2,"tell customer":2,"communicat":2,"inform":1},
+    bad:{"cancel everything":-2,"black market":-3,"steal":-3,"lie":-2,"close the company":-2},
+    best:"Prioritise urgent orders, tell customers honestly about delays, and try alternatives like rail or bicycle couriers in the city."},
+   {sit:"Inflation hits 10%. Your workers ask for a raise, and customers are complaining about prices.",
+    good:{"negotiate":2,"fair":2,"partial":2,"communicat":2,"explain":2,"productiv":2,"long-term":1,"meet in the middle":2,"compromise":2},
+    bad:{"refuse":-1,"fire everyone":-3,"double price":-2,"ignore":-2},
+    best:"Negotiate a fair partial raise tied to productivity and explain your price changes openly. Keeping trust is worth a lot."}]},
+ {id:"2008",year:2008,title:"The Global Financial Crisis",color:"#3D5AFE",role:"Risk manager at a mid-size bank",
+  chartLabel:"US house prices index",chart:[100,120,140,150,135,110,95,90],
+  intro:"2007. Banks have lent huge amounts for houses, even to people who can't repay, then packaged those loans as \"safe\" investments. Your bank owns a lot of them.",
+  rounds:[
+   {sit:"House prices start falling and many borrowers stop paying. Your boss says: \"Relax, house prices never fall.\" What do you do?",
+    good:{"risk":1,"reduce":2,"sell":1,"hedge":2,"warn":2,"report":2,"check":1,"analy":1,"diversif":2,"stress test":2,"data":1},
+    bad:{"buy more":-3,"ignore":-2,"agree":-2,"trust the boss":-2,"hide":-3,"relax":-1},
+    best:"Use the data to warn management, reduce exposure to bad mortgages and hedge. Agreeing to keep peace is how banks fail."},
+   {sit:"Lehman Brothers collapses. Banks stop lending to each other. Customers line up to withdraw their money.",
+    good:{"liquid":2,"cash":1,"calm":2,"communicat":2,"reassur":2,"central bank":2,"government":1,"deposit insurance":2,"transparen":2,"honest":2},
+    bad:{"lie":-3,"hide":-2,"close the door":-2,"panic":-2,"freeze":-1},
+    best:"Secure cash (including from the central bank) and calmly, honestly reassure customers. Panic causes bank runs."},
+   {sit:"The government offers a bailout, but demands strict new rules and no bonuses for executives.",
+    good:{"accept":2,"rules":1,"regulat":2,"responsib":2,"lesson":2,"transparen":2,"no bonus":2,"cut bonus":2,"reform":2},
+    bad:{"refuse":-2,"bonus for":-2,"keep bonus":-3,"same as before":-2,"lie":-2},
+    best:"Accept the help and the rules, cut bonuses and fix risk controls. The goal is to never repeat the same mistake."}]}
+];
+
+const R={
+ brilliant:{label:"Brilliant Move",sym:"!!",col:"#1BADA6",dv:25},
+ excellent:{label:"Excellent",sym:"!",col:"#2BB673",dv:15},
+ best:{label:"Best Move",sym:"★",col:"#7CB342",dv:10},
+ pgood:{label:"Potentially Good",sym:"!?",col:"#8E9BFF",dv:3},
+ pbad:{label:"Potentially Bad",sym:"?!",col:"#F2A33A",dv:-10},
+ terrible:{label:"Terrible Move",sym:"??",col:"#EF4E4E",dv:-30}
+};
+
+/* ---------- Navigation ---------- */
+let tab="learn";
+const NAVORD=["learn","crisis","chat","me","settings"];
+function go(t){const d=NAVORD.indexOf(t)-NAVORD.indexOf(tab), hadSub=!!setSub; tab=t; setSub=null; render(); if(d)pageAnim(d); else if(hadSub)pageAnim(-1)}
+function pageAnim(dir,el){if(PO())return;el=el||$("#screen");el.classList.remove("mb-r","mb-l");void el.offsetWidth;el.classList.add(dir>0?"mb-r":"mb-l");clearTimeout(el._mb);el._mb=setTimeout(()=>el.classList.remove("mb-r","mb-l"),400)}
+function heartsHTML(brk){let h="❤️".repeat(S.hearts);const lost=3-S.hearts;for(let i=0;i<lost;i++)h+=i<brk?'<span class="breaking">💔</span>':"💔";return h}
+function checkLock(){ if(S.lockUntil && Date.now()>=S.lockUntil){S.hearts=3;S.lockUntil=0;save()} }
+function render(){
+  checkLock();
+  $("#top").innerHTML=`<div class="logo">altifi</div><div class="stats"><span>🔥 ${S.streak}</span><span>⭐ ${S.xp}</span><span>${heartsHTML(ovShown()?0:(S.broke||0))}</span></div>`;
+  if(!ovShown()&&S.broke){S.broke=0;save()}
+  $("#screen").innerHTML=({learn:learnView,crisis:crisisView,chat:chatView,me:meView,settings:settingsView})[tab]();
+  $("#chatbarSlot").innerHTML = tab==="chat" ? `<div class="chatbar"><input id="ci" placeholder="Ask Tiko anything about money…" onkeydown="if(event.key==='Enter')sendChat()"><button onclick="sendChat()">Send</button></div>` : "";
+  document.querySelector('[data-t="chat"]').innerHTML=`<span>🪙</span>Ask ${BN()}`;
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
+  if(tab==="chat"){const s=$("#screen");s.scrollTop=s.scrollHeight}
+  if(tab==="learn"&&S.set.inter&&!PO()&&!$("#overlay").classList.contains("show")){
+    if(talk.id==="homeTalk")paintTalk(false); else startTalk("homeTalk",HOME_TALK,homeFirst(false));
+  }
+}
+const ovShown=()=>$("#overlay").classList.contains("show");
+function openO(html,opts){const o=$("#overlay"),fresh=!o.classList.contains("show");o.innerHTML=(opts&&opts.noWx?"":wxOverlay())+html;o.classList.add("show");if(fresh)pageAnim(1,o)}
+function closeO(){clearInterval(G&&G.int);$("#overlay").classList.remove("show");render();pageAnim(-1)}
+function backHome(){clearInterval(G&&G.int);stopTalk();$("#overlay").classList.remove("show");tab="learn";setSub=null;render();pageAnim(-1)}
+function pushThen(btn,fn){if(btn.dataset.busy)return;btn.dataset.busy="1";if(PO())return fn();btn.classList.add("push");setTimeout(fn,170)}
+function confetti(){
+  if(PO())return; const o=$("#overlay"),box=document.createElement("div"); box.className="confetti";
+  const cols=["#FFC93C","#FF6FA5","#5B5BD6","#2BB673","#8EC5FF","#FF8A3D"];
+  for(let i=0;i<42;i++){const p=document.createElement("i"),w=5+Math.random()*5|0;
+    p.style.cssText=`left:${(Math.random()*100).toFixed(1)}%;background:${cols[i%cols.length]};--dx:${(Math.random()*140-70)|0}px;--r:${(Math.random()*720-360)|0}deg;animation-delay:${(Math.random()*.25).toFixed(2)}s;animation-duration:${(1.1+Math.random()*.8).toFixed(2)}s;width:${w}px;height:${w+4}px;border-radius:${Math.random()<.4?"50%":"2px"}`;
+    box.appendChild(p)}
+  o.appendChild(box); setTimeout(()=>box.remove(),2400);
+}
+const fmtTime=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+function moodFor(p){return p>=.99?["cheer",100,"Over the moon 🤩"]:p>=.66?["happy",78,"Pretty happy 😊"]:p>=.33?["wow",48,"A bit nervous 😬"]:["sad",14,"Sad, but believes in you 🥺"]}
+function resultPopup(o){
+  const [mood,lvl,label]=moodFor(o.pct);
+  openO(`<div class="resultbg"><div class="resultcard" role="dialog" aria-label="${o.title}">
+    <div class="rc-face">${tiko(118,mood)}</div>
+    <h2>${o.title}</h2><div class="muted rc-sub">${o.sub}</div>
+    <div class="rc-stats">${o.stats.map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join("")}</div>
+    <div class="happy"><div class="hrow"><span>${BN()}'s happiness</span><b>${label}</b></div><div class="hbar"><i style="width:${lvl}%"></i></div></div>
+    ${o.extra||""}
+    <div class="rc-btns">${o.buttons.map(([t,f,c])=>`<button class="btn ${c||""}" onclick="${f}">${t}</button>`).join("")}</div>
+  </div></div>`,{noWx:o.noWx});
+}
+
+/* ---------- Learn ---------- */
+const PEP=["5 minutes a day builds big money habits!","Every coin has a story. Let's learn yours!","Smart money starts with one small lesson.","You're doing great — keep that streak alive! 🔥"];
+function learnView(){
+  let h="";
+  if(S.set.inter){
+    const bubble=PO()?`<div class="bubble">${esc(homeFirst(true))}</div>`:`<div class="bubble talk" id="homeTalk"></div>`;
+    h=`<div class="hello"><button class="mascotbtn" onclick="openCustom()" aria-label="Customize your buddy">${tiko(84)}<span class="editdot">✏️</span></button>${bubble}</div>`;
+  }
+  UNITS.forEach((u,ui)=>{
+    h+=`<div class="unit" style="background:${u.color}"><small>Unit ${ui+1}</small><h3>${u.title}</h3><div style="font-weight:700;font-size:13px;opacity:.9">${u.desc}</div></div><div class="path">`;
+    [0,1].forEach(k=>{
+      const i=ui*2+k, off=[0,-50,50,0][(i)%4];
+      const st=i<S.done?"done":i===S.done?"current":"locked";
+      h+=`<button class="node ${st}" style="margin-left:${off*2}px;${st==="current"?`background:${u.color}`:""}" ${st==="locked"?"disabled":`onclick="startLesson(${i})"`} aria-label="${LESSONS[i].name}">
+        ${st==="current"?'<span class="tag">START</span>':""}${st==="locked"?"🔒":st==="done"?"⭐":u.icons[k]}</button>
+        <div style="margin-left:${off*2}px;margin-top:-6px;font-size:12px;font-weight:800;color:var(--muted)">${LESSONS[i].name}</div>`;
+    });
+    h+="</div>";
+  });
+  if(S.done>=LESSONS.length) h+=`<div class="card center">${tiko(60,"wow")}<h3>All units complete!</h3><p class="muted">More lessons coming soon. Try the Crisis Game!</p></div>`;
+  return h;
+}
+let L=null;
+function startLesson(i){L={i,q:0,ok:0,sel:null,checked:false,t0:Date.now()};bud.mood="happy";newOrder();lessonRender();if(!PO())startTalk("lessonTalk",LESSON_TALK,"Let's gooo! 🚀")}
+function newOrder(){L.order=shuffle(LESSONS[L.i].qs[L.q].o.map((_,k)=>k))}
+function lessonRender(fx){
+  const les=LESSONS[L.i], q=les.qs[L.q], pct=(L.q/les.qs.length)*100;
+  const isRight=L.checked && L.order[L.sel]===q.a;
+  infoCtx={key:`L${L.i}-${L.q}`,title:les.name,sub:`Question ${L.q+1} of ${les.qs.length}`,short:LINFO[L.i].s,long:LINFO[L.i].l,extra:`<b>This question:</b> ${q.why}`,hint:LHINT[L.i][L.q],answered:L.checked};
+  const opts=L.order.map((k,pos)=>{
+    let c="opt"; if(L.sel===pos)c+=" sel"; if(fx==="pick"&&L.sel===pos&&!PO())c+=" pop";
+    if(L.checked){ if(k===q.a)c+=" right"; else if(L.sel===pos)c+=" wrong"; }
+    return `<button class="${c}" onclick="pick(${pos})">${q.o[k]}</button>`}).join("");
+  const fxin=(fx==="wave"||fx==="shake")&&!PO()?" fxin":"";
+  const foot = !L.checked
+    ? `<div class="ofoot"><button class="btn good" ${L.sel===null?"disabled":""} onclick="pushThen(this,checkAns)">CHECK</button></div>`
+    : `<div class="ofoot ${isRight?"ok":"no"}${fxin}"><div class="fb" style="color:${isRight?"var(--okt)":"var(--not)"}">${isRight?"Nice one! 🎉":"Not quite…"}</div><p>${q.why}</p><button class="btn ${isRight?"good":"bad"}" onclick="nextQ()">CONTINUE</button></div>`;
+  const talkEl=PO()?"":`<div class="bubble sm talk" id="lessonTalk"></div>`;
+  openO(`<div class="ohead"><button class="x" onclick="closeO()" aria-label="Close">✕</button><div class="prog"><i style="width:${pct}%"></i></div>${infoBtn()}</div>
+    <div class="obody${(fx==="wave"||fx==="shake")&&!PO()?" "+fx:""}"><div class="budrow"><div id="bud" class="bud" data-size="60">${tiko(60,bud.mood)}</div>${talkEl}</div>
+    <div class="muted lname">${les.name.toUpperCase()}</div><div class="q">${q.q}</div>${opts}</div>${foot}`,{noWx:1});
+  paintTalk(false);
+}
+function pick(p){if(L.checked)return;L.sel=p;lessonRender("pick")}
+function checkAns(){
+  L.checked=true; const ok=L.order[L.sel]===LESSONS[L.i].qs[L.q].a; if(ok)L.ok++;
+  lessonRender(ok?"wave":"shake"); if(ok)confetti();
+  if(ok){emote("cheer",1600);react(rand(R_OK))}
+  else{const m=Math.random()<.5?"sad":"laugh";emote(m,2600);react(rand(m==="sad"?R_SAD:R_LAUGH))}
+  if(S.set.intel)showInfoPop();
+}
+function nextQ(){
+  L.q++;L.sel=null;L.checked=false;
+  if(L.q<LESSONS[L.i].qs.length){newOrder();return lessonRender()}
+  lessonDone();
+}
+function lessonDone(){
+  const n=LESSONS[L.i].qs.length, pct=L.ok/n, xp=10+L.ok*5, secs=Math.round((Date.now()-L.t0)/1000);
+  S.xp+=xp; if(L.i===S.done)S.done++; save(); stopTalk();
+  const nextI=L.i+1<LESSONS.length?L.i+1:0;
+  resultPopup({title:pct===1?"Perfect lesson! 🏆":pct>=.66?"Lesson complete! 🎉":pct>0?"You made it! 💪":"Oof, tough one 😅",sub:LESSONS[L.i].name,
+    stats:[[`${L.ok}/${n}`,"correct"],[fmtTime(secs),"time"],[`+${xp}`,"XP"]],pct,noWx:true,
+    buttons:[["CONTINUE LESSON",`startLesson(${nextI})`,"good"],["BACK TO HOME","backHome()","ghost"]]});
+  if(pct>=.66)confetti();
+}
+
+/* ---------- Crisis Game ---------- */
+function spark(c,w=110,h=44){
+  const mx=Math.max(...c.chart),mn=Math.min(...c.chart);
+  const pts=c.chart.map((v,i)=>`${(i/(c.chart.length-1))*w},${h-4-((v-mn)/(mx-mn||1))*(h-8)}`).join(" ");
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${c.color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function nextMidnight(){const d=new Date();d.setHours(24,0,0,0);return d.getTime()}
+function lockedCard(){
+  const ms=S.lockUntil-Date.now(),h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4);
+  return `<div class="card center">${tiko(90,"sad")}<h2>Out of hearts</h2><p class="muted">Your role failed 3 times today. Hearts refill in <b>${h}h ${m}m</b>. Lessons are still open — keep learning!</p><button class="btn ghost" onclick="go('learn')">GO TO LESSONS</button></div>`;
+}
+function crisisView(){
+  let h=`<h2>Crisis Game</h2><p class="muted" style="font-weight:700">Real history. Your decisions. Type your move before the clock runs out — ${BN()} rates every move like a chess engine.</p>`;
+  if(S.hearts<=0) return h+lockedCard();
+  CASES.forEach(c=>{
+    h+=`<div class="card case" onclick="startCase('${c.id}')"><div class="yr" style="background:${c.color}">${c.year}</div>
+      <div class="meta"><h3>${c.title}</h3><div class="muted" style="font-size:13px;font-weight:700">You: ${c.role}</div>
+      ${S.cleared.includes(c.id)?'<span class="pill" style="background:var(--okbg);color:var(--okt)">✓ Cleared</span>':'<span class="pill">3 rounds · 45s each</span>'}</div>${spark(c,60,36)}</div>`;
+  });
+  h+=`<div class="card" style="background:var(--sunbg);border-color:var(--sunline)"><h3>How rating works</h3><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">${Object.values(R).map(r=>`<span style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800"><span class="badge mini" style="background:${r.col}">${r.sym}</span>${r.label}</span>`).join("")}</div><p class="muted" style="font-size:12px;margin-top:10px">A Terrible Move costs a ❤️. Lose all 3 and the game locks until tomorrow.</p></div>`;
+  return h;
+}
+let G=null;
+function startCase(id){
+  if(S.hearts<=0)return;
+  const c=CASES.find(x=>x.id===id); G={c,r:0,val:100,log:[],t0:0};
+  openO(`<div class="ohead"><button class="x" onclick="closeO()" aria-label="Close">✕</button><b style="flex:1">${c.title}</b></div>
+   <div class="obody"><div class="card" style="background:${c.color};color:#fff;border:none"><div style="font-size:40px;font-weight:900">${c.year}</div>
+   <div style="background:rgba(255,255,255,.95);border-radius:12px;padding:8px;margin-top:8px">${spark(c,300,80).replace('width="300"','width="100%"')}<div style="color:var(--muted);font-size:11px;font-weight:800">${c.chartLabel}</div></div></div>
+   <h3>Your role</h3><p>${c.role}</p><p>${c.intro}</p>
+   <div class="hello" style="margin-top:14px">${tiko(56)}<div class="bubble">Remember, every move your role makes has consequences. Choose wisely.</div></div></div>
+   <div class="ofoot"><button class="btn sun" onclick="roundRender()">BEGIN</button></div>`);
+}
+function valColor(v){return v>=100?"var(--good)":v>=50?"var(--sun)":"var(--bad)"}
+function roundHead(){
+  return `<div class="ohead"><button class="x" onclick="closeO()" aria-label="Close">✕</button><div style="flex:1"><div style="display:flex;justify-content:space-between;font-weight:900;font-size:13px"><span>Firm value: ${G.val}</span><span>Round ${Math.min(G.r+1,3)}/3 · ${heartsHTML(0)}</span></div><div class="valbar"><i style="width:${Math.min(100,G.val/1.6)}%;background:${valColor(G.val)}"></i></div></div>${infoBtn()}</div>`;
+}
+const T=45,C=2*Math.PI*26;
+function roundRender(){
+  const rd=G.c.rounds[G.r];
+  openO(`${roundHead()}<div class="obody"><div class="card"><p style="font-weight:800;margin:0">${rd.sit}</p></div>
+   <div class="timerwrap"><div style="position:relative;width:64px;height:64px;flex:none"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" style="stroke:var(--track)" stroke-width="7"/><circle id="ring" cx="32" cy="32" r="26" fill="none" style="stroke:var(--pri)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="0" transform="rotate(-90 32 32)"/></svg><div class="num" id="tnum">${T}</div></div>
+   <div class="muted" style="font-weight:800;font-size:14px">Short answer only. Say <i>what</i> you'd do — and <i>why</i> if you can.</div></div>
+   <div class="budrow"><div id="bud" class="bud" data-size="52">${tiko(52,"happy")}</div>${PO()?"":'<div class="bubble sm talk" id="gameTalk"></div>'}</div>
+   <textarea id="ans" maxlength="140" placeholder="Type your move…" oninput="document.getElementById('cnt').textContent=this.value.length+'/140'"></textarea><div class="count" id="cnt">0/140</div></div>
+   <div class="ofoot"><button class="btn" id="subbtn" onclick="pushThen(this,()=>submitMove(false))">SUBMIT MOVE</button></div>`);
+  setTimeout(()=>{const a=$("#ans");a&&a.focus()},100);
+  if(!G.t0)G.t0=Date.now();
+  bud.mood="happy"; if(!PO())startTalk("gameTalk",GAME_TALK,"Your move, boss! ⏳"); else stopTalk();
+  infoCtx={key:`G${G.c.id}-${G.r}`,title:G.c.title,sub:`Round ${G.r+1} of 3`,short:GINFO[G.c.id].s,long:GINFO[G.c.id].l,extra:`<b>Best move this round:</b> ${rd.best}`,hint:GHINT[G.c.id][G.r],answered:false};
+  G.left=T;G.paused=false;G.busy=false; clearInterval(G.int);
+  G.int=setInterval(()=>{if(G.paused)return;G.left--;const r=$("#ring"),n=$("#tnum");if(!r)return clearInterval(G.int);
+    n.textContent=G.left; r.style.strokeDashoffset=C*(1-G.left/T); r.style.stroke=G.left<=10?"var(--bad)":"var(--pri)";
+    if(G.left<=0)submitMove(true)},1000);
+}
+function rate(text,rd){
+  const t=text.toLowerCase().trim();
+  if(!t) return {k:"terrible",note:"Time ran out. Freezing up is also a decision — and usually a bad one."};
+  if(t.length<6) return {k:"pbad",note:"Too short to be a real plan. Say what you'd do."};
+  let s=0,hits=[];
+  for(const [w,v] of Object.entries(rd.good)) if(t.includes(w)){s+=v;hits.push(w)}
+  for(const [w,v] of Object.entries(rd.bad)) if(t.includes(w)){s+=v;hits.push(w)}
+  if(/\b(because|so that|so we|to avoid|to protect|otherwise)\b/.test(t)) s+=1;
+  const k = s>=5?"brilliant":s>=3?"excellent":s>=2?"best":s>=1?"pgood":s>=0?"pbad":"terrible";
+  const notes={brilliant:"Outstanding! You saw the risk, acted on it and explained why.",excellent:"Strong move — you protected your firm.",best:"Solid, sensible decision.",pgood:"On the right track, but it could be sharper.",pbad:"Risky or unclear. This might hurt your firm.",terrible:"This move makes the crisis worse."};
+  return {k,note:notes[k]};
+}
+function submitMove(timeout){
+  if(G.busy)return; G.busy=true;
+  clearInterval(G.int); stopTalk();
+  const a=$("#ans"); const text=a?a.value:"";
+  const btn=$("#subbtn");
+  analyzeMove(text,timeout);
+}
+function analyzeMove(text,timeout){
+  const rd=G.c.rounds[G.r];
+  openO(`${roundHead()}<div class="obody center" style="display:flex;flex-direction:column;justify-content:center;align-items:center">${tiko(110,"wow")}<h3 style="margin-top:10px">Analyzing your move…</h3><div class="typing" style="margin-top:8px"><i></i><i></i><i></i></div></div>`);
+  setTimeout(()=>{
+    const res=rate(timeout?"":text,rd), r=R[res.k], before=G.val;
+    G.val=Math.max(0,G.val+r.dv); G.log.push({k:res.k,text:text||"(no answer)"});
+    let lost=false;
+    if(res.k==="terrible"||G.val<=0){S.hearts=Math.max(0,S.hearts-1);S.broke=(S.broke||0)+1;lost=true;if(S.hearts===0)S.lockUntil=nextMidnight();save()}
+    const over=G.val<=0||S.hearts===0||G.r===2;
+    infoCtx={...infoCtx,answered:true};
+    const good=["brilliant","excellent","best"].includes(res.k), bad=["pbad","terrible"].includes(res.k);
+    openO(`${roundHead()}<div class="obody center${PO()?"":bad?" shake":" wave"}">
+      <div class="badge" style="background:${r.col}">${r.sym}</div><h2 style="color:${r.col}">${r.label}</h2>
+      <p class="muted" style="font-weight:700">${res.note}</p>
+      <div class="card" style="text-align:left"><div class="muted" style="font-size:12px;font-weight:900">YOUR MOVE</div><p style="font-weight:800">“${esc(text||"(no answer)")}”</p>
+      <div style="font-weight:900">Firm value: ${before} → <span style="color:${r.dv>=0?"var(--good)":"var(--bad)"}">${G.val} (${r.dv>=0?"+":""}${r.dv})</span></div>
+      ${lost?`<div class="warn">You lost a heart ❤️ — ${S.hearts} left.</div>`:""}</div>
+      <div class="hello" style="text-align:left"><div id="bud" class="bud" data-size="56">${tiko(56,"happy")}</div><div class="bubble"><b>Best move:</b>&nbsp;${rd.best}</div></div></div>
+      <div class="ofoot"><button class="btn ${over?"sun":""}" onclick="${over?"endCase()":"G.r++;roundRender()"}">${over?"SEE GAME REVIEW":"NEXT ROUND"}</button></div>`);
+    if(good)confetti();
+    if(res.k==="terrible")emote(Math.random()<.5?"sad":"laugh",2800);
+    else if(res.k==="pbad")emote("sad",2200);
+    else if(res.k==="brilliant"||res.k==="excellent")emote("cheer",1800);
+    if(S.set.intel)showInfoPop();
+  },1100);
+}
+function endCase(){
+  clearInterval(G.int); stopTalk();
+  const c=G.c, secs=Math.round((Date.now()-(G.t0||Date.now()))/1000), bankrupt=G.val<=0, out=S.hearts===0;
+  let title,xp=0;
+  if(bankrupt)title="Simulated bankruptcy 💥";
+  else if(out&&G.log.length<3)title="Out of hearts 💔";
+  else if(G.val>=140){title="Promoted! 🏆";xp=50}
+  else {title="You survived! 😮‍💨";xp=25}
+  if(xp){S.xp+=xp;if(!S.cleared.includes(c.id))S.cleared.push(c.id);save()}
+  const pct=bankrupt||(out&&!xp)?0:Math.min(1,G.val/160);
+  const rows=G.log.map((l,i)=>`<div class="reviewrow"><span class="badge mini" style="background:${R[l.k].col}">${R[l.k].sym}</span><div style="flex:1;min-width:0"><div>Round ${i+1}: ${R[l.k].label}</div><div class="muted" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(l.text)}</div></div></div>`).join("");
+  const next=CASES[(CASES.indexOf(c)+1)%CASES.length];
+  const buttons=out?[["BACK TO HOME","backHome()","good"]]:[[`NEXT CASE · ${next.year}`,`startCase('${next.id}')`,"good"],["REPLAY THIS CASE",`startCase('${c.id}')`,"sun"],["BACK TO HOME","backHome()","ghost"]];
+  resultPopup({title,sub:`${c.title} · ${c.year}`,stats:[[G.val,"firm value"],[fmtTime(secs),"time"],[`+${xp}`,"XP"]],pct,
+    extra:`<div class="rc-review">${rows}</div>${out?'<p class="warn" style="margin:0 0 10px">Out of hearts — they refill tomorrow 💔</p>':""}`,buttons});
+  if(xp)confetti();
+}
+
+/* ---------- Ask Tiko ---------- */
+let chat=[{b:1,intro:1}];
+const introMsg=()=>`Hi! I'm ${S.m.name} 🪙 your money buddy. Ask me anything about your lessons — saving, budgeting, scams, or what happened in 1929 and 2008!`;
+const KB=[
+ [["inflation","price go up","prices"],"Inflation means prices go up over time, so the same money buys less. If bubble tea cost 30,000₫ last year and 33,000₫ now, that's 10% inflation for bubble tea! Saving somewhere that pays interest helps your money keep up."],
+ [["save","saving"],"Easy start: 1) Pay yourself first — put aside 10–20% of any money you get, before spending. 2) Give it a goal (a new bike! 🚲). 3) Keep it somewhere you won't touch every day."],
+ [["budget","50/30/20"],"Try 50/30/20: 50% for needs, 30% for wants, 20% for savings. First, track your spending for one week — you'll be surprised where your money goes!"],
+ [["compound","interest"],"Interest is the price of money. When you save, the bank pays YOU. With compound interest you also earn interest on your interest — so starting young gives your money more time to snowball ⛄."],
+ [["debt","loan","borrow","credit"],"Debt is borrowed money you must pay back, usually with interest. Good debt (like education) can raise your future income. Bad debt (like borrowing for the latest phone) just costs you more."],
+ [["2008","lehman","financial crisis","mortgage"],"In 2008, banks lent money for houses to people who couldn't repay, then sold those loans as \"safe\" investments. When house prices fell, the system shook — Lehman Brothers collapsed and millions lost jobs. Lesson: risk doesn't disappear just because someone calls it safe."],
+ [["1929","depression","black tuesday"],"In 1929 many people bought stocks with borrowed money. When prices crashed, they couldn't repay, banks failed, and the world fell into the Great Depression (1929–1933). Lesson: don't borrow to gamble, and spread your risk."],
+ [["oil","opec","1973"],"In 1973 OPEC stopped selling oil to some countries. Oil prices quadrupled, causing fuel queues and high inflation. Lesson: when one cost you depend on jumps, flexible plans win."],
+ [["scam","tiktok","guarantee","ponzi","fake"],"Red flags 🚩: guaranteed high returns, pressure to act fast, and \"recruit friends to earn more\". If it sounds too good to be true, it usually is. Always check who is giving the advice."],
+ [["stock","invest","share"],"A stock is a tiny piece of a company. Prices go up and down, so never invest money you'll need soon, and spread your money across many things (diversify)."],
+ [["hi","hello","hey","xin chào","chao"],"Hello! 👋 What would you like to learn about money today?"]
+];
+function chatView(){
+  return `<div class="chatlog">${chat.map(m=>m.b?`<div style="display:flex;gap:8px;align-items:flex-end">${tiko(34)}<div class="msg bot">${m.typing?'<span class="typing"><i></i><i></i><i></i></span>':esc(m.intro?introMsg():m.t)}</div></div>`:`<div class="msg me">${esc(m.t)}</div>`).join("")}</div>
+  <div class="chips" style="margin-top:14px">${["What is inflation?","How do I start saving?","What happened in 2008?","Is this TikTok tip a scam?"].map(q=>`<button class="chip" onclick="sendChat('${q}')">${q}</button>`).join("")}</div>
+  <p class="muted center" style="font-size:11px;font-weight:700">Demo answers. The full app uses AI to answer any question.</p>`;
+}
+function sendChat(q){
+  const i=$("#ci"); const t=(q||(i&&i.value)||"").trim(); if(!t)return;
+  chat.push({b:0,t}); chat.push({b:1,typing:true}); render();
+  setTimeout(()=>{
+    chat.pop(); chat.push({b:1,t:kbAnswer(t)});
+    render(); const n=$("#ci"); n&&n.focus();
+  },800);
+}
+
+/* ---------- Me ---------- */
+function profCard(p){
+  const c=COUNTRIES[p.country]||COUNTRIES.VN, ini=(p.name.trim()[0]||"?").toUpperCase();
+  return `<div class="avatar">${esc(ini)}</div><div class="pname">${esc(p.name.trim()||"Your name")}</div>
+    <div class="pbio">${p.bio.trim()?esc(p.bio.trim()):'<span class="muted">No bio yet — add one ✏️</span>'}</div>
+    <div class="pchips"><span>${c[0]} ${c[1]}</span><span>🎂 ${p.age}</span></div>`;
+}
+function meView(){
+  const t=new Date(S.lastOpen).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  return `<div class="card center">${profCard(S.p)}<button class="btn ghost" style="margin-top:14px" onclick="openProfile()">✏️ EDIT PROFILE</button></div>
+   <div class="card budcard"><button class="mascotbtn" onclick="openCustom()" aria-label="Customize your buddy">${tiko(62)}<span class="editdot">✏️</span></button><div style="flex:1;min-width:0"><div class="muted" style="font-size:11px;font-weight:900;letter-spacing:.5px">YOUR BUDDY</div><h3 style="overflow:hidden;text-overflow:ellipsis">${BN()}</h3></div><button class="btn ghost sm" onclick="openCustom()">🎨 Customize</button></div>
+   <div class="grid" style="margin-bottom:14px">
+    <div class="card"><b>🔥 ${S.streak}</b><span class="muted">day streak</span></div>
+    <div class="card"><b style="color:var(--sun-d)">⭐ ${S.xp}</b><span class="muted">total XP</span></div>
+    <div class="card"><b>${S.done}/${LESSONS.length}</b><span class="muted">lessons</span></div>
+    <div class="card"><b>${S.cleared.length}/${CASES.length}</b><span class="muted">crises cleared</span></div></div>
+   <div class="card"><h3>🔔 Daily reminder</h3><p class="muted" style="font-weight:700">We'll nudge you tomorrow at <b style="color:var(--ink)">${t}</b> — the same time you opened Altifi today. If you were free then, you'll probably be free again!</p><button class="btn ghost" onclick="toast()">PREVIEW NOTIFICATION</button></div>
+   <button class="btn bad" onclick="resetDemo()">RESET DEMO</button>`;
+}
+let P=null;
+const isDirtyP=()=>JSON.stringify({...P,name:P.name.trim(),bio:P.bio.trim()})!==JSON.stringify(S.p);
+const wxNote=c=>{const k=COUNTRIES[c]||COUNTRIES.VN;return `🌦️ Usual weather in ${k[1]}: ${k[2].map(w=>WXN[w]).join(" · ")}`};
+function openProfile(){
+  P=clone(S.p);
+  openO(`<div class="chead"><button class="backbtn" onclick="profBack()" aria-label="Back">←</button><b>My Profile</b><button class="savebtn" id="savebtn" onclick="profSave()">Save</button></div>
+    <div class="obody">
+      <div class="stage pstage" id="pprev">${profCard(P)}</div>
+      <label class="flabel" for="pName">Your name</label>
+      <div class="namebox solo"><input id="pName" maxlength="20" autocomplete="off" value="${esc(P.name)}" oninput="P.name=this.value;profRefresh()" placeholder="What should we call you?"></div>
+      <label class="flabel" for="pBio"><span>Bio</span><span id="bioCnt">${P.bio.length}/120</span></label>
+      <textarea id="pBio" class="biobox" maxlength="120" placeholder="Saving up for… / dream job… / a fun fact about you ✨" oninput="P.bio=this.value;$('#bioCnt').textContent=this.value.length+'/120';profRefresh()">${esc(P.bio)}</textarea>
+      <div class="prow">
+        <div class="pcol wide"><label class="flabel" for="pCountry">Country</label><select id="pCountry" class="selbox" onchange="P.country=this.value;profRefresh()">${Object.entries(COUNTRIES).map(([k,v])=>`<option value="${k}" ${P.country===k?"selected":""}>${v[0]} ${v[1]}</option>`).join("")}</select></div>
+        <div class="pcol"><span class="flabel" id="ageLbl">Age</span><div class="stepper" role="group" aria-labelledby="ageLbl"><button onclick="ageStep(-1)" aria-label="Younger">−</button><b id="ageVal" aria-live="polite">${P.age}</b><button onclick="ageStep(1)" aria-label="Older">+</button></div></div>
+      </div>
+      <p class="muted wxnote" id="wxnote">${wxNote(P.country)}</p>
+    </div><div id="cmodal"></div>`);
+}
+function ageStep(d){P.age=Math.max(6,Math.min(99,P.age+d));$("#ageVal").textContent=P.age;profRefresh()}
+function profRefresh(){const pv=$("#pprev");if(!pv)return;pv.innerHTML=profCard(P);$("#wxnote").innerHTML=wxNote(P.country);$("#savebtn").classList.toggle("show",isDirtyP())}
+function savedFx(btn,msg){
+  btn.textContent="✓ Saved"; btn.classList.add("done");
+  const t=document.createElement("div"); t.className="minitoast"; t.textContent=msg; $("#overlay").appendChild(t); setTimeout(()=>t.remove(),1900);
+  setTimeout(()=>{btn.classList.remove("show");setTimeout(()=>{btn.textContent="Save";btn.classList.remove("done")},300)},1100);
+}
+function profSave(){
+  P.name=P.name.trim()||"You"; P.bio=P.bio.trim(); $("#pName").value=P.name; $("#pBio").value=P.bio;
+  const moved=P.country!==S.p.country; S.p=clone(P); save();
+  if(moved){pickWx();updateWeather();const ow=$("#overlay>.wx");if(ow&&S.set.wx)ow.outerHTML=wxHTML()}
+  $("#pprev").innerHTML=profCard(P); savedFx($("#savebtn"),`Looking good, ${P.name}! ✨`);
+}
+function profBack(){
+  if(!isDirtyP()) return closeO();
+  $("#cmodal").innerHTML=`<div class="modalbg" onclick="if(event.target===this)this.remove()"><div class="sheet">
+    <div style="display:inline-block">${tiko(80,"sad")}</div>
+    <h2>Leave without saving?</h2><p class="muted" style="font-weight:700">Your profile changes will be lost.</p>
+    <button class="btn good" onclick="$('#cmodal').innerHTML='';profSave()">SAVE CHANGES</button>
+    <button class="btn ghost" onclick="closeO()">LEAVE WITHOUT SAVING</button></div></div>`;
+}
+function toast(){
+  const el=$("#toast");
+  el.innerHTML=`<div class="ic">${tiko(30)}</div><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--muted)"><span>ALTIFI</span><span>now</span></div><div style="font-weight:900;font-size:14px">${BN()} misses you! 🪙</div><div style="font-size:13px;font-weight:700">5 minutes today keeps your 🔥 ${S.streak}-day streak alive.</div></div>`;
+  el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),3500);
+}
+function resetDemo(){S=fresh();save();chat=chat.slice(0,1);infoChats={};pickWx();updateWeather();render()}
+
+/* ---------- Buddy customization page ---------- */
+let D=null, cTab="face";
+const clone=o=>JSON.parse(JSON.stringify(o));
+const NAMES=["Tiko","Xu","Bơ","Mochi","Penny","Coco","Lucky","Bún","Nugget","Sunny"];
+const CTABS=[["face","😊","Face"],["color","🎨","Color"],["hat","🎩","Hats"],["glasses","👓","Glasses"],["extra","🎀","Extras"]];
+const isDirty=()=>JSON.stringify({...D,name:D.name.trim()})!==JSON.stringify(S.m);
+
+function openCustom(){
+  D=clone(S.m); cTab="face";
+  openO(`<div class="chead"><button class="backbtn" onclick="custBack()" aria-label="Back">←</button><b>My Buddy</b><button class="savebtn" id="savebtn" onclick="custSave()">Save</button></div>
+    <div class="obody">
+      <div class="stage"><div class="cprev" id="cprev">${tiko(170,"happy",D)}</div><div><span class="nametag" id="cname">${esc(D.name)}</span></div></div>
+      <div class="namebox"><label for="nameIn">✏️ Name</label><input id="nameIn" maxlength="12" autocomplete="off" value="${esc(D.name)}" oninput="D.name=this.value;refresh(false)" placeholder="Give me a name!"><button class="dice" onclick="randName()" aria-label="Random name">🎲</button></div>
+      <div class="ctabs" id="ctabs"></div>
+      <div id="ctiles"></div>
+      <button class="linkbtn" onclick="resetBuddy()">↺ Back to the original look</button>
+    </div><div id="cmodal"></div>`);
+  drawTabs(); drawTiles();
+}
+function drawTabs(){
+  $("#ctabs").innerHTML=CTABS.map(([k,e,n])=>`<button class="ctab ${cTab===k?"on":""}" onclick="cTab='${k}';drawTabs();drawTiles()"><span class="e">${e}</span>${n}</button>`).join("");
+}
+const tile=(on,img,label,click)=>`<button class="tile ${on?"on":""}" onclick="${click}"><div class="timg">${img}</div>${label}</button>`;
+function drawTiles(){
+  let h="";
+  if(cTab==="face"){
+    h+=`<div class="sub">Eyes</div><div class="tilegrid">`+Object.entries(EYES).map(([k,v])=>tile(D.eyes===k,tiko(66,"happy",{...D,eyes:k,hat:null,glasses:null,extra:null}),v.n,`setPart('eyes','${k}')`)).join("")+`</div>`;
+    h+=`<div class="sub">Mouth</div><div class="tilegrid">`+Object.entries(MOUTHS).map(([k,v])=>tile(D.mouth===k,tiko(66,"happy",{...D,mouth:k,hat:null,glasses:null,extra:null}),v.n,`setPart('mouth','${k}')`)).join("")+`</div>`;
+  } else if(cTab==="color"){
+    h+=`<div class="sub">Pick a color</div><div class="tilegrid">`+Object.entries(COLORS).map(([k,v])=>tile(D.color===k,tiko(66,"happy",{...D,color:k}),v.n,`setPart('color','${k}')`)).join("")+`</div>`;
+  } else {
+    const label={hat:"Tap a hat to try it on",glasses:"Tap glasses to try them on",extra:"Tap to add something fun"}[cTab];
+    h+=`<div class="sub">${label}</div><div class="tilegrid">`+tile(!D[cTab],`<span class="none">🚫</span>`,"None",`setPart('${cTab}',null)`)
+      +ACC[cTab].map(a=>tile(D[cTab]===a.id,`<svg width="70" height="58" viewBox="${a.vb}" aria-hidden="true">${a.tile||a.svg}</svg>`,a.n,`setPart('${cTab}','${a.id}')`)).join("")+`</div>`;
+  }
+  $("#ctiles").innerHTML=h;
+}
+function setPart(part,val){
+  if(["hat","glasses","extra"].includes(part)&&val&&D[part]===val) val=null; // tap again to take it off
+  D[part]=val; drawTiles(); refresh(true);
+}
+function refresh(bump){
+  const p=$("#cprev"); if(!p)return;
+  p.innerHTML=tiko(170,"happy",D);
+  $("#cname").textContent=D.name.trim()||"…";
+  if(bump){p.classList.remove("bump");void p.offsetWidth;p.classList.add("bump")}
+  $("#savebtn").classList.toggle("show",isDirty());
+}
+function randName(){
+  let n; do{n=NAMES[Math.floor(Math.random()*NAMES.length)]}while(n===D.name&&NAMES.length>1);
+  D.name=n; $("#nameIn").value=n; refresh(true);
+}
+function resetBuddy(){
+  D=defaultM(); $("#nameIn").value=D.name; drawTiles(); refresh(true);
+}
+function custSave(){
+  D.name=D.name.trim()||"Tiko"; $("#nameIn").value=D.name;
+  S.m=clone(D); save();
+  const b=$("#savebtn"); b.textContent="✓ Saved"; b.classList.add("done");
+  const p=$("#cprev"); p.innerHTML=tiko(170,"wow",D); p.classList.remove("bump");void p.offsetWidth;p.classList.add("bump");
+  const t=document.createElement("div"); t.className="minitoast"; t.textContent=`Looking great, ${D.name}! 🎉`; $("#overlay").appendChild(t);
+  setTimeout(()=>{t.remove()},1900);
+  setTimeout(()=>{b.classList.remove("show");setTimeout(()=>{b.textContent="Save";b.classList.remove("done");if(p.isConnected)p.innerHTML=tiko(170,"happy",D)},300)},1100);
+}
+function custBack(){
+  if(!isDirty()) return closeO();
+  $("#cmodal").innerHTML=`<div class="modalbg" onclick="if(event.target===this)this.remove()"><div class="sheet">
+    <div style="display:inline-block">${tiko(80,"sad",D)}</div>
+    <h2>Leave without saving?</h2><p class="muted" style="font-weight:700">Your changes to ${esc(D.name.trim()||"your buddy")} will be lost.</p>
+    <button class="btn good" onclick="$('#cmodal').innerHTML='';custSave()">SAVE CHANGES</button>
+    <button class="btn ghost" onclick="closeO()">LEAVE WITHOUT SAVING</button></div></div>`;
+}
+
+/* ---------- Buddy talk & emotions ---------- */
+function PO(){return !!(S.set&&S.set.potato)}
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+const nm=()=>S.m.name;
+function homeFirst(isStatic){
+  if(JSON.stringify(S.m)===JSON.stringify(defaultM())) return `Hi, I'm ${nm()}! Tap my face to give me a new name and look 👈`;
+  return isStatic?PEP[S.done%PEP.length]:`Heyyy, it's me ${nm()}! 👋`;
+}
+const HOME_TALK=()=>["Heyyy! Ready to get money-smart? 💸","Psst… a coin saved is a coin earned 🪙","Just 5 minutes today, deal? 🤝","Bubble tea can wait. Lessons can't! 🧋","Don't spend it all in one place, bestie 💅","Small coins, big dreams ✨","Your future self says thank you 🙏","Budget = telling your money where to go 🗺️","Tap my face if you wanna change my look 👀","Streak go brrr 🔥","Fun fact: I'm 100% savings 😎",`It's me, ${nm()}! Your money buddy 🫶`,"Rich in knowledge first, rich in coins later 😌","Psst… try the Crisis Game. It's spicy 🌶️"];
+const LESSON_TALK=()=>["You got this! 💪","No rush, take your time~ 🐢","Read it twice 👀","Ooh, this one's tricky 🤔","Trust your gut ✨","I believe in you fr 🫶","Big brain time 🧠","Almost there, keep going! 🏃"];
+const GAME_TALK=()=>["Tick tock! ⏰","Think like a CEO 😎","Short & smart, that's the move ♟️","Don't panic… okay maybe a little 😅","History is watching 👀","What would a pro do? 🤔","Protect the cash! 💰","Say WHY for extra points 💡"];
+const R_OK=["Yesss! 🎉","Big brain! 🧠","Ayy let's gooo! 🙌","Too easy for you 😎"];
+const R_SAD=["Oof… that one hurt 😢","Nooo, so close! 🥺","Aww, it's okay… 😔"];
+const R_LAUGH=["HAHA nope! 🤭","Pfft, not quite 😆","LOL nice try bestie 😂"];
+const talk={id:null,list:null,text:"",typing:false,timer:null};
+const alive=()=>talk.id&&document.getElementById(talk.id);
+function paintTalk(anim){const el=alive();if(!el)return;el.innerHTML=talk.typing?'<span class="typing"><i></i><i></i><i></i></span>':esc(talk.text);if(anim){el.classList.remove("say");void el.offsetWidth;el.classList.add("say")}}
+function startTalk(id,list,first){clearTimeout(talk.timer);Object.assign(talk,{id,list,text:"",typing:true});paintTalk(true);talk.timer=setTimeout(()=>say(first||rand(list())),700)}
+function say(t){if(!alive())return stopTalk();talk.text=t;talk.typing=false;paintTalk(true);talk.timer=setTimeout(talkStep,3800)}
+function talkStep(){if(!alive())return stopTalk();talk.typing=true;paintTalk(true);talk.timer=setTimeout(()=>{if(!alive())return stopTalk();const l=talk.list();let t;do{t=rand(l)}while(t===talk.text&&l.length>1);say(t)},900)}
+function stopTalk(){clearTimeout(talk.timer);talk.id=null}
+function react(t,ms=2600){if(!alive())return;clearTimeout(talk.timer);talk.text=t;talk.typing=false;paintTalk(true);talk.timer=setTimeout(talkStep,ms)}
+const bud={mood:"happy",t:null};
+function paintBud(anim){const el=$("#bud");if(!el)return;el.innerHTML=tiko(+el.dataset.size||60,bud.mood);el.classList.remove("m-sad","m-laugh","m-cheer");if(anim&&bud.mood!=="happy"){void el.offsetWidth;el.classList.add("m-"+bud.mood)}}
+function emote(m,ms){bud.mood=m;paintBud(true);clearTimeout(bud.t);bud.t=setTimeout(()=>{bud.mood="happy";paintBud(false)},ms)}
+
+/* ---------- Answers shared by both chats ---------- */
+function kbAnswer(t){
+  const low=t.toLowerCase();
+  const hit=KB.find(([ks])=>ks.some(k=>k.length<=3?new RegExp("\\b"+k+"\\b").test(low):low.includes(k)));
+  return hit?hit[1]:"Great question! In the full Altifi app I'd answer this with AI. For this demo, try asking about inflation, saving, budgeting, interest, debt, stocks, scams, or the 1929 / 1973 / 2008 crises.";
+}
+
+/* ---------- Intelligence: info tips ---------- */
+const LINFO=[
+ {s:"Money has 3 jobs: it helps you trade, keeps value for later, and lets you compare prices.",l:"Long ago people bartered (rice for chickens!). Money made trading easy. Today money does 3 jobs: it's a medium of exchange (you trade with it), a store of value (you keep it for later) and a unit of account (you compare prices with it). “Liquid” means how quickly something can turn into cash."},
+ {s:"Needs keep your life running. Wants are fun extras. Pay for needs first!",l:"A need is something you must have to live and go to school, like food, a bus pass or school supplies. A want is nice but optional, like new sneakers or a game skin. Impulse buying (buying on a feeling) is how most budgets break. Try the 24-hour rule: wait a day before buying a want."},
+ {s:"The 50/30/20 rule: 50% needs, 30% wants, 20% savings.",l:"A budget is a plan for your money before you spend it. The 50/30/20 rule is an easy start: half for needs, about a third for wants, and a fifth for savings. Step one is always to track what you already spend for a week or two."},
+ {s:"Tiny daily spends add up fast: 10,000₫ a day is about 3,650,000₫ a year!",l:"“Money leaks” are small purchases you barely notice, like snacks or drinks every day. They're not bad, but they add up. Write down everything you spend (or use an app), find your biggest leak, and set a weekly limit for it."},
+ {s:"An emergency fund covers 3–6 months of costs. Cash that just sits loses value to inflation.",l:"Saving protects you from surprises (a broken phone, a lost job) and helps you reach goals. An emergency fund should cover 3–6 months of costs. Inflation means prices rise over time, so money that sits still buys less each year. “Pay yourself first” = save the moment money arrives."},
+ {s:"Interest = rate × amount. Compound interest = interest on your interest.",l:"Simple interest: 5% of 1,000,000₫ is 50,000₫ a year. Compound interest also pays interest on the interest you already earned, so your money snowballs faster the longer you leave it. When you borrow, it flips: interest becomes a cost you pay."},
+ {s:"Debt is borrowed money you repay with interest. Good debt grows your future income.",l:"Credit cards and “buy now, pay later” are both debt. Paying only the minimum lets interest keep growing. Good debt (like education) can raise what you earn later; bad debt pays for things that lose value fast."},
+ {s:"Guaranteed big profits = 🚩 red flag. Always check who is giving the advice.",l:"Scams promise high, guaranteed returns and push you to act fast. A Ponzi scheme pays old investors with new investors' money until it collapses. Before trusting money tips online, check the person's credentials, look for other sources, and never send money under pressure."}
+];
+const GINFO={
+ "1929":{s:"Margin = buying stocks with borrowed money. Great when prices rise, a disaster when they fall.",l:"In the 1920s many people bought shares “on margin”, paying only a small part and borrowing the rest. When prices crashed in October 1929, brokers demanded their money back, banks failed, and the Great Depression (1929–1933) began. Strong moves here protect cash, cut debt and spread risk."},
+ "1973":{s:"When one key cost (like fuel) suddenly jumps, flexible plans and fair price changes keep a business alive.",l:"In 1973 Arab oil producers in OPEC stopped selling oil to the US and some other countries. Oil prices roughly quadrupled, petrol queues formed and inflation rose. Businesses that used fuel had to cut waste, plan smarter routes and talk honestly with customers and workers."},
+ "2008":{s:"Risk doesn't disappear just because someone calls an investment “safe”.",l:"Before 2008, banks gave home loans to people who couldn't repay, bundled them into investments and sold them as safe. When house prices fell, those investments collapsed. Lehman Brothers went bankrupt and banks stopped trusting each other. Good moves here use data, speak up early, stay honest and keep enough cash."}
+};
+const LHINT=[
+ ["Think about what money DOES for you every day: trade, keep, compare. Which option isn't a job?","This is the oldest way of trading, before coins existed. Think “swap”.","“Liquid” = how fast you can spend it. Which one works at a shop right now?"],
+ ["A need keeps daily life running, like getting to school.","Multiply the daily price by 7, then compare it with what you get.","It's the kind of buying that happens on a feeling, with no plan."],
+ ["The three numbers are three groups: what you must pay, what's fun, and what you keep.","20% means 20 out of every 100. Try that on 1,000,000₫.","Before changing anything, you need to know where your money goes now."],
+ ["Picture something small dripping away, little by little…","The smartest move keeps some fun but sets a limit.","Which option actually writes down what you spend?"],
+ ["It should last a few months without income: not days, not decades.","Think about what happens to prices over the years.","“First” is the key word. What happens before you spend?"],
+ ["Find 5% of 1,000,000₫, then add it to what you started with.","“Compound” means things stack on top of each other.","When you borrow, who pays whom?"],
+ ["“Pay later” still means paying. Whose money is it until then?","If you only pay a little, what happens to the rest?","Good borrowing helps you earn more in the future."],
+ ["If something is “guaranteed” AND huge, be suspicious 🚩","Likes don't make advice true. What would a careful person check?","In this scheme the money doesn't come from real profit… so where?"]
+];
+const GHINT={
+ "1929":["Think about the borrowed money first. What protects your cash?","What if this one bank closes tomorrow? Think eggs and baskets 🧺","Orders are down and cash is short. How can you spend less without hurting people too much?"],
+ "1973":["Fuel costs jumped. How could you use less fuel, or share the cost fairly?","You can't always get fuel. Who should get deliveries first, and who should you tell?","Workers and customers are both upset. Is there a fair middle ground?"],
+ "2008":["Your boss could be wrong. What do the numbers say, and who should hear it?","People are scared and pulling money out. What keeps a bank calm and cash-ready?","Help comes with rules. What would a responsible bank do?"]
+};
+const TOO_CLOSE="Your question is a little too close for me to answer 🙈 Answer the question first, then I'll explain everything!";
+let infoCtx=null, infoChats={};
+function infoBtn(){return S.set.intel?`<button class="infobtn" onclick="openInfo()" aria-label="Tips"><i>i</i></button>`:""}
+function showInfoPop(){
+  const o=$("#overlay"); if(!infoCtx)return;
+  o.querySelectorAll(".infopop").forEach(e=>e.remove());
+  const p=document.createElement("div"); p.className="infopop";
+  p.innerHTML=`<b>💡 ${infoCtx.title}</b><br>${infoCtx.short}<span class="tap">Tap to learn more →</span>`;
+  p.onclick=openInfo; o.appendChild(p);
+  setTimeout(()=>{p.classList.add("out");setTimeout(()=>p.remove(),400)},5500);
+}
+function chatFor(){
+  let ch=infoChats[infoCtx.key];
+  if(!ch) ch=infoChats[infoCtx.key]={answered:infoCtx.answered,msgs:[{t:infoCtx.answered?`Ask me anything about this one! 🪙`:`Stuck? Ask me for a hint 💡`}]};
+  else if(infoCtx.answered&&!ch.answered){ch.answered=true;ch.msgs.push({t:"You answered! 🔓 Now I can explain everything. Ask away!"})}
+  return ch;
+}
+function openInfo(){
+  const o=$("#overlay"); if(!infoCtx)return;
+  o.querySelectorAll(".infopop,.infofull").forEach(e=>e.remove());
+  if(G)G.paused=true;
+  chatFor();
+  const a=infoCtx.answered;
+  const body=a?`<p style="margin:0">${infoCtx.long}</p>${infoCtx.extra?`<p class="ifextra">${infoCtx.extra}</p>`:""}`
+    :`<span class="tipmode">🤐 Tip mode</span><p style="margin:0">I'll help you think, but I won't give away the answer. Ask me for a hint!</p>`;
+  const chips=a?["Explain it simpler 🙏","Why does this matter?"]:["Give me a hint 💡","What is the question asking? 🤔"];
+  const f=document.createElement("div"); f.className="infofull";
+  f.innerHTML=`<div class="ifhead"><span class="infobtn"><i>i</i></span><div style="flex:1;min-width:0"><b>${infoCtx.title}</b><div class="muted ifsub">${infoCtx.sub||""}</div></div><button class="x" onclick="closeInfo()" aria-label="Close">✕</button></div>
+    <div class="ifbody" id="ifbody"><div class="ifcard">${body}</div>
+    <div class="chatlog" id="ifchat"></div>
+    <div class="chips" style="margin-top:12px">${chips.map(c=>`<button class="chip" onclick="infoAsk(this.textContent)">${c}</button>`).join("")}</div></div>
+    <div class="chatbar"><input id="ifin" placeholder="${a?`Ask ${BN()} about this…`:"Ask for a hint…"}" onkeydown="if(event.key==='Enter')infoAsk()"><button onclick="infoAsk()">Send</button></div>`;
+  o.appendChild(f); drawIfChat();
+}
+function closeInfo(){$("#overlay").querySelectorAll(".infofull").forEach(e=>e.remove());if(G)G.paused=false}
+function drawIfChat(){
+  const c=$("#ifchat"); if(!c)return;
+  c.innerHTML=chatFor().msgs.map(m=>m.me?`<div class="msg me">${esc(m.t)}</div>`:`<div style="display:flex;gap:8px;align-items:flex-end">${tiko(42)}<div class="msg bot">${m.typing?'<span class="typing"><i></i><i></i><i></i></span>':esc(m.t)}</div></div>`).join("");
+  const b=$("#ifbody"); b.scrollTop=b.scrollHeight;
+}
+function infoReply(t){
+  const low=t.toLowerCase();
+  if(!infoCtx.answered){
+    if(/hint|tip|clue|stuck|help/.test(low)) return `Hint 💡 ${infoCtx.hint}`;
+    if(/question|asking/.test(low)) return infoCtx.key[0]==="L"?"It wants the option that fits best. Cross out the ones that sound silly first ✂️ then choose between the rest.":"Imagine you're really in charge. Write ONE smart action and say why, in one short line ✍️";
+    return TOO_CLOSE;
+  }
+  if(/simpl|easier/.test(low)) return `Okay, super simple: ${infoCtx.short}`;
+  if(/why.*matter/.test(low)) return "Because people who skip this lesson often learn it the hard way, with real money 😬 Knowing it now protects your coins later!";
+  return kbAnswer(t);
+}
+function infoAsk(q){
+  const i=$("#ifin"); const t=(q||(i&&i.value)||"").trim(); if(!t)return; if(i)i.value="";
+  const ch=chatFor(), key=infoCtx.key; ch.msgs.push({me:1,t}); ch.msgs.push({typing:1}); drawIfChat();
+  setTimeout(()=>{ch.msgs.pop(); ch.msgs.push({t:infoReply(t)}); if(infoCtx.key===key)drawIfChat()},800);
+}
+
+/* ---------- Country weather ---------- */
+const COUNTRIES={
+ VN:["🇻🇳","Vietnam",["sunny","rain"]], TH:["🇹🇭","Thailand",["sunny","rain"]], SG:["🇸🇬","Singapore",["sunny","rain"]],
+ PH:["🇵🇭","Philippines",["sunny","rain"]], MY:["🇲🇾","Malaysia",["sunny","rain"]], ID:["🇮🇩","Indonesia",["sunny","rain"]],
+ JP:["🇯🇵","Japan",["sunny","rain","snow","leaves"]], KR:["🇰🇷","South Korea",["sunny","snow","leaves"]], CN:["🇨🇳","China",["sunny","cloudy","snow"]],
+ IN:["🇮🇳","India",["sunny","rain"]], AU:["🇦🇺","Australia",["sunny"]], US:["🇺🇸","United States",["sunny","cloudy","snow","leaves"]],
+ CA:["🇨🇦","Canada",["snow","leaves","sunny"]], GB:["🇬🇧","United Kingdom",["rain","cloudy"]], FR:["🇫🇷","France",["sunny","cloudy","rain"]],
+ DE:["🇩🇪","Germany",["cloudy","rain","snow"]], RU:["🇷🇺","Russia",["snow","cloudy"]], AE:["🇦🇪","UAE",["sunny"]], BR:["🇧🇷","Brazil",["sunny","rain"]]
+};
+const WXN={sunny:"☀️ Sunny",rain:"🌧️ Rainy",snow:"❄️ Snowy",cloudy:"☁️ Cloudy",leaves:"🍂 Autumn breeze"};
+let wxNow="sunny"; const wxCache={};
+function pickWx(){const c=COUNTRIES[S.p.country]||COUNTRIES.VN;wxNow=rand(c[2])}
+function buildWx(t){
+  const R=(a,b)=>(a+Math.random()*(b-a)).toFixed(2);
+  const cloud=(top,sc,dur,delay)=>`<div class="cloud" style="top:${top}%;--s:${sc};animation-duration:${dur}s;animation-delay:-${delay}s"></div>`;
+  let h="";
+  if(t==="sunny") h=`<div class="wsun"></div><div class="hill wh1"></div><div class="hill wh2"></div>`+cloud(16,.8,70,12)+cloud(34,.6,95,55);
+  if(t==="rain"){h=cloud(5,1.1,80,8)+cloud(11,.9,95,45);for(let i=0;i<46;i++)h+=`<i class="drop" style="left:${R(0,115)}%;animation-delay:-${R(0,1.2)}s;animation-duration:${R(.7,1.1)}s;opacity:${R(.35,.75)}"></i>`}
+  if(t==="snow"){for(let i=0;i<34;i++){const z=R(3,7);h+=`<i class="flake" style="left:${R(0,100)}%;width:${z}px;height:${z}px;animation-delay:-${R(0,12)}s;animation-duration:${R(8,14)}s"></i>`}}
+  if(t==="cloudy") h=cloud(6,1.2,70,5)+cloud(18,.8,90,40)+cloud(32,1,110,70)+cloud(48,.7,85,20)+cloud(64,.9,100,60);
+  if(t==="leaves"){for(let i=0;i<13;i++)h+=`<i class="leaf" style="left:${R(0,95)}%;animation-delay:-${R(0,12)}s;animation-duration:${R(9,15)}s;font-size:${R(14,22)}px">${Math.random()<.5?"🍂":"🍁"}</i>`}
+  return `<div class="wx wx-${t}" aria-hidden="true">${h}</div>`;
+}
+function wxHTML(){return wxCache[wxNow]||(wxCache[wxNow]=buildWx(wxNow))}
+function wxOverlay(){return S.set.wx?wxHTML():""}
+function updateWeather(){$("#wxMain").innerHTML=S.set.wx?wxHTML():""}
+
+/* ---------- Settings ---------- */
+function defaultSet(){return {theme:"light",inter:true,potato:false,intel:false,photosOK:false,wx:true}}
+function defaultP(){return {name:"Minh Hân",bio:"",country:"VN",age:15}}
+let setSub=null, bgImg=null;
+try{bgImg=localStorage.getItem(KEY+"-bg")}catch(e){}
+function applyTheme(){
+  const b=document.body; let t=S.set.theme; if(t==="image"&&!bgImg)t="light";
+  b.classList.toggle("night",t==="night"); b.classList.toggle("imgbg",t==="image");
+  if(t==="image")b.style.setProperty("--bgimg",`url('${bgImg}')`); else b.style.removeProperty("--bgimg");
+  b.classList.toggle("potato",PO());
+}
+function toggleRow(key,icon,color,title,sub){
+  const on=!!S.set[key];
+  return `<button class="setrow" role="switch" aria-checked="${on}" onclick="flip('${key}')"><span class="si" style="background:${color}">${icon}</span><span class="st"><b>${title}</b><small>${sub}</small></span><span class="sw ${on?"on":""}"><i></i></span></button>`;
+}
+function flip(k){
+  const on=!S.set[k]; S.set[k]=on; save(); applyTheme();
+  if(k==="wx"){ if(on)updateWeather(); else {document.querySelectorAll(".wx").forEach(w=>w.classList.add("wipe"));setTimeout(()=>{if(!S.set.wx)updateWeather()},820)} }
+  render();
+}
+function openSub(k){setSub=k;render();pageAnim(1)}
+function closeSub(){setSub=null;render();pageAnim(-1)}
+function settingsView(){
+  if(setSub==="theme")return themeView();
+  const t={light:"Light",night:"Night",image:"My picture"}[S.set.theme==="image"&&!bgImg?"light":S.set.theme];
+  return `<h2>Settings</h2><p class="muted" style="font-weight:700;margin-bottom:14px">Make Altifi feel like yours ✨</p>
+  <div class="setlist">
+    <button class="setrow" onclick="openSub('theme')"><span class="si" style="background:#5B5BD6">🎨</span><span class="st"><b>Theme</b><small>${t}</small></span><span class="chev">›</span></button>
+    ${toggleRow("inter","🪙","#F2A33A",`${BN()} Interactions`,`Show ${BN()} on the home page`)}
+    ${toggleRow("wx","🌦️","#4C93E6","Weather Effects",`${(COUNTRIES[S.p.country]||COUNTRIES.VN)[1]}'s usual weather in the background`)}
+    ${toggleRow("potato","🥔","#A0714F","Potato Mode","Fewer effects, quieter buddy")}
+    ${toggleRow("intel","<i class='ilogo'>i</i>","#1BADA6","Intelligence","Smart tips after every answer")}
+  </div>`;
+}
+function mock(kind){
+  const c={light:{bg:"background:#F2F3FF",bar:"#fff",card:"#fff"},night:{bg:"background:#1F2128",bar:"#2A2D37",card:"#2A2D37"},image:{bg:`background:url('${bgImg}') center/cover`,bar:"rgba(255,255,255,.45)",card:"#fff"}}[kind];
+  return `<div class="mock" style="${c.bg}"><div class="mt" style="background:${c.bar}"></div><div class="mb"><div class="mc" style="background:#5B5BD6"></div><div class="mc" style="background:${c.card};width:80%"></div><div class="mc" style="background:${c.card};width:92%"></div><div class="mc" style="background:#2BB673;width:60%"></div></div><div class="mn" style="background:${c.bar}"></div></div>`;
+}
+function themeView(){
+  const t=S.set.theme==="image"&&!bgImg?"light":S.set.theme;
+  return `<button class="backlink" onclick="closeSub()">‹ Settings</button><h2>Theme</h2><p class="muted" style="font-weight:700;margin-bottom:14px">Pick how Altifi looks.</p>
+  <div class="themegrid">
+    <button class="themecard ${t==="light"?"on":""}" onclick="setTheme('light')">${mock("light")}☀️ Light</button>
+    <button class="themecard ${t==="night"?"on":""}" onclick="setTheme('night')">${mock("night")}🌙 Night</button>
+  </div>
+  <div class="sub">Your own picture</div>
+  ${bgImg?`<div class="themegrid"><button class="themecard ${t==="image"?"on":""}" onclick="setTheme('image')">${mock("image")}🖼️ My picture</button><button class="upload" onclick="askPhotos()"><span>📷</span>Change picture<small>Pick another photo</small></button></div>`
+   :`<button class="upload" onclick="askPhotos()"><span>📷</span>Upload Theme<small>Use a photo from your library as the background</small></button>`}`;
+}
+function setTheme(k){if(k==="image"&&!bgImg)return askPhotos();S.set.theme=k;save();applyTheme();render()}
+function askPhotos(){
+  if(S.set.photosOK)return $("#filein").click();
+  $("#pmodal").innerHTML=`<div class="alertbg"><div class="permbox"><div class="pb"><div style="font-size:42px;line-height:1;margin-bottom:8px">🖼️</div><b>“Altifi” Would Like to Access Your Photos</b><p>Altifi uses the picture you choose as your app background.</p></div><div class="permbtns"><button onclick="closePerm()">Don’t Allow</button><button onclick="allowPhotos()">Allow</button></div></div></div>`;
+}
+function closePerm(){$("#pmodal").innerHTML=""}
+function allowPhotos(){S.set.photosOK=true;save();closePerm();$("#filein").click()}
+function gotPhoto(inp){
+  const f=inp.files&&inp.files[0]; inp.value=""; if(!f)return;
+  const url=URL.createObjectURL(f), img=new Image();
+  img.onload=()=>{
+    const sc=Math.min(1,1400/Math.max(img.width,img.height)), cv=document.createElement("canvas");
+    cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
+    cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+    bgImg=cv.toDataURL("image/jpeg",.82); URL.revokeObjectURL(url);
+    try{localStorage.setItem(KEY+"-bg",bgImg)}catch(e){}
+    S.set.theme="image"; save(); applyTheme(); render();
+  };
+  img.onerror=()=>{URL.revokeObjectURL(url)};
+  img.src=url;
+}
+
+pickWx();
+updateWeather();
+applyTheme();
+render();
+</script>
+</body>
+</html>

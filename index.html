@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Altifi</title>
+<meta name="description" content="Altifi — learn finance & economics by playing. Học tài chính – kinh tế qua bài học và game.">
+<meta name="theme-color" content="#5B5BD6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Altifi">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="mbS" x="-20%" width="140%"><feGaussianBlur stdDeviation="14 0"/></filter><filter id="mbW" x="-20%" width="140%"><feGaussianBlur stdDeviation="5 0"/></filter></svg>
+<div class="phone">
+  <div class="wx-slot" id="wxMain" aria-hidden="true"></div>
+  <div class="top" id="top"></div>
+  <div class="screen" id="screen"></div>
+  <div id="chatbarSlot"></div>
+  <nav class="nav">
+    <button data-t="learn" onclick="A.go('learn')"></button>
+    <button data-t="explore" onclick="A.go('explore')"></button>
+    <button data-t="play" onclick="A.go('play')"></button>
+    <button data-t="me" onclick="A.go('me')"></button>
+    <button data-t="settings" onclick="A.go('settings')"></button>
+  </nav>
+  <div class="overlay" id="overlay"></div>
+  <div class="toast" id="toast"></div>
+  <div id="pmodal"></div>
+</div>
+<input type="file" id="filein" accept="image/*" hidden onchange="A.gotPhoto(this)">
+<noscript>Altifi cần JavaScript để chạy. · Altifi needs JavaScript to run.</noscript>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

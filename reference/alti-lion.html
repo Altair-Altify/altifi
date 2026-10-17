@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alti Lion Mascot</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2F3FF;--ink:#1E1B3A;--muted:#6B6890;--line:#E3E3F2}
+body{margin:0;font-family:Nunito,system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:20px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:22px 0 10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+p{margin:0 0 10px;font-weight:700;color:var(--muted);max-width:720px}
+.row{display:flex;flex-wrap:wrap;gap:12px}
+.cell{background:#fff;border:2px solid var(--line);border-radius:20px;padding:10px 12px 8px;text-align:center;font-weight:800;font-size:13px}
+.hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.hero .cell{padding:16px}
+</style>
+</head>
+<body>
+<h1>Alti Lion 🦁 — linh vật sư tử của Altifi</h1>
+<p>Thiết kế gốc: phẳng, bo tròn, bờm lượn sóng có đốm, mắt hổ phách, mặt dây chuyền đồng xu ₫. Cùng "API" với linh vật cũ: <code>tiko(size, mood, cfg)</code> — cfg gồm color, eyes, mouth (+ phụ kiện hat/glasses/extra của bộ cũ).</p>
+<div class="hero" id="hero"></div>
+<h2>Cảm xúc (mood)</h2><div class="row" id="moods"></div>
+<h2>Màu (color)</h2><div class="row" id="colors"></div>
+<h2>Mắt (eyes)</h2><div class="row" id="eyes"></div>
+<h2>Miệng (mouth)</h2><div class="row" id="mouths"></div>
+<script>
+/* ===== Alti Lion the lion — drop-in replacement for the coin tiko() ===== */
+const LION_COLORS={
+  pink:  {n:"Rose",    mane:"#E8418C",maneD:"#B81E66",face:"#FF7EB3",muzzle:"#FFE0EC",spot:"#C2185B",ear:"#FFB3CF",nose:"#6E1A42"},
+  gold:  {n:"Gold",    mane:"#F29F1F",maneD:"#C97A06",face:"#FFC94D",muzzle:"#FFF3D1",spot:"#D98306",ear:"#FFE08A",nose:"#5C3300"},
+  coral: {n:"Coral",   mane:"#F4683C",maneD:"#C4461F",face:"#FF9A76",muzzle:"#FFE6DC",spot:"#D24E26",ear:"#FFC4AE",nose:"#5E2312"},
+  grape: {n:"Grape",   mane:"#7E5BE0",maneD:"#5838B8",face:"#B49CFF",muzzle:"#EEE8FF",spot:"#6744CC",ear:"#D6C9FF",nose:"#2E1A6B"},
+  mint:  {n:"Mint",    mane:"#2FB98A",maneD:"#1E8E68",face:"#7EE0B5",muzzle:"#E3FAEF",spot:"#24A276",ear:"#B5F0D6",nose:"#0F4A36"},
+  sky:   {n:"Sky",     mane:"#3F8CE8",maneD:"#2667B8",face:"#8EC5FF",muzzle:"#E6F2FF",spot:"#2F76CF",ear:"#C4E0FF",nose:"#163A6B"}
+};
+const LINK="#2A1608";
+const lln=(d,c,w=3.2)=>`<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+// eyes centred at (39,52) and (61,52)
+const amberEye=(x,y,c,big)=>{const rx=big?6.6:5.8,ry=big?7.2:6.4;return `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#FFC23D" stroke="#C98A00" stroke-width="1.2"/><ellipse cx="${x}" cy="${y+.6}" rx="${big?3.6:3.1}" ry="${big?4.4:3.9}" fill="${LINK}"/><circle cx="${x+1.6}" cy="${y-1.8}" r="${big?2.1:1.7}" fill="#fff"/>${big?`<circle cx="${x-1.8}" cy="${y+2.6}" r="1" fill="#fff"/>`:""}`};
+const LION_EYES={
+  amber:{n:"Amber",svg:c=>amberEye(39,52,c)+amberEye(61,52,c)+lln("M34 44.5 Q39 42.5 44 44.5",c.maneD,2)+lln("M56 44.5 Q61 42.5 66 44.5",c.maneD,2)},
+  sparkly:{n:"Sparkly",svg:c=>amberEye(39,52,c,true)+amberEye(61,52,c,true)},
+  happy:{n:"Happy",svg:c=>lln("M33 54 Q39 46 45 54",LINK)+lln("M55 54 Q61 46 67 54",LINK)},
+  sleepy:{n:"Sleepy",svg:c=>lln("M33 51 Q39 57 45 51",LINK)+lln("M55 51 Q61 57 67 51",LINK)},
+  wink:{n:"Wink",svg:c=>amberEye(39,52,c)+lln("M55 54 Q61 46 67 54",LINK)},
+  cool:{n:"Cool",svg:c=>`<path d="M31 48 H47 Q47 57 39 57 Q31 57 31 48Z" fill="${LINK}"/><path d="M53 48 H69 Q69 57 61 57 Q53 57 53 48Z" fill="${LINK}"/>${lln("M47 49 H53",LINK,2.4)}${lln("M35 50.5 H39",'#fff',1.6)}${lln("M57 50.5 H61",'#fff',1.6)}`}
+};
+// mouth sits under the nose (nose tip ~ y66)
+const LION_MOUTHS={
+  cat:{n:"Kitty",svg:c=>lln("M42 72 Q46 76 50 72 Q54 76 58 72",c.nose,2.6)},
+  smile:{n:"Smile",svg:c=>lln("M50 68 V71",c.nose,2.4)+lln("M41 71 Q50 80 59 71",c.nose,2.8)},
+  grin:{n:"Big grin",svg:c=>lln("M50 68 V70",c.nose,2.4)+`<path d="M40 71 L60 71 Q59 83 50 83 Q41 83 40 71Z" fill="${c.nose}"/><ellipse cx="50" cy="79.5" rx="5.5" ry="3" fill="#FF7B8F"/><path d="M43 71 L44.5 74 L46 71Z M54 71 L55.5 74 L57 71Z" fill="#fff"/>`},
+  silly:{n:"Silly",svg:c=>lln("M42 72 Q46 76 50 72 Q54 76 58 72",c.nose,2.6)+`<path d="M47.5 74 Q47 82 51 82 Q55 82 54.5 74Z" fill="#FF7B8F"/>`},
+  ooh:{n:"Ooh",svg:c=>lln("M50 68 V70",c.nose,2.4)+`<ellipse cx="50" cy="76" rx="4.4" ry="5.2" fill="${c.nose}"/>`},
+  calm:{n:"Calm",svg:c=>lln("M50 68 V71",c.nose,2.4)+lln("M44 73 Q50 75 56 73",c.nose,2.6)}
+};
+const LION_MOOD={sad:{eyes:null,mouth:c=>lln("M50 68 V71",c.nose,2.4)+lln("M42 78 Q50 71 58 78",c.nose,2.8),brow:c=>lln("M32 45 Q38 44 44 47",LINK,2.2)+lln("M56 47 Q62 44 68 45",LINK,2.2)},
+  wow:{mouth:LION_MOUTHS.ooh.svg,eyesOverride:"sparkly"},
+  cheer:{mouth:LION_MOUTHS.grin.svg,eyesOverride:"happy"}};
+function maneSVG(c){
+  // 14 rounded tufts around the head + a darker under-layer for depth
+  let under="",top="";
+  for(let i=0;i<14;i++){const a=(i/14)*Math.PI*2-Math.PI/2,x=50+35*Math.cos(a),y=56+33*Math.sin(a),r=i%2?12.5:14;
+    under+=`<circle cx="${x.toFixed(1)}" cy="${(y+3).toFixed(1)}" r="${r}" fill="${c.maneD}"/>`;
+    top+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${c.mane}"/>`}
+  const spots=[[-2.2,1],[-1.6,.85],[-0.6,1],[0.35,.9],[1.15,1],[1.9,.85],[2.6,1],[3.4,.9],[4.15,1],[5.0,.85],[5.6,1]].map(([a,s])=>{const x=50+37*Math.cos(a),y=56+35*Math.sin(a);return `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(3.2*s).toFixed(1)}" ry="${(2.3*s).toFixed(1)}" transform="rotate(${(a*57.3+90).toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})" fill="${c.spot}" opacity=".55"/>`}).join("");
+  return under+`<circle cx="50" cy="59" r="36" fill="${c.maneD}"/>`+top+`<circle cx="50" cy="56" r="34" fill="${c.mane}"/>`+spots;
+}
+function tikoLion(size=80,mood="happy",cfg){
+  cfg=cfg||{color:"pink",eyes:"amber",mouth:"cat"};
+  const c=LION_COLORS[cfg.color]||LION_COLORS.pink;
+  const md=LION_MOOD[mood]||{};
+  const eyesKey=md.eyesOverride||cfg.eyes||"amber";
+  const eyes=(LION_EYES[eyesKey]||LION_EYES.amber).svg(c);
+  const mouth=md.mouth?md.mouth(c):(LION_MOUTHS[cfg.mouth]||LION_MOUTHS.cat).svg(c);
+  const brow=md.brow?md.brow(c):"";
+  return `<svg width="${size}" height="${size}" viewBox="-10 -12 120 120" aria-hidden="true" style="flex:none;overflow:visible">
+   ${maneSVG(c)}
+   <circle cx="29" cy="31" r="8.5" fill="${c.face}"/><circle cx="29" cy="31.5" r="4.6" fill="${c.ear}"/>
+   <circle cx="71" cy="31" r="8.5" fill="${c.face}"/><circle cx="71" cy="31.5" r="4.6" fill="${c.ear}"/>
+   <ellipse cx="50" cy="59" rx="27" ry="26" fill="${c.face}"/>
+   <path d="M50 36 Q46 41 50 45 Q54 41 50 36Z" fill="${c.spot}" opacity=".45"/><ellipse cx="43" cy="40" rx="2.2" ry="1.6" fill="${c.spot}" opacity=".45"/><ellipse cx="57" cy="40" rx="2.2" ry="1.6" fill="${c.spot}" opacity=".45"/>
+   <ellipse cx="43" cy="70" rx="9.5" ry="7.5" fill="${c.muzzle}"/><ellipse cx="57" cy="70" rx="9.5" ry="7.5" fill="${c.muzzle}"/><ellipse cx="50" cy="77" rx="7" ry="5" fill="${c.muzzle}"/>
+   <ellipse cx="28.5" cy="64" rx="5" ry="3" fill="#FF6F91" opacity=".45"/><ellipse cx="71.5" cy="64" rx="5" ry="3" fill="#FF6F91" opacity=".45"/>
+   ${eyes}${brow}
+   <path d="M44.5 62.5 Q50 60.5 55.5 62.5 Q55 66.5 50 68.5 Q45 66.5 44.5 62.5Z" fill="${c.nose}"/><ellipse cx="48" cy="62.8" rx="1.8" ry=".9" fill="#fff" opacity=".5"/>
+   ${mouth}
+   <g fill="${c.nose}" opacity=".5"><circle cx="38" cy="70" r=".9"/><circle cx="35" cy="72.5" r=".9"/><circle cx="38.5" cy="74" r=".9"/><circle cx="62" cy="70" r=".9"/><circle cx="65" cy="72.5" r=".9"/><circle cx="61.5" cy="74" r=".9"/></g>
+   <path d="M44 84.5 Q50 87 56 84.5" stroke="${c.maneD}" stroke-width="2" fill="none" stroke-linecap="round"/>
+   <circle cx="50" cy="91" r="7" fill="#FFC93C" stroke="#E0A800" stroke-width="2"/><text x="50" y="94.4" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8.5" font-weight="900" fill="#8A5A00">₫</text>
+  </svg>`;
+}
+/* ===== preview ===== */
+const cell=(svg,label)=>`<div class="cell">${svg}<div>${label}</div></div>`;
+document.getElementById("hero").innerHTML=cell(tikoLion(220),"Alti Lion · Rose (mặc định)")+cell(tikoLion(120,"cheer"),"cheer")+cell(tikoLion(64),"64px")+cell(tikoLion(34),"34px (chat)");
+document.getElementById("moods").innerHTML=["happy","cheer","wow","sad"].map(m=>cell(tikoLion(110,m),m)).join("");
+document.getElementById("colors").innerHTML=Object.entries(LION_COLORS).map(([k,v])=>cell(tikoLion(100,"happy",{color:k,eyes:"amber",mouth:"cat"}),v.n)).join("");
+document.getElementById("eyes").innerHTML=Object.entries(LION_EYES).map(([k,v])=>cell(tikoLion(90,"happy",{color:"pink",eyes:k,mouth:"cat"}),v.n)).join("");
+document.getElementById("mouths").innerHTML=Object.entries(LION_MOUTHS).map(([k,v])=>cell(tikoLion(90,"happy",{color:"pink",eyes:"amber",mouth:k}),v.n)).join("");
+</script>
+</body>
+</html>
