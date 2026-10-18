@@ -133,6 +133,7 @@ export function openO(html: string, opts?: { cls?: string }) {
   o.innerHTML = html; // lessons keep a plain background (13.1b-6)
   o.className = "overlay show" + (opts?.cls ? " " + opts.cls : "");
   $(".phone")!.classList.add("ov");
+  if (opts?.cls !== "townov") $(".phone")!.classList.remove("ingame"); // the town sets it after opening
   if (isNew) pageAnim(1, o);
   requestAnimationFrame(placeFab);
   hydrateImages(o);
@@ -141,7 +142,7 @@ export function openO(html: string, opts?: { cls?: string }) {
 export function closeO() {
   ovRerender = null;
   $("#overlay")!.classList.remove("show");
-  $(".phone")!.classList.remove("ov");
+  $(".phone")!.classList.remove("ov", "ingame");
   render();
   pageAnim(-1);
 }
@@ -149,7 +150,7 @@ export function backHome() {
   ovRerender = null;
   stopTalk();
   $("#overlay")!.classList.remove("show");
-  $(".phone")!.classList.remove("ov");
+  $(".phone")!.classList.remove("ov", "ingame");
   tab = "learn";
   clearSetSub();
   render();

@@ -3,14 +3,12 @@
 import { shortVnd, esc } from "../core/util";
 import { S, PO, noMotion, lessonsDone } from "../core/state";
 import { reg } from "../core/actions";
-import { openO } from "./shell";
-import { wxOverlay } from "./weather";
+import { openTown } from "./town";
 import { HomeSpace } from "../galaxy/home";
 import { t, tx, lang } from "../i18n/i18n";
-import { lion } from "../mascot/lion";
 import { DOMAINS } from "../content/domains";
 import { icon, IC } from "./icons";
-import { illus, townScene } from "./scenes";
+import { illus } from "./scenes";
 import { realImage } from "./realimage";
 
 /* Crisis Museum rooms (design doc 6.4) — real archive photos via RealImage.
@@ -81,12 +79,6 @@ export function playShown(entering: boolean) {
   hs.wake(); // size is kept by the ResizeObserver
   clearTimeout(nearTimer);
   if (entering && !noMotion()) nearTimer = setTimeout(() => { if (hsHost.closest(".pane.on")) hs?.approach(); }, 300);
-}
-function openTown() {
-  openO(`<div class="town"><div class="town-scene">${townScene(400, 260, false)}</div><div id="wxTown" class="town-wx">${wxOverlay()}</div>
-    <button class="town-back" onclick="A.closeO()" aria-label="${t("pl.backSpace")}">${icon("back", { size: 22 })}</button>
-    <div class="town-card"><div class="hello">${lion(64, "happy")}<div class="bubble">${t("pl.townSoon")}</div></div>
-    <button class="btn ghost" onclick="A.closeO()">${t("pl.backSpace")}</button></div></div>`, { cls: "townov" });
 }
 function goTown() {
   if (hs && !hsFailed) hs.dive(openTown); else openTown();

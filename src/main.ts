@@ -4,6 +4,7 @@ import "./styles/lesson.css";
 import "./styles/app.css";
 import "./styles/ui2.css";
 import "./styles/galaxy.css";
+import "./styles/town.css";
 import "./core/actions";
 import { S } from "./core/state";
 import { onLangChange } from "./i18n/i18n";

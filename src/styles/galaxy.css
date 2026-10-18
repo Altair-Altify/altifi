@@ -178,18 +178,9 @@ body.night .hs-k{color:#FFD66B}
 .hs-cap .title{margin:2px 0 10px}
 .hs-go{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:auto;padding:12px 22px}
 
-/* ===== the town (placeholder until 20/10): sunny pastel, never space; the only place with weather ===== */
-.overlay.townov{background:linear-gradient(180deg,#BFE6FF 0%,#DDF2FF 45%,#FFF1D6 100%)}
-.town{position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
-.town-scene{position:absolute;left:0;right:0;bottom:150px}
-.town-scene svg{display:block;width:100%;height:auto}
-.town-wx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.town-back{position:absolute;left:12px;top:12px;width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.85);color:#1E1B3A;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-1);z-index:2}
-.town-card{position:relative;z-index:3;margin:0 14px 18px;background:rgba(255,255,255,.88);border-radius:24px;padding:14px;box-shadow:var(--sh-2);color:#1E1B3A}
-.town-card .bubble{color:#1E1B3A;background:#fff;border-color:#E3E3F2}
-.town-card .btn{margin-top:12px}
-.town-card .btn.ghost{background:#fff;color:#5B5BD6;border-color:#E3E3F2;box-shadow:0 4px 0 #E3E3F2}
-.town::after{content:"";position:absolute;left:0;right:0;bottom:0;height:152px;background:#9ED58A}
+/* ===== the town: sunny pastel, never space; the only place with weather — see town.css ===== */
+.overlay.townov{background:#BFE6FF}
+.town-wx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
 
 /* "My photo" theme wins over the galaxy sky (the 3D dust stays on top of the photo) */
 body.imgbg .gx{background:linear-gradient(rgba(24,18,60,.28),rgba(24,18,60,.28)),var(--bgimg) center/cover no-repeat}

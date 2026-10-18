@@ -2,6 +2,27 @@
 
 > Đọc file này + `ALTIFI_DESIGN.md` ở đầu mỗi phiên. Cập nhật ở cuối mỗi phiên.
 
+## Quyết định Claude Code tự đưa ra — nhóm duyệt sau
+
+> Tuần thi giữa kì (19–23/10) nhóm không trả lời được; chỗ chưa rõ Claude Code tự chọn theo tài liệu và ghi ở đây. Mỗi dòng: quyết định — lý do. Đổi được dễ (đã ghi chỗ sửa).
+
+- **(20/10) Thị trấn dựng hoàn toàn bằng khối hình học trong code, chưa dùng asset Kenney/Quaternius** — mạng của phiên bị chặn tới kenney.nl và quaternius.com (proxy từ chối), và 13.3 đã chọn cách này cho nhân vật; không phải lo giấy phép. Muốn thêm mô hình CC0 sau: tải về `public/models/`, ghi `assets/CREDITS.md`.
+- **(20/10) Bóng đổ = "bóng tròn mềm" màu tím xanh vẽ sẵn dưới mỗi vật, không dùng shadow map** — rẻ cho điện thoại yếu, đúng ý "bóng mềm tím xanh, không đen" của 13.3, và shadow map không khớp với shader thế giới cong.
+- **(20/10) Tiền khởi đầu trong game = 2.000.000₫ "tiền lì xì tiết kiệm"** (`ensureGame()` trong `src/ui/town.ts`); save cũ có `netWorth` > 0 thì giữ số đó — cần một con số để HUD net worth có ý nghĩa ngay từ lần đầu vào thị trấn; teen 14–17 chưa có lương. Cân bằng lại khi làm chế độ Cá nhân (21/10).
+- **(20/10) Camera cố định hướng (không xoay), cao ~44°, nhìn hơi về phía trước nhân vật; FOV tự tăng trên màn hình dọc** — giống cách camera kiểu Animal Crossing; màn điện thoại hẹp cần FOV rộng hơn để thấy đủ phố.
+- **(20/10) Cửa có thể vào = nút hành động góc phải dưới hiện khi đứng gần (≤ 1,9 m); trong nhà/quầy hiện khung thoại kem + nút "Học ngay" nếu chưa học bài mở khóa nơi đó** — 13.3 yêu cầu nút hành động có nhãn; gắn mỗi nơi với cột "Game" của 13.2d để học xong có lý do vào game (13.2b-7).
+
+## Phiên 5 — 20/10: Thị trấn low-poly (mục 13.3) — đang làm
+
+### Bước 1 — bản tối thiểu chạy được ✅ (đã push)
+- `src/game/kit.ts`: bộ dựng khối gộp mọi vật tĩnh thành **1 mesh tô màu theo đỉnh** (vài draw call cho cả thị trấn), shader **thế giới cong** (`bend()`: xa camera thì mặt đất cong xuống) + **gió** (tán cây, cỏ, hoa lay), bóng tròn mềm.
+- `src/game/avatar.ts`: nhân vật chibi dựng bằng khối (đầu ~40%, mắt bầu dục có chấm sáng, má hồng, tóc mũ chỏm + mái), **trang phục theo giai đoạn** (học sinh/nhân viên/chủ quán/ông trùm), thở khi đứng, vung tay chân + nhún khi đi.
+- `src/game/world.ts`: khu **Cá nhân** + quảng trường có đài phun nước: Nhà của bạn (vườn rào gỗ), Ngân hàng, Chợ; đường đất, cây tròn/cây thông, bụi, hoa, cỏ lăn tăn, vòng rừng quanh mép.
+- `src/game/town.ts`: camera cao bám nhân vật (mượt), cảnh "rơi" từ trên cao xuống khi đáp, va chạm (nhà, cây, đài phun nước, hàng rào, mép thế giới) có trượt dọc tường.
+- `src/ui/town.ts` + `src/styles/town.css`: **joystick** góc trái dưới (chạm/chuột), **WASD/mũi tên** (Shift chạy, E/Space vào, Esc thoát), **nút hành động** góc phải dưới, **khung thoại kem bo tròn chữ hiện dần**, **HUD net worth**, nút thoát; **ẩn thanh 5 tab**, **nút Alti Lion lên góc phải trên** (`.phone.ingame`). Thời tiết vẫn vẽ vào `#wxTown`. Không có chạm-để-đi.
+- Kiểm tra: `npm run build` sạch; `node scripts/playthrough.cjs vi` đúng như trước; Playwright 375×812: 5 tab, bài học, vào thị trấn, kéo joystick, đứng gần cửa → nút "Vào …", E → khung thoại, thoát → về tab Chơi; không lỗi console.
+
+
 ## Phiên 4e — bỏ thanh cuộn, chuyển tab mượt (pane giữ sẵn DOM) ✅
 
 Nhóm đo trên altifi.vercel.app (375×812): mỗi `A.go()` chặn luồng chính 70–200ms (render lại toàn bộ HTML + sao chép DOM cho lớp ghost + đọc offsetWidth/Height), tab Học đứng yên chỉ ~27 fps (Galaxy vẽ mọi khung, pixel ratio 2).

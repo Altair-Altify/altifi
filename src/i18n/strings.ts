@@ -227,6 +227,18 @@ export const STRINGS = {
   "pl.goTown": ["BAY XUỐNG THỊ TRẤN", "FLY DOWN TO TOWN"],
   "pl.backSpace": ["Về hành tinh nhà", "Back to the home planet"],
   "pl.townSoon": ["Thị trấn low-poly đang được xây — có từ 20/10. Mưa nắng của quốc gia bạn sẽ hiện ở đây!", "The low-poly town is being built — arriving 20/10. Your country's weather will show up here!"],
+  /* the low-poly town (13.3) */
+  "tw.exit": ["Về hành tinh nhà", "Back to the home planet"],
+  "tw.hintJoy": ["Kéo cần điều khiển ở góc trái để đi · đến gần cửa để vào", "Drag the stick bottom-left to walk · walk up to a door to go in"],
+  "tw.hintKeys": ["WASD / phím mũi tên để đi · Shift chạy · E để vào", "WASD / arrow keys to walk · Shift to run · E to go in"],
+  "tw.noGL": ["Máy này không chạy được đồ họa 3D (WebGL). Bạn vẫn học và chơi các chế độ khác được nhé.", "This device can't run 3D graphics (WebGL). You can still learn and play the other modes."],
+  "tw.enter": ["Vào {place}", "Enter {place}"],
+  "tw.ok": ["Được rồi", "OK"],
+  "tw.learn": ["Học ngay", "Learn now"],
+  "tw.home": ["Phòng trọ nhỏ của bạn. Cuối mỗi tháng bạn về đây trả tiền nhà, tiền ăn và xem báo cáo tháng. Bạn đã học {n} bài — học thêm để mở thêm chỗ trong thị trấn!", "Your small rented room. At the end of every month you come back here to pay rent and food and read your monthly report. You've done {n} lessons — learn more to open more of the town!"],
+  "tw.open": ["Đã mở: {what}. Chế độ Cá nhân (đi làm, ngân sách, tiết kiệm) có từ 21/10 — lúc đó bạn dùng nó ngay tại đây.", "Unlocked: {what}. The Personal mode (work, budget, saving) arrives on 21/10 — you'll use it right here."],
+  "tw.locked": ["Chưa mở: {what}. Học bài {code} “{hook}” để mở nhé!", "Not open yet: {what}. Do lesson {code} “{hook}” to unlock it!"],
+  "tw.soon": ["Nơi này đang được xây.", "This place is still being built."],
   "pl.mapSoon": ["Bản đồ thế giới đang được xây 🏗️", "The world map is under construction 🏗️"],
 
   /* me */
