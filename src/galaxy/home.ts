@@ -15,7 +15,7 @@ export class HomeSpace {
   private planet: PlanetObj | null = null;
   private key = "";
   private raf = 0; private running = false; private last = 0; private t = 0;
-  private dive0 = 0; private onDive: (() => void) | null = null;
+  private dive0 = 0; private onDive: (() => void) | null = null; private near0 = 0;
   motion = true;
 
   constructor(private host: HTMLElement, private hidden: () => boolean, potato: boolean) {
@@ -59,6 +59,9 @@ export class HomeSpace {
   }
   stop() { this.running = false; cancelAnimationFrame(this.raf); }
 
+  /** Entering the Play tab: the camera glides in toward the home planet (~0.65 s). */
+  approach() { if (this.motion) this.near0 = performance.now(); }
+
   /** Camera dives to the surface, then `done` (opens the town). Instant with Potato / reduced motion. */
   dive(done: () => void) {
     if (!this.motion) { done(); return; }
@@ -71,6 +74,7 @@ export class HomeSpace {
     if (!this.motion && !this.onDive && this.t > 0) return; // still picture when motion is off
     this.t += dt;
     let d = 12, y = 1.6;
+    if (this.near0) { const k = Math.min(1, (now - this.near0) / 650); d = 22 - 10 * ease(k); y = 3 - 1.4 * ease(k); if (k >= 1) this.near0 = 0; }
     if (this.onDive) {
       const k = Math.min(1, (now - this.dive0) / 950), e = ease(k);
       d = 12 - (12 - 2.25) * e; y = 1.6 + 0.4 * e;

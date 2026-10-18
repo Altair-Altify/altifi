@@ -2,6 +2,40 @@
 
 > Đọc file này + `ALTIFI_DESIGN.md` ở đầu mỗi phiên. Cập nhật ở cuối mỗi phiên.
 
+## Phiên 4c — đợt sửa cuối của phiên: Night mặc định, tương phản Night, chuyển tab ✅
+
+Đã ghi vào `ALTIFI_DESIGN.md`: mục **13.1b** điểm 7–9 và đoạn **"Chuyển tab"** trong phần motion của **10b**.
+
+### Đã xong
+1. **Nền ngân hà động** (Khám phá · Tôi · Cài đặt · Chơi): đã làm ở phiên 4b (`src/ui/skybg.ts`, commit `9736e27`), đúng đủ yêu cầu: sao lấp lánh lệch pha; 3 lớp parallax có dịch theo cuộn; tinh vân "thở" 20–30 giây; sao băng 10–20 giây; hành tinh nhỏ ở xa; mép và góc trên rõ, giữa nhạt; ≤ 30 fps; dừng khi ẩn; đứng yên khi Potato / giảm chuyển động. Đã kiểm lại, vẫn chạy đúng.
+2. **Theme mặc định = Night** cho người dùng mới (`defaultSet` trong `src/core/state.ts`). Bản lưu đã có theme (Light, Night hay Ảnh của tôi) được giữ nguyên.
+   - ⚠️ App không phân biệt được "đã tự chọn Light" với "đang để Light mặc định của bản cũ" (bản cũ không lưu cờ này). Vì vậy **mọi bản lưu cũ đang Light đều giữ Light**; chỉ người dùng mới (hoặc sau Reset demo) mới thấy Night.
+   - **Kiểm tra tương phản Night** bằng script (Playwright lấy vị trí và màu từng dòng chữ; Python đo trên ảnh chụp thật): 12 màn — ngân hà (tầng hệ, tầng ngân hà, thẻ hành tinh), Danh sách, Khám phá, Tôi, Cài đặt, Chơi, màn bài học (2 bước), pop-up kết quả, khung chat Alti Lion. Lần đầu **48 chỗ dưới ngưỡng**, sau khi sửa còn **0** (chữ thường ≥ 4,5:1, chữ lớn ≥ 3:1; thấp nhất 4,7:1, riêng chữ lớn trang Tôi 3,6:1).
+   - Cách sửa (chỉ trong Night, `src/styles/galaxy.css`):
+     - Tách màu tím thành 2: `--pri` #A3A2FF cho **chữ** trên nền tối, `--pri-fill` #5A5AD6 cho **nền có chữ trắng** (nút, seg đang chọn, tin nhắn của mình, nút Gửi…).
+     - Nút xanh lá `#17824F` và nút đỏ `#C23A3A` đậm hơn.
+     - Chip mã bài, đầu mục mảng trong Danh sách: dùng sắc đậm của màu mảng.
+     - Chữ nav đang chọn sáng hơn; nút bị khóa có chữ sáng hơn.
+     - Chữ "ALTAIR" có viên nền riêng (cả 2 theme).
+3. **Chuyển tab** (`go()` trong `src/ui/shell.ts`):
+   - Bỏ trượt ngang cả trang. Nền đứng yên. Nội dung cũ được chuyển vào một lớp "bóng" tạm, mờ đi và dịch xuống 8px (160ms); nội dung mới hiện lên từ dưới 8px và phóng 98% → 100% (200ms).
+   - Thanh điều hướng có **viên thuốc màu** trượt tới tab đang chọn (lò xo nhẹ 300ms); icon **nảy** khi bấm.
+   - **Rời tab Học**: lớp ngân hà 3D thu nhỏ và mờ dần (320ms) trong khi camera lùi xa 1,7 lần, để lộ nền nhẹ bên dưới. Quay lại tab Học thì camera về đúng chỗ cũ.
+   - **Vào tab Chơi**: camera tiến từ xa về hành tinh nhà (650ms).
+   - Chỉ animate transform/opacity (camera là WebGL). Potato / giảm chuyển động → đổi tab tức thì: không có lớp bóng, viên thuốc không trượt.
+   - Màn con (bài học, hồ sơ, trang con Cài đặt) vẫn trượt như cũ.
+
+### Kiểm thử
+`npm run build` không lỗi; `node scripts/playthrough.cjs vi` vẫn đúng hết (2 bước `predict` báo WRONG là đúng thiết kế). Playwright:
+- Người dùng mới → Night; bản lưu Light → giữ Light.
+- Khi đổi tab, lớp bóng được tạo rồi tự xóa; viên thuốc nav đổi vị trí.
+- Quay lại tab Học vẫn ở tầng 2, nhãn hiện đủ.
+- Không lỗi console.
+
+### Lưu ý
+- Ở **Light** vẫn còn vài chỗ tương phản thấp cùng loại (chữ trắng trên nút xanh lá, chip màu mảng sáng). Đợt này chỉ sửa Night theo yêu cầu; muốn đồng bộ thì áp cùng các quy tắc cho Light.
+- Hiệu ứng đổi tab chưa được xem trên điện thoại thật.
+
 ## Phiên 4b — nền ngân hà nhẹ có chuyển động (Khám phá · Tôi · Cài đặt · Chơi) ✅
 
 **Vì sao:** nhóm xem lại thấy nền gần như đứng yên và quá mờ (chỉ còn màu tím nhạt). Vẫn giữ bản nhẹ: **1 canvas 2D, không Three.js** (`src/ui/skybg.ts`).

@@ -351,6 +351,7 @@ Mỗi case: năm, nơi, tiêu đề, ảnh/emoji, tóm tắt kiến thức cần
 - KHÔNG: hiệu ứng parallax nặng, chuyển động kéo dài làm chậm thao tác, animation lặp vô hạn ngoài các điểm nhấn nhỏ.
 - Bắt buộc tôn trọng **Potato Mode** và cài đặt hệ thống **"giảm chuyển động" (`prefers-reduced-motion`)**: tắt/giảm toàn bộ hiệu ứng.
 - Ưu tiên mượt trên điện thoại tầm trung (chỉ animate `transform`/`opacity`).
+- **✅ Chuyển tab (nhóm chốt sau 13.1b — thay "chuyển trang trượt" ở dòng NÊN phía trên):** **bỏ trượt ngang cả trang** khi đổi tab. Nền ngân hà **đứng yên**; chỉ lớp nội dung chuyển: nội dung cũ mờ đi + dịch xuống ~8px, nội dung mới hiện lên từ dưới ~8px + phóng 98% → 100%, **tổng ~200ms**. Thanh điều hướng có **viên thuốc màu trượt mượt** tới tab đang chọn, icon **nảy nhẹ** khi bấm. **Rời tab Học:** ngân hà 3D lùi xa và mờ dần thành nền nhẹ. **Vào tab Chơi:** camera tiến về hành tinh nhà. Potato Mode / giảm chuyển động → đổi tab **tức thì**. (Trượt ngang vẫn giữ cho màn con: bài học, hồ sơ, trang con Cài đặt.)
 
 **Trong base nhưng THAY THẾ bằng thiết kế mới:**
 - Lessons dạng chỉ trắc nghiệm (8 bài, 4 unit) → engine 10+ dạng bài tập của v3 + nội dung 5 mảng (mục 3).
@@ -496,6 +497,9 @@ Mỗi case: năm, nơi, tiêu đề, ảnh/emoji, tóm tắt kiến thức cần
    - **Chơi:** trang chính là **hành tinh nhà trong không gian**; bấm vào → camera bay xuống thị trấn. Thị trấn (phiên sau) giữ **nắng pastel**, không phải vũ trụ.
    - **Màn làm bài học:** giữ **nền trơn**.
    - **Hiệu ứng thời tiết** chỉ dùng **trong thị trấn**; **bỏ họa tiết tiền** ở nền; theme **"Ảnh của tôi"** vẫn ưu tiên hơn nền ngân hà.
+7. **Nền ngân hà nhẹ phải "sống"** (thay "trôi rất chậm" ở mục 6): sao **lấp lánh lệch pha**; **2–3 lớp sao** trôi chậm theo parallax, khi cuộn trang lớp gần dịch nhiều hơn; **tinh vân "thở"** chậm (đậm nhạt + xoay rất nhẹ, chu kỳ 20–30 giây); **sao băng** ~10–20 giây một lần; vài **hành tinh nhỏ** ở xa trôi rất chậm; sao & tinh vân **rõ hơn ở mép và góc trên**, vùng giữa sau chữ **giữ nhạt**. Vẫn là bản nhẹ (canvas 2D, không Three.js); **tạm dừng khi tab ẩn**, **tối đa 30 khung hình/giây**, **đứng yên** khi Potato Mode hoặc giảm chuyển động.
+8. **Theme mặc định = Night** cho người dùng mới (vũ trụ đẹp nhất ở Night). Ai đã có bản lưu với theme đã chọn thì **giữ nguyên**. Mọi màn hình phải đạt tương phản ≥ 4.5:1 (chữ thường) / 3:1 (chữ lớn) ở Night: ngân hà, Khám phá, Tôi, Cài đặt, màn bài học, pop-up kết quả, khung chat Alti Lion.
+9. **Chuyển tab:** xem 10b "Chuyển tab".
 
 ---
 

@@ -56,7 +56,8 @@ export const MAX_HEARTS = 3;
 export const DEFAULT_BUDDY_NAME = "Alti Lion";
 export const defaultM = (): Buddy => ({ name: DEFAULT_BUDDY_NAME, color: "pink", eyes: "amber", mouth: "cat", hat: null, glasses: null, extra: null });
 const guessLang = (): Lang => (/^vi\b/i.test(navigator.language || "") ? "vi" : "en");
-export const defaultSet = (): Settings => ({ theme: "light", inter: true, potato: false, intel: false, photosOK: false, wx: true, lang: guessLang(), lvl: "auto", voice: true });
+/** New users start in Night (13.1b-8); a saved theme — Light included — is always kept (normalize/migrate copy it over). */
+export const defaultSet = (): Settings => ({ theme: "night", inter: true, potato: false, intel: false, photosOK: false, wx: true, lang: guessLang(), lvl: "auto", voice: true });
 export const defaultP = (): Profile => ({ name: "Minh Hân", bio: "", country: "VN", age: 15, cover: "town" });
 
 export const fresh = (): State => ({

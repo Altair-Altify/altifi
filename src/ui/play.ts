@@ -50,7 +50,7 @@ let hs: HomeSpace | null = null, hsFailed = false;
 const hsHost = document.createElement("div");
 hsHost.className = "hs-host";
 /** Called by the shell after the Play tab's HTML is in the page. */
-export function afterPlayRender() {
+export function afterPlayRender(entering = false) {
   const stage = document.getElementById("hsStage");
   if (!stage || hsFailed) return;
   if (!hs) {
@@ -63,6 +63,7 @@ export function afterPlayRender() {
   stage.appendChild(hsHost);
   hs.set(document.body.classList.contains("night"), PO(), !noMotion(), Math.min(16, 2 + lessonsDone() * 2 + (S.game ? 2 : 0)));
   hs.resize();
+  if (entering) hs.approach();
   hs.start();
 }
 function openTown() {

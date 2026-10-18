@@ -1,6 +1,6 @@
 /* ---------- App shell: top bar, 5-tab nav, overlay, result pop-up (from altifi-base.html) ---------- */
 import { $, esc, shortVnd } from "../core/util";
-import { S, save, PO, BG_KEY } from "../core/state";
+import { S, save, PO, BG_KEY, noMotion } from "../core/state";
 import { reg } from "../core/actions";
 import { t, lang, setLang } from "../i18n/i18n";
 import { lion } from "../mascot/lion";
@@ -10,7 +10,7 @@ import { hydrateImages } from "./realimage";
 import { syncSky } from "./skybg";
 import { setCtx } from "../assistant/context";
 import { refreshFab, placeFab } from "../assistant/assistant";
-import { learnView, homeFirst, learnCtx, afterLearnRender } from "./learn";
+import { learnView, homeFirst, learnCtx, afterLearnRender, recedeGalaxy } from "./learn";
 import { exploreView } from "./explore";
 import { playView, afterPlayRender } from "./play";
 import { meView } from "./me";
@@ -23,14 +23,36 @@ export let tab: Tab = "learn";
 
 export const BN = () => esc(S.m.name || "Alti Lion");
 
+/* Tab change (design doc 10b "Chuyển tab"): no sideways page slide. The galaxy background stays put; only the
+ * content layer moves — the old content fades and sinks ~8px (a short-lived "ghost" copy), the new one rises ~8px
+ * while scaling 98% → 100% (~200ms). Leaving Learn, the 3D galaxy recedes and fades into the light background;
+ * entering Play, the camera approaches the home planet. Potato Mode / reduce motion: instant. */
 export function go(to: Tab) {
-  const d = NAVORD.indexOf(to) - NAVORD.indexOf(tab), hadSub = !!getSetSub();
+  const from = tab, d = NAVORD.indexOf(to) - NAVORD.indexOf(from), hadSub = !!getSetSub();
+  const scr = $("#screen")!, animate = !!d && !noMotion();
+  if (animate) ghostOut(scr, from);
   tab = to;
   clearSetSub();
-  render(true);
-  const scr = $("#screen");
-  if (scr) scr.scrollTop = 0;
-  if (d) pageAnim(d); else if (hadSub) pageAnim(-1);
+  render(!!d);
+  scr.scrollTop = 0;
+  if (animate) { scr.classList.remove("tab-in"); void scr.offsetWidth; scr.classList.add("tab-in"); setTimeout(() => scr.classList.remove("tab-in"), 260); }
+  else if (!d && hadSub) pageAnim(-1);
+  if (d && !noMotion()) { const ic = document.querySelector(`.nav button[data-t="${to}"] .navic`); ic?.classList.add("pop"); setTimeout(() => ic?.classList.remove("pop"), 340); }
+}
+/** Move the current content into a non-interactive copy on top of the background and let it fade out. */
+function ghostOut(scr: HTMLElement, from: Tab) {
+  const g = document.createElement("div"), inner = document.createElement("div");
+  g.className = scr.className.replace(/\b(tab-in|enter|mb-r|mb-l)\b/g, "") + " screen-ghost" + (from === "learn" ? " from-learn" : "");
+  g.setAttribute("aria-hidden", "true");
+  g.style.cssText = `top:${scr.offsetTop}px;left:${scr.offsetLeft}px;width:${scr.offsetWidth}px;height:${scr.offsetHeight}px`;
+  inner.className = "ghost-in";
+  inner.style.cssText = `height:${scr.scrollHeight}px;transform:translateY(${-scr.scrollTop}px)`;
+  while (scr.firstChild) inner.appendChild(scr.firstChild);
+  g.appendChild(inner);
+  g.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id")); // the new screen owns the ids
+  scr.parentElement!.insertBefore(g, scr);
+  if (from === "learn") recedeGalaxy();
+  setTimeout(() => g.remove(), from === "learn" ? 340 : 200);
 }
 
 export const ovShown = () => !!$("#overlay")?.classList.contains("show");
@@ -47,7 +69,7 @@ function tabCtx() {
   setCtx({ key: "tab:" + tab, where, title: t("nav." + tab), answered: true, kb: tab === "play" ? ["crisis1929", "crisis1973", "crisis2008", "fixedfloat"] : tab === "explore" ? ["fx", "crisis2008", "stocks"] : [] });
 }
 
-/** `enter` = we just navigated here → cards appear one after another (stagger). */
+/** `enter` = we just navigated to this tab (Play uses it for the camera approach). */
 export function render(enter = false) {
   $("#top")!.innerHTML = topBar();
   const views: Record<Tab, () => string> = { learn: learnView, explore: exploreView, play: playView, me: meView, settings: settingsView };
@@ -56,9 +78,11 @@ export function render(enter = false) {
   scr.classList.toggle("gxmode", !!$("#gxHost"));
   syncSky(tab !== "learn" && !document.body.classList.contains("imgbg")); // light galaxy behind Explore / Me / Settings / Play
   if (tab === "learn") afterLearnRender();
-  if (tab === "play") afterPlayRender();
-  scr.classList.toggle("enter", enter);
-  if (enter) setTimeout(() => scr.classList.remove("enter"), 900);
+  if (tab === "play") afterPlayRender(enter);
+  const nav = $(".nav")!;
+  let pill = nav.querySelector<HTMLElement>(".navpill");
+  if (!pill) { pill = document.createElement("span"); pill.className = "navpill"; pill.setAttribute("aria-hidden", "true"); nav.prepend(pill); }
+  pill.style.setProperty("--i", String(NAVORD.indexOf(tab))); // coloured pill slides to the active tab
   document.querySelectorAll<HTMLButtonElement>(".nav button").forEach((b) => {
     const k = b.dataset.t as Tab, on = k === tab;
     b.innerHTML = `<span class="navic">${icon(ICONS[k], { size: 26, active: on, tint: on ? 0.28 : 0 })}</span>${t("nav." + k)}`;

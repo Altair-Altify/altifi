@@ -290,6 +290,7 @@ function mount() {
     }
   }
   host.appendChild(root);
+  G!.restore();
   G!.resize();
   G!.setModel(model());
   if (ui.first) {
@@ -369,6 +370,8 @@ export function learnView() {
   if (fresh.length) { save(); setTimeout(() => minitoast(t("ms.newBadge", { b: tx(fresh[0].name) })), 400); }
   return S.galaxy.list || glFailed ? listView() : `<div class="gxhost" id="gxHost"></div>`;
 }
+/** Called by the shell when leaving the Learn tab: the galaxy recedes as it fades into the light background. */
+export function recedeGalaxy() { G?.recede(); }
 /** Called by the shell right after the Learn tab's HTML is in the page. */
 export function afterLearnRender() { if (document.getElementById("gxHost")) mount(); }
 

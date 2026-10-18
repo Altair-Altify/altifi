@@ -262,6 +262,14 @@ export class Galaxy {
     const hop = travel > Math.max(from.dist, to.dist) * 0.6 ? travel * 0.55 : 0; // long trips arc up over the galaxy
     this.tw = { from, to, t0: performance.now(), dur, hop, done };
   }
+  private saved: Rig | null = null;
+  /** Leaving the Learn tab: pull the camera back while the HTML layer fades out; restore() on the next visit. */
+  recede() {
+    if (!this.motion) return;
+    this.saved = this.tw ? { ...this.tw.to, target: this.tw.to.target.clone() } : { ...this.rig, target: this.rig.target.clone() };
+    this.fly({ ...this.saved, target: this.saved.target.clone(), dist: this.saved.dist * 1.7 }, 320);
+  }
+  restore() { if (this.saved) { this.rig = this.saved; this.saved = null; this.tw = null; this.dirty = true; } }
   /** Jump to the end of the current flight (e.g. the user taps during the intro). */
   skipFlight() { if (!this.tw) return; const d = this.tw.done; this.rig = this.tw.to; this.tw = null; this.dirty = true; d?.(); }
   get flying() { return !!this.tw; }
