@@ -12,6 +12,8 @@ import centralbank from "./lessons/m-centralbank";
 import minflation from "./lessons/m-inflation";
 import mnews from "./lessons/m-news";
 import mpolicy from "./lessons/m-policy";
+import istocks from "./lessons/i-stocks";
+import ibubbles from "./lessons/i-bubbles";
 import breakeven from "./lessons/c-breakeven";
 import cash from "./lessons/c-cash";
 import funding from "./lessons/c-funding";
@@ -80,10 +82,10 @@ export const DOMAINS: Domain[] = [
       unlock: T("Vai Thống đốc trong chế độ Khủng hoảng", "The Governor role in Crisis mode"), planet: { shape: "rocky", palette: ["#584AA8", "#7C6CCB", "#A99BE6", "#E2DCFF"], feature: "twinMoons" } },
   ]),
   area({ id: "markets", short: T("Đầu tư", "Investing"), ic: "chart", color: "#1BB0C2", title: T("Đầu tư & thị trường", "Investing & Markets"), desc: T("Rủi ro – lợi nhuận, đa dạng hóa, bong bóng, tài sản trú ẩn", "Risk & return, diversification, bubbles, safe havens") }, [
-    { id: "i-stocks", code: "I1", ic: "chart", day: "25/10", prereq: ["p-inflation"],
+    { id: "i-stocks", code: "I1", ic: "chart", lesson: istocks, day: "25/10", prereq: ["p-inflation"],
       title: T("Cổ phiếu & đa dạng hóa", "Stocks & diversification"), hook: T("Chứng khoán: đầu tư hay đánh bạc?", "Stocks: investing or gambling?"),
       unlock: T("Sàn giao dịch", "The stock exchange"), planet: { shape: "rocky", palette: ["#2D8FA0", "#4FB3C0", "#8ED8DC", "#DDF6F4"], feature: "bars" } },
-    { id: "i-bubbles", code: "I2", ic: "coin", day: "25/10", prereq: ["i-stocks"],
+    { id: "i-bubbles", code: "I2", ic: "coin", lesson: ibubbles, day: "25/10", prereq: ["i-stocks"],
       title: T("Bong bóng & tài sản trú ẩn", "Bubbles & safe havens"), hook: T("Vàng, đất, tiền ảo: vì sao giá lên xuống điên cuồng?", "Gold, land, crypto: why do prices swing so wildly?"),
       unlock: T("Tiệm vàng & quầy ngoại tệ", "Gold shop & currency desk"), planet: { shape: "rocky", palette: ["#3C7F86", "#5FA5A8", "#9CCFC9", "#E2F3EE"], feature: "crystals" } },
   ]),
