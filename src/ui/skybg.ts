@@ -44,22 +44,45 @@ export function syncSky(show: boolean) {
   if (!el.isConnected) phone.prepend(el);
   document.body.classList.toggle("sky", show);
   if (!show) { stop(); return; }
-  const night = document.body.classList.contains("night"), w = phone.clientWidth, h = phone.clientHeight;
+  if (!size.w) { size.w = phone.clientWidth; size.h = phone.clientHeight; } // measured once; then kept by the ResizeObserver (no layout reads on tab switches)
+  const night = document.body.classList.contains("night"), { w, h } = size;
   const key = `${night}|${w}|${h}`;
   if (key !== S.key && w > 0) { S.key = key; build(night, w, h); }
   watchScroll();
   start();
 }
-new ResizeObserver(() => { if (document.body.classList.contains("sky")) syncSky(true); }).observe(document.documentElement);
+const size = { w: 0, h: 0 };
+const ro = new ResizeObserver((es) => { const r = es[0].contentRect; size.w = Math.round(r.width); size.h = Math.round(r.height); if (document.body.classList.contains("sky")) syncSky(true); });
+requestAnimationFrame(() => { const ph = document.querySelector(".phone"); if (ph) ro.observe(ph); });
 document.addEventListener("visibilitychange", () => { if (!document.hidden && document.body.classList.contains("sky")) start(); });
 
-let scroller: HTMLElement | null = null;
-function watchScroll() {
-  const scr = document.getElementById("screen");
-  if (!scr || scr === scroller) return;
-  scroller = scr;
-  scr.addEventListener("scroll", () => { S.scroll = scr.scrollTop; if (noMotion()) return; if (!S.raf) draw(performance.now()); }, { passive: true });
+/** Paint the static sky layers ahead of time (idle after start-up) so the first visit to a sky tab doesn't pay for it. */
+export function prewarmSky() {
+  const phone = document.querySelector<HTMLElement>(".phone");
+  if (!phone || S.key) return;
+  if (!size.w) { size.w = phone.clientWidth; size.h = phone.clientHeight; }
+  const night = document.body.classList.contains("night");
+  S.key = `${night}|${size.w}|${size.h}`;
+  build(night, size.w, size.h);
 }
+
+let watching = false;
+/** Each tab pane scrolls on its own; scroll events don't bubble, so listen once on the wrapper in the capture phase. */
+function watchScroll() {
+  const wrap = document.getElementById("screenWrap");
+  if (!wrap || watching) return;
+  watching = true;
+  wrap.addEventListener("scroll", (e) => {
+    const pane = e.target as HTMLElement;
+    if (!pane.classList?.contains("pane")) return;
+    paneScroll[pane.dataset.tab || ""] = pane.scrollTop;
+    if (!pane.classList.contains("on")) return;
+    S.scroll = pane.scrollTop; if (noMotion()) return; if (!S.raf) draw(performance.now());
+  }, { passive: true, capture: true });
+}
+const paneScroll: Record<string, number> = {};
+/** Switching tabs: follow the (remembered) scroll position of the pane that is now visible — no DOM read. */
+export function skyScroll(tab: string) { S.scroll = paneScroll[tab] || 0; }
 
 function build(night: boolean, w: number, h: number) {
   S.w = w; S.h = h; S.night = night; S.dpr = Math.min(window.devicePixelRatio || 1, 1.5);

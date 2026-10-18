@@ -7,12 +7,12 @@ import { lion } from "../mascot/lion";
 import { pageAnim, stopTalk, startTalk, paintTalk, talkId, LINES, confetti, countAttrs, runCounts } from "./fx";
 import { icon, IC } from "./icons";
 import { hydrateImages } from "./realimage";
-import { syncSky } from "./skybg";
+import { syncSky, skyScroll } from "./skybg";
 import { setCtx } from "../assistant/context";
 import { refreshFab, placeFab } from "../assistant/assistant";
-import { learnView, homeFirst, learnCtx, afterLearnRender, recedeGalaxy } from "./learn";
+import { learnView, homeFirst, learnCtx, afterLearnRender, learnShown } from "./learn";
 import { exploreView } from "./explore";
-import { playView, afterPlayRender } from "./play";
+import { playView, afterPlayRender, playShown } from "./play";
 import { meView } from "./me";
 import { settingsView, getSetSub, clearSetSub } from "./settings";
 
@@ -23,38 +23,75 @@ export let tab: Tab = "learn";
 
 export const BN = () => esc(S.m.name || "Alti Lion");
 
-/* Tab change (design doc 10b "Chuyển tab"): no sideways page slide. The galaxy background stays put; only the
- * content layer moves — the old content fades and sinks ~8px (a short-lived "ghost" copy), the new one rises ~8px
- * while scaling 98% → 100% (~200ms). Leaving Learn, the 3D galaxy recedes and fades into the light background;
- * entering Play, the camera approaches the home planet. Potato Mode / reduce motion: instant. */
+/* ---------- Tabs = persistent panes (design doc 10b "Chuyển tab") ----------
+ * Every tab has its own <section class="pane"> inside #screenWrap that keeps its DOM and its own scroll position.
+ * A pane is rendered the first time its tab opens and afterwards only when it is dirty (render() marks all tabs
+ * dirty after any state change, then redraws just the visible one). go() only swaps the .on class — the CSS
+ * fade-through does the rest (old pane fades out in 90ms, new pane fades in + 98% → 100% after 60ms).
+ * No DOM copying, no forced layout. Potato Mode / reduce motion: instant (no transition). */
+const dirty: Record<Tab, boolean> = { learn: true, explore: true, play: true, me: true, settings: true };
+export const paneOf = (k: Tab) => document.querySelector<HTMLElement>(`.pane[data-tab="${k}"]`)!;
+/** The visible pane (replaces the old single #screen). */
+export const curPane = () => paneOf(tab);
+/** Flag a tab (or all) to be re-rendered the next time it is shown. */
+export function markDirty(k?: Tab) { if (k) dirty[k] = true; else NAVORD.forEach((x) => (dirty[x] = true)); }
+
+let wcTimer: ReturnType<typeof setTimeout> | undefined;
 export function go(to: Tab) {
-  const from = tab, d = NAVORD.indexOf(to) - NAVORD.indexOf(from), hadSub = !!getSetSub();
-  const scr = $("#screen")!, animate = !!d && !noMotion();
-  if (animate) ghostOut(scr, from);
-  tab = to;
+  const from = tab, hadSub = !!getSetSub();
+  if (to === from) { if (hadSub) { clearSetSub(); markDirty("settings"); render(); pageAnim(-1); } return; }
   clearSetSub();
-  render(!!d);
-  scr.scrollTop = 0;
-  if (animate) { scr.classList.remove("tab-in"); void scr.offsetWidth; scr.classList.add("tab-in"); setTimeout(() => scr.classList.remove("tab-in"), 260); }
-  else if (!d && hadSub) pageAnim(-1);
-  if (d && !noMotion()) { const ic = document.querySelector(`.nav button[data-t="${to}"] .navic`); ic?.classList.add("pop"); setTimeout(() => ic?.classList.remove("pop"), 340); }
+  tab = to;
+  const wrap = $("#screenWrap")!;
+  if (!noMotion()) { wrap.classList.add("switching"); clearTimeout(wcTimer); wcTimer = setTimeout(() => wrap.classList.remove("switching"), 420); } // will-change only while moving
+  if (dirty[to]) renderPane(to);
+  paneOf(from).classList.remove("on");
+  paneOf(to).classList.add("on");
+  setNav();
+  if (!noMotion()) { const ic = document.querySelector<HTMLElement>(`.nav button[data-t="${to}"] .navic`); if (ic) { ic.classList.add("pop"); ic.addEventListener("animationend", () => ic.classList.remove("pop"), { once: true }); } }
+  afterShow(true);
 }
-/** Move the current content into a non-interactive copy on top of the background and let it fade out. */
-function ghostOut(scr: HTMLElement, from: Tab) {
-  const g = document.createElement("div"), inner = document.createElement("div");
-  g.className = scr.className.replace(/\b(tab-in|enter|mb-r|mb-l)\b/g, "") + " screen-ghost" + (from === "learn" ? " from-learn" : "");
-  g.setAttribute("aria-hidden", "true");
-  g.style.cssText = `top:${scr.offsetTop}px;left:${scr.offsetLeft}px;width:${scr.offsetWidth}px;height:${scr.offsetHeight}px`;
-  inner.className = "ghost-in";
-  inner.style.cssText = `height:${scr.scrollHeight}px;transform:translateY(${-scr.scrollTop}px)`;
-  while (scr.firstChild) inner.appendChild(scr.firstChild);
-  g.appendChild(inner);
-  // the new screen owns the ids — but leave the persistent 3D layers (galaxy, home planet) alone: they are re-mounted
-  // into the next Learn/Play screen and need their ids (e.g. #homeTalk, Alti Lion's speech bubble) to keep working
-  g.querySelectorAll("[id]").forEach((e) => { if (!e.closest(".gx,.hs-host")) e.removeAttribute("id"); });
-  scr.parentElement!.insertBefore(g, scr);
-  if (from === "learn") recedeGalaxy();
-  setTimeout(() => g.remove(), from === "learn" ? 340 : 200);
+
+const VIEWS: Record<Tab, () => string> = { learn: learnView, explore: exploreView, play: playView, me: meView, settings: settingsView };
+function renderPane(k: Tab) {
+  const pane = paneOf(k);
+  pane.innerHTML = VIEWS[k]();
+  pane.classList.toggle("gxmode", !!pane.querySelector("#gxHost"));
+  dirty[k] = false;
+  if (k === "learn") afterLearnRender();
+  if (k === "play") afterPlayRender();
+  runCounts(pane, fmtCount);
+  hydrateImages(pane);
+}
+/** Things that depend on which tab is visible (cheap; no rendering). */
+function afterShow(entering: boolean) {
+  skyScroll(tab);
+  syncSky(tab !== "learn" && !document.body.classList.contains("imgbg")); // light galaxy behind Explore / Me / Settings / Play
+  if (tab === "learn") learnShown();
+  if (tab === "play") playShown(entering);
+  if (!ovShown()) tabCtx();
+  if (!entering) refreshFab(); // FAB position only changes with overlays / layout, not with tab switches (avoids a layout read)
+  if (tab === "learn" && S.set.inter && !PO() && !ovShown() && document.getElementById("homeTalk")) {
+    if (talkId() === "homeTalk") paintTalk(false);
+    else startTalk("homeTalk", LINES.home, homeFirst(false));
+  }
+}
+/** Nav: buttons are built once per language (render); switching tabs only toggles .on and moves the pill. */
+function setNav() {
+  const nav = $(".nav")!;
+  nav.querySelector<HTMLElement>(".navpill")?.style.setProperty("--i", String(NAVORD.indexOf(tab)));
+  nav.querySelectorAll<HTMLButtonElement>("button").forEach((b) => { const on = b.dataset.t === tab; b.classList.toggle("on", on); b.setAttribute("aria-current", on ? "page" : "false"); });
+}
+let navLang = "";
+function buildNav() {
+  const nav = $(".nav")!;
+  if (!nav.querySelector(".navpill")) { const pill = document.createElement("span"); pill.className = "navpill"; pill.setAttribute("aria-hidden", "true"); nav.prepend(pill); }
+  if (navLang === lang()) return;
+  navLang = lang();
+  nav.querySelectorAll<HTMLButtonElement>("button").forEach((b) => {
+    const k = b.dataset.t as Tab;
+    b.innerHTML = `<span class="navic">${icon(ICONS[k], { size: 26, tint: 0.28 })}</span>${t("nav." + k)}`; // tint shows only on the active tab (CSS)
+  });
 }
 
 export const ovShown = () => !!$("#overlay")?.classList.contains("show");
@@ -71,34 +108,16 @@ function tabCtx() {
   setCtx({ key: "tab:" + tab, where, title: t("nav." + tab), answered: true, kb: tab === "play" ? ["crisis1929", "crisis1973", "crisis2008", "fixedfloat"] : tab === "explore" ? ["fx", "crisis2008", "stocks"] : [] });
 }
 
-/** `enter` = we just navigated to this tab (Play uses it for the camera approach). */
-export function render(enter = false) {
+/** Redraw after a state change: every tab becomes dirty, only the visible pane is rebuilt now. */
+export function render() {
   $("#top")!.innerHTML = topBar();
-  const views: Record<Tab, () => string> = { learn: learnView, explore: exploreView, play: playView, me: meView, settings: settingsView };
-  const scr = $("#screen")!;
-  scr.innerHTML = views[tab]();
-  scr.classList.toggle("gxmode", !!$("#gxHost"));
-  syncSky(tab !== "learn" && !document.body.classList.contains("imgbg")); // light galaxy behind Explore / Me / Settings / Play
-  if (tab === "learn") afterLearnRender();
-  if (tab === "play") afterPlayRender(enter);
-  const nav = $(".nav")!;
-  let pill = nav.querySelector<HTMLElement>(".navpill");
-  if (!pill) { pill = document.createElement("span"); pill.className = "navpill"; pill.setAttribute("aria-hidden", "true"); nav.prepend(pill); }
-  pill.style.setProperty("--i", String(NAVORD.indexOf(tab))); // coloured pill slides to the active tab
-  document.querySelectorAll<HTMLButtonElement>(".nav button").forEach((b) => {
-    const k = b.dataset.t as Tab, on = k === tab;
-    b.innerHTML = `<span class="navic">${icon(ICONS[k], { size: 26, active: on, tint: on ? 0.28 : 0 })}</span>${t("nav." + k)}`;
-    b.setAttribute("aria-current", on ? "page" : "false");
-    b.classList.toggle("on", on);
-  });
-  runCounts(document, fmtCount);
-  hydrateImages(scr);
-  if (!ovShown()) tabCtx();
-  refreshFab();
-  if (tab === "learn" && S.set.inter && !PO() && !ovShown() && document.getElementById("homeTalk")) {
-    if (talkId() === "homeTalk") paintTalk(false);
-    else startTalk("homeTalk", LINES.home, homeFirst(false));
-  }
+  markDirty();
+  renderPane(tab);
+  NAVORD.forEach((k) => paneOf(k).classList.toggle("on", k === tab));
+  buildNav();
+  setNav();
+  runCounts($("#top")!, fmtCount);
+  afterShow(false);
 }
 
 /* ---------- Full-screen overlay (lessons, profile, buddy, results) ---------- */

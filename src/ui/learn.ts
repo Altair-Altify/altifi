@@ -101,6 +101,7 @@ const pillText = () => (S.inprog ? t("hm.continue") : !Object.keys(S.lessons).le
 /* ============================== the galaxy ============================== */
 let G: Galaxy | null = null;
 let glFailed = false;
+const rootSize = { w: 0, h: 0 }; // kept by a ResizeObserver so label placement never reads layout per frame
 const ui = { first: true, deep: false, labels: [] as HTMLElement[], sug: "", top: 56, bottom: 90 };
 const root = document.createElement("div");
 root.className = "gx";
@@ -210,7 +211,7 @@ function refreshUI() {
 type Box = { el: HTMLElement; x: number; y: number; w: number; h: number; mid: boolean; fixed: boolean; top: number };
 function place() {
   if (!G) return;
-  const lv = G.level, W = root.clientWidth, H = root.clientHeight, tm = performance.now() / 1000;
+  const lv = G.level, W = rootSize.w || root.clientWidth, H = rootSize.h || root.clientHeight, tm = performance.now() / 1000;
   const boxes: Box[] = [];
   for (const el of ui.labels) {
     const k = el.dataset.k!;
@@ -277,10 +278,10 @@ function mount() {
         frame: place,
         level: (lv) => onLevel(lv),
         pick: (k) => A.gxPick(k),
-        hidden: () => !root.isConnected || document.hidden || !!document.querySelector(".phone.ov"),
+        hidden: () => !root.isConnected || !root.closest(".pane.on") || document.hidden || !!document.querySelector(".phone.ov"), // paused as soon as the Learn pane is not the visible one
       }, PO());
       root.prepend(G.canvas);
-      new ResizeObserver(() => G?.resize()).observe(root);
+      new ResizeObserver((es) => { const r = es[0].contentRect; rootSize.w = r.width; rootSize.h = r.height; G?.resize(); }).observe(root);
       bindContSwipe();
     } catch (e) {
       console.warn("WebGL unavailable → list view", e);
@@ -290,7 +291,6 @@ function mount() {
     }
   }
   host.appendChild(root);
-  G!.restore();
   G!.resize();
   G!.setModel(model());
   if (ui.first) {
@@ -370,8 +370,8 @@ export function learnView() {
   if (fresh.length) { save(); setTimeout(() => minitoast(t("ms.newBadge", { b: tx(fresh[0].name) })), 400); }
   return S.galaxy.list || glFailed ? listView() : `<div class="gxhost" id="gxHost"></div>`;
 }
-/** Called by the shell when leaving the Learn tab: the galaxy recedes as it fades into the light background. */
-export function recedeGalaxy() { G?.recede(); }
+/** Called by the shell whenever the Learn pane becomes visible again (no re-render): redraw once, refresh labels. */
+export function learnShown() { G?.wake(); }
 /** Called by the shell right after the Learn tab's HTML is in the page. */
 export function afterLearnRender() { if (document.getElementById("gxHost")) mount(); }
 

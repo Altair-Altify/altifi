@@ -21,7 +21,13 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="mbS" x="-20%" width="140%"><feGaussianBlur stdDeviation="14 0"/></filter><filter id="mbW" x="-20%" width="140%"><feGaussianBlur stdDeviation="5 0"/></filter></svg>
 <div class="phone">
   <div class="top" id="top"></div>
-  <div class="screen" id="screen"></div>
+  <div class="screen-wrap" id="screenWrap">
+    <section class="pane screen" data-tab="learn"></section>
+    <section class="pane screen" data-tab="explore"></section>
+    <section class="pane screen" data-tab="play"></section>
+    <section class="pane screen" data-tab="me"></section>
+    <section class="pane screen" data-tab="settings"></section>
+  </div>
   <div id="chatbarSlot"></div>
   <nav class="nav">
     <button data-t="learn" onclick="A.go('learn')"></button>

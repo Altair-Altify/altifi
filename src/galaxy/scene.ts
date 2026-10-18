@@ -109,6 +109,7 @@ export class Galaxy {
   private ptrs = new Map<number, { x: number; y: number }>();
   private gesture = { moved: 0, dragging: false, span: 0, dist0: 0, lastTap: 0, tapX: 0, tapY: 0, tm: 0 };
   private lastDragEnd = 0;
+  private lastDraw = 0;
   motion = true;
 
   constructor(private host: HTMLElement, private hooks: GxHooks, potato: boolean) {
@@ -133,7 +134,7 @@ export class Galaxy {
     if (theme !== this.themeKey) { this.themeKey = theme; this.dynKey = ""; this.buildStatic(m); }
     const dyn = JSON.stringify([m.nodes.map((n) => n.state), m.links, m.cons, m.homeLights, m.comet]);
     if (dyn !== this.dynKey) { this.dynKey = dyn; this.buildDynamic(m); }
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, m.potato ? 1 : 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, m.potato ? 1 : 1.5)); // 1.5 max: a 750×1376 canvas halved the frame rate
     this.dirty = true;
   }
 
@@ -262,14 +263,6 @@ export class Galaxy {
     const hop = travel > Math.max(from.dist, to.dist) * 0.6 ? travel * 0.55 : 0; // long trips arc up over the galaxy
     this.tw = { from, to, t0: performance.now(), dur, hop, done };
   }
-  private saved: Rig | null = null;
-  /** Leaving the Learn tab: pull the camera back while the HTML layer fades out; restore() on the next visit. */
-  recede() {
-    if (!this.motion) return;
-    this.saved = this.tw ? { ...this.tw.to, target: this.tw.to.target.clone() } : { ...this.rig, target: this.rig.target.clone() };
-    this.fly({ ...this.saved, target: this.saved.target.clone(), dist: this.saved.dist * 1.7 }, 320);
-  }
-  restore() { if (this.saved) { this.rig = this.saved; this.saved = null; this.tw = null; this.dirty = true; } }
   /** Jump to the end of the current flight (e.g. the user taps during the intro). */
   skipFlight() { if (!this.tw) return; const d = this.tw.done; this.rig = this.tw.to; this.tw = null; this.dirty = true; d?.(); }
   get flying() { return !!this.tw; }
@@ -445,6 +438,8 @@ export class Galaxy {
   }
   stop() { this.running = false; cancelAnimationFrame(this.raf); }
   renderNow() { this.dirty = true; this.frame(performance.now()); }
+  /** The pane is visible again: draw on the next animation frame (labels too). */
+  wake() { this.dirty = true; }
 
   private frame(now: number) {
     const dt = Math.min(0.05, (now - this.last) / 1000); this.last = now;
@@ -467,15 +462,20 @@ export class Galaxy {
     }
     const motion = this.motion;
     if (!motion && !this.dirty) return;
-    this.t += dt;
+    // idle (no flight, no drag, no inertia): ambient animation at ~30 fps is plenty
+    const idle = !this.tw && !this.inertia && !this.ptrs.size && !this.dirty;
+    if (idle && now - this.lastDraw < 31) return;
+    const adt = Math.min(0.05, (now - (this.lastDraw || now - 16)) / 1000); // time since the last DRAWN frame
+    this.lastDraw = now;
+    this.t += adt;
     const { target, dist, elev, shift } = this.rig;
     this.camera.position.set(target.x, target.y + Math.sin(elev) * dist, target.z + Math.cos(elev) * dist);
     this.camera.lookAt(target);
     this.camera.setViewOffset(this.w, this.h, 0, shift * this.h, this.w, this.h);
     this.camera.updateProjectionMatrix();
     const t = this.t;
-    this.planets.forEach((p) => p.update(t, dt, motion));
-    this.home?.update(t, dt, motion);
+    this.planets.forEach((p) => p.update(t, adt, motion));
+    this.home?.update(t, adt, motion);
     if (this.altair && motion) this.altair.children.slice(1).forEach((s, i) => s.scale.setScalar([20, 7.5, 46][i] * (1 + 0.05 * Math.sin(t * 1.6 + i))));
     if (this.links) { const u = (this.links.material as THREE.ShaderMaterial).uniforms; u.uTime.value = t; u.uMotion.value = motion ? 1 : 0; u.uW.value = Math.max(0.05, this.rig.dist / 40); }
     this.updateComet(t, motion);

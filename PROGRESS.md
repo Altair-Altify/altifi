@@ -2,6 +2,54 @@
 
 > Đọc file này + `ALTIFI_DESIGN.md` ở đầu mỗi phiên. Cập nhật ở cuối mỗi phiên.
 
+## Phiên 4e — bỏ thanh cuộn, chuyển tab mượt (pane giữ sẵn DOM) ✅
+
+Nhóm đo trên altifi.vercel.app (375×812): mỗi `A.go()` chặn luồng chính 70–200ms (render lại toàn bộ HTML + sao chép DOM cho lớp ghost + đọc offsetWidth/Height), tab Học đứng yên chỉ ~27 fps (Galaxy vẽ mọi khung, pixel ratio 2).
+
+### Đã làm
+1. **Ẩn thanh cuộn** trong `.phone` (`scrollbar-width:none` + `::-webkit-scrollbar{display:none}`), vẫn cuộn bằng tay/chuột.
+2. **Mỗi tab một pane giữ sẵn DOM** (`index.html`: 5 `<section class="pane screen" data-tab>` trong `#screenWrap`; `src/ui/shell.ts`):
+   - Pane tự cuộn, nhớ vị trí cuộn.
+   - Chỉ render lần đầu mở tab hoặc khi dirty: `render()` sau mỗi thay đổi dữ liệu gọi `markDirty()` cho mọi tab và chỉ dựng lại pane đang hiện.
+   - `go()` chỉ đổi `.on` — không gọi `render()` trừ khi pane mới dirty. Đã xóa `ghostOut`, `.screen-ghost` và các lệnh ép layout.
+   - Thanh nav: dựng một lần cho mỗi ngôn ngữ; đổi tab chỉ toggle `.on` + `--i` cho navpill. Icon nảy bằng class `pop`, bỏ khi `animationend`, không ép reflow.
+   - `#screen` cũ được thay bằng `curPane()` / `.pane.on` (`fx.pageAnim`, nền sao).
+   - Id không trùng giữa các tab (đã soát: `gxHost`, `homeTalk` chỉ ở Học; `hsStage` chỉ ở Chơi; `wxTown` chỉ ở màn thị trấn).
+3. **Fade-through** đúng thông số nhóm đưa (CSS trong `src/styles/galaxy.css`): pane cũ mờ 90ms; pane mới chờ 60ms, hiện 210ms, phóng 98% → 100% trong 300ms. `will-change` chỉ trong lúc chuyển (class `switching` trên `#screenWrap`, bỏ sau 420ms). Potato / giảm chuyển động: không transition.
+4. **Giảm tải 3D:**
+   - Galaxy và HomeSpace dừng vẽ ngay khi pane của chúng không còn `.on` (`hidden()` kiểm tra `.closest(".pane.on")`); quay lại tab thì `wake()` vẽ khung tiếp theo.
+   - Bỏ `Galaxy.recede()` / `restore()`.
+   - Tab Chơi: WebGL của hành tinh nhà dựng sau khi pane hiện xong (320ms) — lần đầu vào Chơi trước đây chặn ~910ms; camera tiến tới sau ~300ms.
+   - Pixel ratio tối đa 1.5 (cả 2 cảnh 3D). Ngân hà khi đứng yên (không bay, kéo, quán tính) vẽ ~30 fps; thời gian hoạt ảnh tính theo khung đã vẽ nên không bị chậm lại.
+   - Vị trí nhãn ngân hà dùng kích thước lưu từ ResizeObserver, không đọc layout mỗi khung.
+5. **Thêm (phát hiện khi đo):**
+   - **`backdrop-filter` (kính mờ) là thủ phạm lớn nhất** ở các tab có nền động: Khám phá 7 → 53 fps khi tắt nó, vì trình duyệt phải làm mờ lại nền đang chuyển động mỗi khung. Đã bỏ khỏi thẻ, nhãn, HUD trên nền động, thay bằng nền bán trong suốt đậm hơn (độ tương phản chỉ tăng). Theme "Ảnh của tôi" vẫn giữ (ảnh tĩnh).
+   - Nền sao 2D được **vẽ sẵn lúc rảnh** sau khi mở app (`prewarmSky`). Lần đầu vào Khám phá trước đây chặn ~72ms, nay ~4ms.
+
+### Đo (Playwright, 375×812, bản build production)
+Máy chạy thử này không có GPU: WebGL được giả lập bằng CPU (SwiftShader), nên con số khi có cảnh 3D **không đại diện cho điện thoại thật**. Vì vậy đo 2 lần:
+- **Tắt WebGL** (đo riêng đường DOM/CSS/2D của việc chuyển tab):
+  - Đổi tab lặp lại chặn **0,3–0,6ms**, khung dài nhất 16,7–33ms.
+  - Lần đầu mở tab (phải dựng pane) chặn 1,4–9,5ms. Riêng lần đầu vào Tôi có 1 khung 50ms.
+  - Tab Học và Khám phá đứng yên **60 fps**.
+  - Bấm liên tục: luôn dừng đúng tab cuối, chỉ 1 pane hiện với opacity 1 sau 300–400ms.
+- **Bật WebGL (giả lập CPU):**
+  - Đổi tab chặn **0,3–0,5ms** (trước: 70–200ms trên máy nhóm). Lần đầu vào Chơi **2,8ms** (trước: ~910ms).
+  - Khoảng cách khung và fps bị giới hạn bởi WebGL giả lập: Học ~13 fps, Khám phá ~43 fps. Khi giấu cả canvas 3D lẫn lớp nhãn HTML thì Học lên 43 fps (không giấu gì: ~14 fps).
+  - → **Cần nhóm đo lại trên điện thoại thật / altifi.vercel.app** cho 2 mục tiêu "không khung nào > 34ms" và "Học đứng yên ≥ 50 fps".
+- Chức năng (đều đạt):
+  - Nhớ vị trí cuộn từng tab.
+  - Đổi ngôn ngữ và theme cập nhật mọi tab + nav.
+  - Bong bóng Alti Lion trên Học vẫn chạy sau khi đi tab khác rồi quay lại.
+  - Bay xuống thị trấn từ Chơi và quay lại.
+  - Mở bài học rồi thoát → về đúng ngân hà.
+  - Không còn lớp ghost.
+  - `npm run build` không lỗi; `node scripts/playthrough.cjs vi` vẫn đúng hết; không lỗi console.
+
+### Lưu ý
+- Lỗi cũ ghi ở phiên 4d vẫn còn: bong bóng thoại trống khi thu nhỏ lên tầng 1 ngay trong tab Học (chỉ khởi động khi render lại).
+- Nếu trên máy thật tab Học vẫn < 50 fps: bước tiếp theo là chỉ vẽ ngân hà khi dirty (tắt xoay hành tinh / lấp lánh lúc đứng yên), hoặc hạ pixel ratio xuống 1.25.
+
 ## Phiên 4d — sửa lỗi chuyển tab (do commit 21a6dac) ✅
 
 Nhóm đo trên altifi.vercel.app ở khung 375×812 và gửi đúng diff sửa; đã áp dụng nguyên văn.

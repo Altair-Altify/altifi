@@ -10,6 +10,7 @@ import { onLangChange } from "./i18n/i18n";
 import { setBuddySource } from "./mascot/lion";
 import { render, applyTheme, rerenderAll } from "./ui/shell";
 import { pickWx } from "./ui/weather";
+import { prewarmSky } from "./ui/skybg";
 import { minitoast } from "./ui/fx";
 import { t } from "./i18n/i18n";
 import { clearChats, closeAssistant, assistantOpen, openAssistant } from "./assistant/assistant";
@@ -36,7 +37,10 @@ window.addEventListener("unhandledrejection", () => { try { minitoast("⚠️ " 
 
 pickWx();
 applyTheme();
-render(true);
+render();
+// paint the light-galaxy background while the app is idle, so the first switch to Explore/Me/Settings/Play is instant
+const idle = (window as any).requestIdleCallback || ((f: () => void) => setTimeout(f, 600));
+idle(() => prewarmSky());
 
 // PWA: offline cache + "Add to Home Screen" (production builds only)
 if ("serviceWorker" in navigator && import.meta.env.PROD) {

@@ -31,7 +31,7 @@ export class HomeSpace {
   /** (Re)build the planet when theme / Potato / number of town lights change. */
   set(night: boolean, potato: boolean, motion: boolean, lights: number) {
     this.motion = motion;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, potato ? 1 : 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, potato ? 1 : 1.5));
     const key = `${night}|${potato}|${lights}`;
     if (key === this.key) return;
     this.key = key;
@@ -61,6 +61,8 @@ export class HomeSpace {
 
   /** Entering the Play tab: the camera glides in toward the home planet (~0.65 s). */
   approach() { if (this.motion) this.near0 = performance.now(); }
+  /** Draw one frame now (used when the tab comes back and motion is off). */
+  wake() { this.t = 0; }
 
   /** Camera dives to the surface, then `done` (opens the town). Instant with Potato / reduced motion. */
   dive(done: () => void) {

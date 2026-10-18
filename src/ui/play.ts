@@ -50,21 +50,37 @@ let hs: HomeSpace | null = null, hsFailed = false;
 const hsHost = document.createElement("div");
 hsHost.className = "hs-host";
 /** Called by the shell after the Play tab's HTML is in the page. */
-export function afterPlayRender(entering = false) {
+export function afterPlayRender() {
+  if (!document.getElementById("hsStage") || hsFailed) return;
+  // WebGL setup (context + planet mesh) is the heavy part: do it after the pane has faded in, never inside the tab switch
+  clearTimeout(setupTimer);
+  setupTimer = setTimeout(setupHome, hs ? 0 : 320);
+}
+let setupTimer: ReturnType<typeof setTimeout> | undefined;
+function setupHome() {
   const stage = document.getElementById("hsStage");
   if (!stage || hsFailed) return;
   if (!hs) {
     try {
-      hs = new HomeSpace(hsHost, () => !hsHost.isConnected || document.hidden || !!document.querySelector(".phone.ov"), PO());
+      hs = new HomeSpace(hsHost, () => !hsHost.isConnected || !hsHost.closest(".pane.on") || document.hidden || !!document.querySelector(".phone.ov"), PO());
       hsHost.appendChild(hs.canvas);
       new ResizeObserver(() => hs?.resize()).observe(hsHost);
     } catch { hsFailed = true; stage.classList.add("nogl"); return; }
+    if (!noMotion()) hs.approach(); // first visit: the camera glides in as the planet appears
   }
   stage.appendChild(hsHost);
   hs.set(document.body.classList.contains("night"), PO(), !noMotion(), Math.min(16, 2 + lessonsDone() * 2 + (S.game ? 2 : 0)));
   hs.resize();
-  if (entering) hs.approach();
   hs.start();
+}
+let nearTimer: ReturnType<typeof setTimeout> | undefined;
+/** Called by the shell whenever the Play pane becomes visible. The camera approach starts only once the pane has
+ * finished fading in (~300ms), so the tab switch itself never waits on WebGL. */
+export function playShown(entering: boolean) {
+  if (!hs) return;
+  hs.wake(); // size is kept by the ResizeObserver
+  clearTimeout(nearTimer);
+  if (entering && !noMotion()) nearTimer = setTimeout(() => { if (hsHost.closest(".pane.on")) hs?.approach(); }, 300);
 }
 function openTown() {
   openO(`<div class="town"><div class="town-scene">${townScene(400, 260, false)}</div><div id="wxTown" class="town-wx">${wxOverlay()}</div>

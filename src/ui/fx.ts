@@ -8,7 +8,7 @@ import { t } from "../i18n/i18n";
 /** Slide the page in from the side of the tab you came from (motion blur via SVG filters in index.html). */
 export function pageAnim(dir: number, el?: HTMLElement | null) {
   if (noMotion()) return;
-  el = el || $("#screen");
+  el = el || document.querySelector<HTMLElement>(".pane.on");
   if (!el) return;
   el.classList.remove("mb-r", "mb-l");
   void el.offsetWidth;
