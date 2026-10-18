@@ -7,6 +7,8 @@ import budget from "./lessons/p-budget";
 import inflation from "./lessons/p-inflation";
 import bnpl from "./lessons/p-bnpl";
 import centralbank from "./lessons/m-centralbank";
+import minflation from "./lessons/m-inflation";
+import mnews from "./lessons/m-news";
 import breakeven from "./lessons/c-breakeven";
 import cash from "./lessons/c-cash";
 import funding from "./lessons/c-funding";
@@ -59,13 +61,13 @@ export const DOMAINS: Domain[] = [
       unlock: T("Chi nhánh trên các lô đất", "Branches on the map's plots"), planet: { shape: "rocky", palette: ["#7FA35B", "#A3C27A", "#C9DDA0", "#EEF5D8"], feature: "cities" } },
   ]),
   area({ id: "macro", short: T("Vĩ mô", "Macro"), ic: "sliders", color: "#8B6CF0", title: T("Kinh tế vĩ mô", "Macroeconomics"), tag: T("Nền kinh tế vận hành ra sao", "How the economy works"), desc: T("Lạm phát, lãi suất, GDP, chính sách — lõi để hiểu tin tức kinh tế", "Inflation, interest rates, GDP, policy — the core of reading economic news") }, [
-    { id: "m-inflation", code: "M1", ic: "chart", day: "23/10", prereq: ["p-inflation"],
+    { id: "m-inflation", code: "M1", ic: "chart", lesson: minflation, day: "23/10", prereq: ["p-inflation"],
       title: T("Nguồn gốc lạm phát", "Where inflation comes from"), hook: T("Lạm phát đến từ đâu?", "Where does inflation come from?"),
       unlock: T("Chỉ số giá trên bảng tin thị trấn", "A price index on the town board"), planet: { shape: "gas", palette: ["#B79CFF", "#E0B8FF", "#FFC2D9", "#9D7BF0"], feature: "swell", size: 1.3 } },
     { id: "m-centralbank", code: "M2", ic: "bank", lesson: centralbank, day: "22/10", prereq: ["p-bnpl", "c-funding"],
       title: T("NHTW & lãi suất", "Central bank & interest rates"), hook: T("Ngân hàng trung ương — người cầm vòi nước", "The central bank — who holds the tap?"),
       unlock: T("Lãi suất trong game do NHTW mô phỏng", "In-game rates set by a simulated central bank"), planet: { shape: "ocean", palette: ["#4C55C7", "#6F7BE6", "#9FD3B0", "#F1F6E8"], feature: "dial", size: 1.15 } },
-    { id: "m-news", code: "M3", ic: "doc", day: "23/10", prereq: ["i-stocks"],
+    { id: "m-news", code: "M3", ic: "doc", lesson: mnews, day: "23/10", prereq: ["i-stocks"],
       title: T("GDP & chu kỳ kinh tế", "GDP & the business cycle"), hook: T("Đọc một bản tin kinh tế trong 60 giây", "Read an economic news story in 60 seconds"),
       unlock: T("Tòa tin tức trong thị trấn", "The newsroom in town"), planet: { shape: "rocky", palette: ["#6F5BBF", "#9585D9", "#BFB4EE", "#ECE8FF"], feature: "satellites" } },
     { id: "m-policy", code: "M4", ic: "sliders", day: "25/10", prereq: ["g-tax", "g-debt"],

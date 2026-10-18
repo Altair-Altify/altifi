@@ -16,6 +16,7 @@
 - **(21/10) Lãi suất mô phỏng: NHTW 4% → 5% (tháng 5) → 6% (tháng 7); vay thả nổi = NHTW + 6,5%; cố định 12,5%; tiết kiệm = NHTW + 1,6%; thẻ tín dụng 30%/năm; lạm phát 3,5%/năm** — gần đúng diễn biến 2022 để bài M2 có hậu quả thật. ⚠️ Cần kiểm chứng/ghi nguồn trước khi nộp.
 - **(21/10) Bảng giá nhà/xe** (phòng trọ 2,5tr/tháng, căn hộ thuê 5,5tr, xe máy 35tr, căn hộ 1,6 tỷ, ô tô nhỏ 550tr…) và **7 bạn NPC có quỹ đạo tài sản theo lối sống** (người liều mất 65% ở tháng 5 khi quỹ sụp…) — số "gần thật", chỉnh khi cân bằng game (13.4 cho phép).
 - **(21/10) Mỗi tháng có 30% khả năng gặp sự cố (ốm 4tr / hỏng điện thoại 3tr) từ tháng 3** — để quỹ khẩn cấp và bảo hiểm có ý nghĩa (6.3 "sự kiện bất ngờ").
+- **(23/10) Số liệu thật dùng trong M1/M3 lấy từ trí nhớ của Claude, chưa tra lại được (mạng phiên bị chặn)**: CPI VN 2007–2013, Zimbabwe 231 triệu % (7/2008), GDP VN 2019–2024 — ⚠️ nhóm đối chiếu Tổng cục Thống kê trước khi nộp.
 - **(23/10) Khủng hoảng làm đẹp là 1929 (không phải 2008), tiền tính bằng USD** — 6.4 mô tả 1929 có hình ảnh thị trấn rõ nhất (bảng giá đỏ, xếp hàng rút tiền, cửa hàng tắt đèn, người thất nghiệp) và có câu chuyện đổi vai Thống đốc rất mạnh (Fed 1930–33 vs 2008). 1973 và 2008 để "phòng sắp mở" theo thứ tự hoãn 13.6.
 - **(23/10) Kịch bản 1929 do Claude soạn nháp** — ⚠️ nhóm kiểm số liệu & trích dẫn (Dow 381 → 41, ~9.000 ngân hàng, 25% thất nghiệp, Fed tăng lãi 10/1931, FDIC 1933, câu nói của Bernanke 2002) và mô hình "nếu như" của vai Thống đốc (chỉ để so sánh, ghi rõ trên màn hình).
 - **(22/10) Thêm dạng bài `dial` cho M2 thay vì ghép bằng thanh trượt có sẵn** — 13.2d ghi rõ "Xoay núm lãi suất: thấy lạm phát, thất nghiệp và khoản trả góp của chính bạn thay đổi" và M2 trùng vòng demo; mô hình: lạm phát = 7 − 0,8·(r − 4), thất nghiệp = 2,4 + 0,6·(r − 4), vay nhà 1 tỷ/20 năm lãi = r + 4%.
@@ -26,6 +27,11 @@
 - **(21/10) Phí trễ hạn BNPL 60.000₫/kỳ, lãi thẻ 30%/năm trong P2 là số minh họa** (ghi rõ "giả định" trong bài) — mỗi ví/ngân hàng mỗi khác; ⚠️ nhóm kiểm một sản phẩm thật để dẫn nguồn.
 - **(21/10) 5 case tháng do Claude soạn nháp** — ⚠️ quy định cuộc thi: nhóm phải đọc, sửa lời, kiểm số liệu (Madoff ~65 tỷ USD, 150 năm tù; Madrian & Shea 37% → 86%; Fed 2022–23; NHNN tăng lãi 2 lần cuối 2022) trước khi nộp.
 - **(20/10) Cửa có thể vào = nút hành động góc phải dưới hiện khi đứng gần (≤ 1,9 m); trong nhà/quầy hiện khung thoại kem + nút "Học ngay" nếu chưa học bài mở khóa nơi đó** — 13.3 yêu cầu nút hành động có nhãn; gắn mỗi nơi với cột "Game" của 13.2d để học xong có lý do vào game (13.2b-7).
+
+## Phiên 5 (tiếp) — 23/10: bài M1, M3 ✅ (đã push) → **xong toàn bộ việc 23/10**
+- **M1 "Lạm phát đến từ đâu?"** (`m-inflation`, bài mới): thị trấn trà sữa gấp đôi tiền (**đoán** giá → gấp đôi) → CPI là rổ hàng có trọng số → **tự xây rổ CPI của bạn** (tính lạm phát riêng 10%) → phân loại cầu kéo / chi phí đẩy / tiền quá nhiều → **chuyện thật** CPI Việt Nam 2007–2013 (2008 ~23%, 2011 ~18,6%) + Zimbabwe 2008 → **bẫy** lạm phát ≠ VND mất giá so với USD (7/46; chuyển từ P3 cũ, kèm bài phân loại) → trùm cuối "sao không in thật nhiều tiền" → Dùng ngay. Đào sâu: MV = PY (tính), chi phí đẩy và thế khó của NHTW.
+- **M3 "Đọc một bản tin kinh tế trong 60 giây"** (`m-news`, bài mới): tít báo ví dụ (GDP, PMI, CPI) → **đoán** tăng trưởng 2023 (5,05%) → nối con số ↔ câu hỏi → chu kỳ kinh tế → giải mã "PMI xuống 47" → **chuyện thật** GDP Việt Nam 2019–2024 (COVID) → **bẫy** "GDP tăng = ai cũng giàu hơn" → tính tăng trưởng thực & bình quân đầu người → trùm cuối tóm tắt tin cho bạn → Dùng ngay. Đào sâu: GDP không đo gì, chỉ báo đi sau, chỉ số giảm phát GDP.
+- Tít báo trong M3 là ví dụ tự đặt, có ghi chú trên màn hình.
 
 ## Phiên 5 (tiếp) — 23/10: Khủng hoảng 1929 có đổi vai ✅ (đã push)
 - **Vào**: tab Chơi → Bảo tàng Khủng hoảng → phòng 1929 **"Vào phòng"** (hoặc thẻ chế độ **Thống đốc NHTW**), hay đi bộ tới **Bảo tàng** trong thị trấn. Phòng 1973 và 2008 hiện "đang dựng — sắp mở" (đúng thứ tự hoãn 13.6).
