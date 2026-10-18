@@ -1,12 +1,14 @@
 # ALTIFI — Tài liệu thiết kế (Design Doc)
 
-> **Dành cho Claude Code:** đây là bản tổng hợp *mọi quyết định đã chốt* giữa nhóm Altifi và Claude (cập nhật 18/10/2026). Đọc toàn bộ trước khi viết code.
+> **Dành cho Claude Code:** đây là bản tổng hợp *mọi quyết định đã chốt* giữa nhóm Altifi và Claude (cập nhật 18/10/2026, chiều). Đọc toàn bộ trước khi viết code.
 >
 > **4 file đi kèm:**
 > 1. `ALTIFI_DESIGN.md` — tài liệu này (nguồn sự thật duy nhất; nếu chỗ nào mâu thuẫn, mục có ✅ và mục viết sau thắng).
 > 2. `altifi-base.html` — **giao diện nền** (vỏ app + mọi tính năng UX) → xem **mục 10b**.
 > 3. `altifi-prototype.html` — lấy **engine** bài học, game, nhân vật, thư viện case → xem mục 10b & 11.
 > 4. `alti-lion.html` — thiết kế **linh vật sư tử Alti Lion** → xem mục 5.3.
+>
+> ⭐ **Cập nhật lớn 18/10 chiều: đọc mục 13 ở cuối file trước tiên.**
 >
 > **Quy trình làm việc:** mỗi ngày một phiên (cuộc trò chuyện) mới, làm đúng phần việc của ngày đó trong mục 12. **Cuối mỗi phiên, cập nhật `PROGRESS.md`** (đã xong gì, còn dở gì, lỗi chưa sửa, việc đầu tiên của phiên sau). **Đầu mỗi phiên, đọc `ALTIFI_DESIGN.md` + `PROGRESS.md`** trước khi làm.
 >
@@ -15,6 +17,9 @@
 ---
 
 ## 0. Tóm tắt 1 đoạn
+
+> ⭐ **Đã thay đổi 18/10 chiều:** xem **mục 13** (mục 13 thắng khi mâu thuẫn).
+> Tóm tắt mới: **6 mảng** (thêm *Kinh tế vĩ mô*), tab Học là **dải ngân hà Altair**, game **low-poly kiểu Focustown/Animal Crossing** điều khiển bằng **joystick**, net worth mua được **nhà & xe**.
 
 Altifi là app học **tài chính – kinh tế cho teen Việt Nam** (kiểu Duolingo) kết hợp **game mô phỏng có đồ họa dễ thương kiểu Animal Crossing**. Người dùng học theo **5 mảng tài chính** (không bắt buộc học theo thứ tự), mỗi bài gồm **video/hoạt họa ngắn + bài tập tương tác có hình ảnh thật**. Kiến thức được **áp dụng trong game**: mỗi mảng có một chế độ chơi riêng (tài chính cá nhân → sống & quản lý tiền; tài chính doanh nghiệp → sở hữu & điều hành doanh nghiệp trong một thị trường mô phỏng giống Việt Nam; …), cộng thêm **chế độ Khủng hoảng lịch sử** (1929, 1973, 2008…). Có mục **Khám phá** để đọc các sự kiện tài chính thế giới do AI tổng hợp từ nguồn uy tín. **Alti Lion** — linh vật sư tử — là **trợ lý AI ở góc phải**, giải thích mọi thứ theo trình độ của người dùng. Luôn có **net worth**: nước đi hay thì giàu lên, nước đi tệ thì mất tiền, mất nhiều thì **phá sản**.
 
@@ -105,6 +110,8 @@ Altifi là app học **tài chính – kinh tế cho teen Việt Nam** (kiểu D
 ## 3. LESSONS (phần Học)
 
 ### 3.1 Cấu trúc: 5 mảng tài chính ✅
+
+> ⭐ **Đã thay đổi 18/10 chiều:** xem **13.2 (6 mảng, 20 bài)** (mục 13 thắng khi mâu thuẫn).
 1. **Tài chính cá nhân (Personal Finance)** — lập ngân sách & kiểm soát chi tiêu (50/30/20, ghi chép thu chi); tiết kiệm & quỹ khẩn cấp (3–6 tháng chi phí, lãi kép); tín dụng & nợ (điểm tín dụng, thẻ tín dụng an toàn, vay tiêu dùng, thế chấp); bảo hiểm (y tế, nhân thọ, tài sản); kế hoạch hưu trí (tích lũy & đầu tư dài hạn).
 2. **Tài chính doanh nghiệp (Corporate Finance)** — phân tích báo cáo tài chính (Bảng cân đối kế toán, Báo cáo kết quả kinh doanh, Báo cáo lưu chuyển tiền tệ); đầu tư & ngân sách vốn (NPV, IRR); cấu trúc vốn & chi phí vốn (nợ vs vốn chủ sở hữu); quản trị vốn lưu động (tiền mặt, tồn kho, phải thu – phải trả).
 3. **Thị trường tài chính & Đầu tư** — các kênh đầu tư (gửi tiết kiệm, cổ phiếu, trái phiếu, quỹ mở/ETF, bất động sản, vàng, ngoại tệ); công cụ phái sinh (hợp đồng tương lai, quyền chọn, kỳ hạn, hoán đổi); định giá tài sản & quản trị rủi ro (Beta, độ biến động, giá trị thực).
@@ -124,6 +131,8 @@ Altifi là app học **tài chính – kinh tế cho teen Việt Nam** (kiểu D
 - Hiển thị phản hồi ngay, có giải thích "vì sao" sau mỗi câu. XP = 10 + 5 × số bài tập đúng.
 
 ### 3.4 Phạm vi lessons cho demo ✅
+
+> ⭐ **Đã thay đổi 18/10 chiều:** xem **13.2d (danh sách bài mới)** (mục 13 thắng khi mâu thuẫn).
 - **Tài chính cá nhân** và **Tài chính doanh nghiệp**: làm **sâu** (đề xuất ~6 bài mỗi mảng).
 - **Thị trường & Đầu tư, Tài chính công, Tài chính quốc tế**: **mỗi mảng 2 bài**, và **mỗi bài phải đi sâu hơn hẳn mức hiện tại** (không còn đơn giản như 8 bài cũ).
 - **2–3 bài có video hoạt họa** (đề xuất: 1 bài cá nhân như *Lãi kép*, 1 bài doanh nghiệp như *Lợi nhuận ≠ tiền mặt*, 1 bài quốc tế như *Tỷ giá*).
@@ -214,6 +223,8 @@ Altifi là app học **tài chính – kinh tế cho teen Việt Nam** (kiểu D
 - 💡 Ý tưởng nhóm từng có, đưa lại: **nhập vai nhiều góc**: thống đốc NHTW, chủ doanh nghiệp, chính phủ, người gửi tiền…
 
 ### 6.1b Bản đồ thế giới — RỘNG HƠN NHIỀU ✅
+
+> ⭐ **Đã thay đổi 18/10 chiều:** xem **13.3 (low-poly, joystick, khu thứ 7)** (mục 13 thắng khi mâu thuẫn).
 ✅ Nhóm chốt: **đồ họa game đẹp hơn và bản đồ rộng hơn nhiều** so với prototype (prototype chỉ có 1 khung bản đồ vừa màn hình). Vì app giữ dạng khung điện thoại, bản đồ phải là **thế giới cuộn được**:
 - **Kích thước thế giới** khoảng **4–5 lần màn hình mỗi chiều** (vd ~1600 × 2400 px logic). Màn hình là "camera" **đi theo nhân vật**; người chơi **kéo để di chuyển bản đồ**, **zoom** (chụm 2 ngón / con lăn chuột), có nút **"về nhân vật"** và **bản đồ thu nhỏ (minimap)**.
 - **Bấm vào đâu đi tới đó** theo đường đi (tìm đường đơn giản trên lưới), có hoạt ảnh bước đi, lật hướng, bóng đổ.
@@ -360,6 +371,8 @@ Mỗi case: năm, nơi, tiêu đề, ảnh/emoji, tóm tắt kiến thức cần
 - **Vòng tròn mục tiêu hôm nay** (vd 20 XP hoặc 5 phút/ngày, chạy đầy khi đạt), **streak** 🔥→icon lửa, và **thẻ lớn "Tiếp tục bài đang học"** (tên bài, mảng, % tiến độ, nút Tiếp tục). Người mới: thẻ thành "Làm bài test xếp lớp".
 
 **3. Lộ trình học = con đường minh họa uốn lượn**
+
+> ⭐ **Đã thay đổi 18/10 chiều:** xem **13.1 — thay bằng dải ngân hà Altair** (mục 13 thắng khi mâu thuẫn).
 - Đường đi SVG uốn lượn, nút bài học nằm trên đường. **Mỗi mảng tài chính là một vùng có cảnh riêng, cùng phong cách & màu với các khu trên bản đồ game (mục 6.1b):** Cá nhân → khu dân cư; Doanh nghiệp → phố cửa hàng; Thị trường & Đầu tư → tòa nhà kính + bảng giá; Tài chính công → tòa thị chính; Quốc tế → cảng/tàu. → Học và Chơi trông như **một thế giới thống nhất**.
 - **Cột mốc:** rương thưởng sau mỗi 2–3 bài (mở ra có hiệu ứng + XP), **huy hiệu** khi xong một mảng.
 - Vì không ép thứ tự (mục 3.2): mọi mảng đều mở; nút bài hiển thị trạng thái đã xong/đang học/chưa học + nhãn "nên biết trước" khi có.
@@ -400,6 +413,8 @@ Mỗi case: năm, nơi, tiêu đề, ảnh/emoji, tóm tắt kiến thức cần
 ---
 
 ## 12. Kế hoạch & ưu tiên (hạn 01/11/2026) — ✅ RÚT CÒN 6 NGÀY CODE
+
+> ⭐ **Đã thay đổi 18/10 chiều:** xem **13.6 (lịch mới)** (mục 13 thắng khi mâu thuẫn).
 ✅ Nhóm chốt: **6 ngày code (18–23/10)**, **kết quả thiết kế giữ nguyên như trên** (không cắt mục tiêu), lessons làm mới hoàn toàn, bản đồ rộng hơn nhiều. 24/10–01/11 dành cho kiểm thử, kiểm chứng số liệu, quay video ≤ 2 phút, viết PDF (nhóm tự viết).
 
 **Cách rút từ ~10 ngày xuống 6 ngày mà không cắt kết quả:**
@@ -422,3 +437,241 @@ Mỗi case: năm, nơi, tiêu đề, ảnh/emoji, tóm tắt kiến thức cần
 | **01/11** | Nộp trước 23:59. |
 
 ⚠️ **Rủi ro của lịch 6 ngày:** Claude Code có giới hạn sử dụng theo gói → chia việc theo ngày như bảng, mỗi phiên một mục rõ ràng; nội dung từ nhóm phải về kịp theo ngày; nếu trễ thì dùng ngày đệm 24–28/10 chứ **không cắt** vòng lặp demo (mục 8), song ngữ EN, net worth, bản đồ lớn.
+
+---
+
+## 13. ĐỢT THAY ĐỔI LỚN 18/10 (chiều) — ĐỌC MỤC NÀY TRƯỚC ⭐
+> Mục này **thắng** mọi mục cũ khi mâu thuẫn. Ký hiệu: ✅ nhóm đã chốt · 💡 đề xuất của Claude (vai: nhà thiết kế app & khóa học, người xử lý vấn đề dự án, giáo sư kinh doanh – tài chính – kinh tế) **chờ nhóm duyệt** · ❓ nhóm phải quyết trước khi code phần đó.
+
+| Mục cũ | Bị thay bằng |
+|---|---|
+| 10c.3 Lộ trình = con đường uốn lượn | **13.1** Dải ngân hà Altair |
+| 3.1 (5 mảng), 3.4 (danh sách bài) | **13.2** 6 mảng + 20 bài thiết kế lại |
+| 6.1 & 6.1b phần *đồ họa* và *cách di chuyển* (2D, bấm-để-đi) | **13.3** low-poly kiểu Focustown/Animal Crossing + joystick |
+| 6.6 "nguồn tiêu tiền" (mới chỉ là ý) | **13.4** Nhà, xe & net worth |
+| 12 Lịch 6 ngày | **13.6** Lịch mới |
+
+---
+
+### 13.1 Tab Học = DẢI NGÂN HÀ ALTAIR ✅ (chi tiết 💡)
+
+**Vì sao đổi** ✅: con đường uốn lượn là dấu ấn của Duolingo và còn ngầm nói "học theo thứ tự", trái với nguyên tắc *không ép thứ tự* (3.2). Ngân hà thì không có điểm đầu – điểm cuối, và gắn với tên đội: **Altair là một ngôi sao**.
+
+**Ý niệm:** cả kiến thức tài chính – kinh tế là một **dải ngân hà xoắn ốc**. Ở tâm là **sao Altair** (nơi Alti Lion sống). Mỗi **mảng** là một **hệ hành tinh** nằm trên một nhánh xoắn. Mỗi **bài học là một hành tinh**. Các hành tinh **nối với nhau bằng dải sáng** = quan hệ "nên biết trước" — kể cả **nối ngang giữa các mảng** (vd *NHTW tăng lãi suất* → *Bẫy 0 đồng*), cho thấy kinh tế là một hệ thống liên thông, không phải các chương rời rạc.
+
+**3 tầng zoom (semantic zoom — mỗi tầng hiện lượng thông tin khác nhau):**
+| Tầng | Thấy gì | Thao tác |
+|---|---|---|
+| **1. Ngân hà** | Toàn cảnh xoắn ốc, 6 hệ phát sáng theo màu mảng, tên mảng, % đã khám phá mỗi hệ, các dải sáng nối ngang. Sao băng/sao chổi bay qua. | Chạm 1 hệ → bay (camera lướt + zoom mượt ~600ms) vào tầng 2 |
+| **2. Hệ hành tinh** | 3–5 hành tinh của mảng, mỗi hành tinh có **hình dạng riêng gợi chủ đề** (vd *Lạm phát*: hành tinh khí đang phình to; *Bẫy 0 đồng*: hành tinh có vành đai dạng thẻ tín dụng; *1997*: hành tinh nứt vỡ), quỹ đạo mờ, dải sáng prerequisite, nhãn tên bài | Chụm/kéo để zoom, chạm hành tinh → tầng 3 |
+| **3. Hành tinh** | Hành tinh lớn xoay chậm chiếm nửa trên; **thẻ bài học** nửa dưới: câu hỏi mở đầu (hook), thời lượng, "Nên biết trước" (chạm → bay tới hành tinh đó), 2 tầng Cơ bản/Đào sâu, nút **Hạ cánh** (= bắt đầu) | Hạ cánh → **tên lửa nhỏ của Alti Lion** đáp xuống → vào bài |
+
+**Trạng thái hành tinh:** chưa học = bóng tối, viền mờ, có "sương mù" · gợi ý = **đèn hiệu nhấp nháy** + Alti Lion nhỏ bay quanh · đang học = nửa sáng · xong = sáng rực, **có vành đai** · xong cả Đào sâu = thêm **mặt trăng vàng**. Xong cả hệ → **chòm sao của mảng hiện lên** trên nền trời (thay "huy hiệu" cũ). **Rương thưởng → sao chổi** đi ngang, chạm để nhặt (+XP). Hành tinh "Sắp có" = vẫn hiện nhưng ở dạng phác thảo nét đứt.
+
+**Hành tinh nhà (cầu nối với game) 💡:** cạnh sao Altair có **hành tinh nhà** — trên đó là thị trấn của người chơi (thu nhỏ). Chạm vào → sang tab **Chơi**. Thị trấn càng phát triển, hành tinh nhà càng nhiều đèn. → Học và Chơi vẫn là *một vũ trụ* (giữ tinh thần 10c.3).
+
+**Phong cách hình ảnh** (đẹp, không sơ sài):
+- Hành tinh **low-poly, đổ bóng phẳng nhiều mặt** (cùng ngôn ngữ với thị trấn low-poly ở 13.3), có khí quyển phát sáng nhẹ (rim light), vành đai, mây trôi.
+- Nền: 3 lớp sao **parallax** (xa – giữa – gần), **tinh vân** màu theo mảng, bụi sao dọc nhánh xoắn, thỉnh thoảng sao băng.
+- **Light theme** = bầu trời bình minh pastel (tím lavender → hồng đào, sao mờ); **Night theme** = vũ trụ tím than sâu, sao sáng. Giữ bảng màu thương hiệu (tím `#5B5BD6` làm chủ đạo của tinh vân; vàng `#FFC93C` cho ánh sao/đèn hiệu).
+- Màu 6 mảng (gợi ý): Cá nhân = hồng đào · Doanh nghiệp = vàng cam · **Kinh tế vĩ mô = tím** (mảng lõi, gần tâm nhất) · Đầu tư = xanh ngọc · Tài chính công = xanh dương · Quốc tế = xanh lá biển.
+- HUD góc trên: streak, XP, mục tiêu hôm nay (vòng tròn) — thu gọn thành 1 thanh mảnh để không che trời. Thẻ "Tiếp tục bài đang học" là **thẻ nổi** ở cạnh dưới, kéo xuống để ẩn.
+
+**Tương tác & hiệu năng:** chụm 2 ngón / con lăn chuột để zoom, kéo để lia, chạm đúp để zoom vào, nút `+`/`−` và **"Về Altair"**; quán tính khi kéo. Mặc định mở ở tầng 2 của **mảng gợi ý** (người dùng mới không bị ngợp), tự lướt nhẹ từ tầng 1 ở lần mở đầu tiên (≤ 1,2s, bỏ qua được). **Potato Mode / giảm chuyển động:** tắt parallax, sao băng, xoay hành tinh, chuyển cảnh thành cắt thẳng.
+**Tiếp cận:** nút **"Danh sách"** chuyển sang dạng danh sách bài theo mảng (cho máy yếu, trình đọc màn hình, và người cần tìm nhanh).
+**Kỹ thuật 💡:** dùng **Three.js** cho cả ngân hà lẫn game (13.3) → một engine, một phong cách low-poly. Hành tinh tạo bằng icosphere có nhiễu (procedural) + màu theo mảng, không cần asset. Dữ liệu: mỗi bài có `domain`, `prereq: string[]` (được trỏ sang mảng khác), `planet: { shape, palette, feature }`. Vị trí hành tinh tính tự động theo nhánh xoắn + chỉnh tay được.
+
+---
+
+### 13.2 KHÓA HỌC THIẾT KẾ LẠI ✅ (nội dung 💡 — nhóm duyệt & chỉnh)
+> ⚠️ Quy định cuộc thi: bài *hoàn toàn do AI tạo* sẽ bị loại. Đây là **bản nháp chuyên môn** để nhóm phản biện; nhóm cần đọc, sửa, thêm ví dụ của chính mình (nhất là từ khảo sát) và giải thích được trong proposal *vì sao* thiết kế như vậy.
+
+#### 13.2a Vì sao bài hiện tại chán (chẩn đoán)
+1. **Bắt đầu bằng định nghĩa** ("Ngân sách là…") → giọng sách giáo khoa. Teen chỉ chú ý khi có *câu hỏi về chính đời mình*.
+2. **Không có gì để mất** — bài tập kiểm tra *nhớ*, không bắt *ra quyết định*.
+3. **Ví dụ chung chung** (lương, nhà) xa với teen 14–17 tuổi chưa có lương.
+4. **Kiến thức rời rạc** — không thấy lạm phát ↔ lãi suất ↔ khoản vay ↔ doanh nghiệp liên quan nhau.
+5. **Không có "aha"** — không có khoảnh khắc trực giác bị lật ngược.
+
+#### 13.2b 7 nguyên tắc thiết kế bài
+1. **Mỗi bài là một câu hỏi bí ẩn**, không phải một chủ đề. ❌ "Lạm phát" → ✅ "Vì sao ly trà sữa 25k năm 2015 giờ thành 45k?"
+2. **Quyết định trước, học sau** (*productive failure*): người học đoán/chọn khi chưa được dạy → thấy mình sai ở đâu → lúc đó mới giải thích. Nhớ lâu hơn hẳn đọc trước.
+3. **Đời teen Việt Nam trước, người lớn sau:** tiền tiêu vặt, lì xì Tết, Shopee 11.11, trà sữa, nạp game, SPayLater/trả sau, làm thêm, đi du học, giá iPhone.
+4. **Một trình mô phỏng ở trung tâm mỗi bài:** kéo thanh trượt và *thấy* hậu quả (khoản trả nợ phình ra, quả cầu tuyết lãi kép, núm lãi suất của NHTW). Không phải đọc.
+5. **Bẫy hiểu sai từ khảo sát là nhân vật chính** (lãi kép ≠ lãi đơn; lạm phát ≠ mất giá so với USD; điểm tín dụng ≠ tiền tiết kiệm; vay thả nổi khi lãi suất tăng → trả **nhiều hơn**; tài sản thế chấp).
+6. **Số thật, nguồn thật, chuyện thật** — có ghi nguồn; sự kiện lịch sử đặt người học *trước* khi biết kết quả.
+7. **Mỗi bài kết thúc bằng hành động:** "Dùng ngay" (1 việc làm được hôm nay ngoài đời) + **mở khóa một thứ trong game** (quầy, sản phẩm, lựa chọn mới) → học xong *có lý do* vào game.
+
+#### 13.2c Khung 1 bài (6 nhịp, 4–6 phút)
+| Nhịp | Thời lượng | Nội dung | Dạng bài tập (engine 16 dạng đã có) |
+|---|---|---|---|
+| 1. **Móc câu** | 20s | Câu hỏi bí ẩn + ảnh thật/hoạt họa | `learn` (ảnh), `video` |
+| 2. **Đoán thử** | 40s | Ra quyết định/dự đoán khi chưa học | `predict`, `slider`, `pick` |
+| 3. **Cơ chế** | 90s | Trình mô phỏng tương tác + giải thích ngắn | `chart`, `calc`, `jars`, `slider` |
+| 4. **Chuyện thật** | 60s | Case Việt Nam / thế giới, có số liệu | `statement`, `order`, `mcq` |
+| 5. **Bẫy** | 40s | Hiểu sai phổ biến (từ khảo sát) — người học tự rơi vào rồi gỡ | `spot`, `sort`, `mcq` |
+| 6. **Trùm cuối + Dùng ngay** | 60s | 1 câu tình huống tổng hợp (có thể `explain` viết lý do) + việc làm ngay + mở khóa game | `explain`, `tap`, `match` |
+| 🔬 **Đào sâu** (tùy chọn) | 3–5 phút | Công thức, học thuật, tranh luận, số liệu | `calc`, `chart`, `explain` |
+
+#### 13.2d SÁU MẢNG — 20 BÀI
+Cột "Game" = thứ được mở khóa trong game sau khi học xong.
+
+**① TÀI CHÍNH CÁ NHÂN — "Tiền của tôi" (5 bài)**
+| # | Bài (câu hỏi bí ẩn) | Cốt lõi | Trình mô phỏng / tương tác chính | Chuyện thật | Bẫy | Game |
+|---|---|---|---|---|---|---|
+| P1 | **Tiền tiêu vặt của mình biến đi đâu hết?** | Theo dõi chi tiêu, cần/muốn/tương lai (50/30/20 bản teen), "rò rỉ" nhỏ, kế toán tâm lý | Sống thử 1 tuần của một teen (trà sữa, nạp game, Shopee) → cuối tuần tìm rò rỉ; chia tiền vào hũ | Madrian & Shea 2001 (tự động tiết kiệm) | "Ít tiền thì không cần lập ngân sách" | Mở **sổ chi tiêu** trong game |
+| P2 | **"Trả sau 0%" có thật sự 0 đồng?** | BNPL, phí trễ hạn, thẻ tín dụng, trả tối thiểu, điểm tín dụng (CIC), tài sản thế chấp | Thanh trượt "trả tối thiểu mỗi tháng" → xem số tháng & tổng lãi nhảy lên | Khảo sát nhóm: 6/46 đã dùng mua trước trả sau | Điểm tín dụng = tiền tiết kiệm (7 người nhầm) | Mở **thẻ tín dụng & điểm tín dụng** |
+| P3 | **Vì sao 100 nghìn của mình đang teo dần?** | Sức mua, lãi suất thực = danh nghĩa − lạm phát, lãi kép, quy tắc 72, quỹ khẩn cấp | Video "Quả cầu tuyết" (đã có) + so 3 hũ: để ống heo / gửi tiết kiệm / đầu tư | Lạm phát VN 2008 ⚠️ | Lãi kép ≠ lãi đơn (12 người nhầm) | Mở **sổ tiết kiệm** ở ngân hàng |
+| P4 | **Làm sao biết mình sắp bị lừa?** | Ponzi, "việc nhẹ lương cao", nhóm đầu tư "cam kết lãi", lừa nạp game, phishing | Đọc đoạn chat giả lập → bấm các cờ đỏ (`spot`) ; tính xem "lãi 5%/tuần" vô lý cỡ nào | Madoff 2008; case trái phiếu VN 2022 (**ẩn danh**) | "Lãi cao + cam kết không lỗ = cơ hội" | Sự kiện **lừa đảo** xuất hiện ngẫu nhiên trong game |
+| P5 | **Lương 10 triệu, cầm về được bao nhiêu?** | Lương gộp vs thực nhận, bảo hiểm bắt buộc, thuế TNCN, bảo hiểm (khi nào cần), quỹ khẩn cấp 3–6 tháng | Phiếu lương tương tác: kéo lương gộp → thấy từng khoản trừ | Mức đóng BHXH/BHYT/BHTN & giảm trừ gia cảnh hiện hành ⚠️ (luật thuế TNCN có thể đã đổi — kiểm tra bản mới nhất) | "Lương ghi trên hợp đồng = tiền về tài khoản" | Mở **việc làm có lương** & **bảo hiểm** |
+
+**② TÀI CHÍNH DOANH NGHIỆP — "Quán của tôi" (5 bài)** — *một câu chuyện xuyên suốt*: người học mở một quán trà sữa nhỏ, mỗi bài là một khủng hoảng thật của quán.
+| # | Bài | Cốt lõi | Tương tác chính | Chuyện thật | Bẫy | Game |
+|---|---|---|---|---|---|---|
+| B1 | **Bán một ly trà sữa lời bao nhiêu?** | Chi phí cố định/biến đổi, lãi gộp mỗi ly, điểm hòa vốn | Tự định giá ly + chọn mặt bằng → xem cần bán bao nhiêu ly/ngày (biểu đồ hòa vốn, đã có) | Báo cáo mini quán trà sữa | "Doanh thu cao = lời nhiều" | Mở được **quầy hàng đầu tiên** |
+| B2 | **Giá bao nhiêu thì đúng?** | Cầu co giãn theo giá, đối thủ, khuyến mãi, voucher | Đặt giá 25k/35k/45k trong 3 khu khác nhau → khách phản ứng | Chiến tranh voucher của sàn TMĐT (viết trung lập) | "Giảm giá luôn bán được nhiều hơn = lời hơn" | Mở **chỉnh giá & khuyến mãi** |
+| B3 | **Lời mà vẫn phá sản — chuyện gì vậy?** | Lợi nhuận ≠ tiền mặt, vốn lưu động, phải thu/phải trả/tồn kho, 3 báo cáo | Dòng thời gian tiền vào – ra của quán: nhận hợp đồng lớn trả chậm 60 ngày → hết tiền trả lương | Doanh nghiệp "lãi trên giấy" phá sản vì dòng tiền | "Có lãi thì không thể hết tiền" | Mở **báo cáo dòng tiền** của quán |
+| B4 | **Vay ngân hàng hay gọi vốn kiểu Shark Tank?** | Nợ vs vốn chủ, pha loãng cổ phần, đòn bẩy, lãi cố định/thả nổi cho doanh nghiệp | Bàn đàm phán: nhà đầu tư đề nghị X tỷ cho Y% → tính định giá, so với khoản vay | Vay thả nổi 2022–23 khi lãi suất tăng | "Gọi vốn là tiền miễn phí" | Mở **vay vốn / gọi vốn** |
+| B5 | **Mở 10 chi nhánh cùng lúc: liều hay khôn?** | Tăng trưởng, thời gian hoàn vốn, NPV (Đào sâu: IRR), đổi mới phá vỡ | Chọn 1 trong 3 dự án mở rộng có dòng tiền khác nhau → tính hoàn vốn/NPV | Starbucks 7/2008 đóng ~600 cửa hàng; Kodak | "Càng nhiều chi nhánh càng giàu" | Mở **chi nhánh trên các lô đất** |
+
+**③ KINH TẾ VĨ MÔ — "Nền kinh tế vận hành ra sao" (4 bài) — MẢNG MỚI ✅, là lõi "hiểu tin tức kinh tế"** (xem 13.2e)
+| # | Bài | Cốt lõi | Tương tác chính | Chuyện thật | Bẫy | Game |
+|---|---|---|---|---|---|---|
+| M1 | **Lạm phát đến từ đâu?** | Rổ hàng CPI, lạm phát do cầu kéo / chi phí đẩy / tiền nhiều, kỳ vọng lạm phát | **Tự xây rổ CPI** của một teen → tính lạm phát "của riêng mình"; bơm tiền vào nền kinh tế mini và xem giá chạy | VN 2008 & 2011 ⚠️; Zimbabwe; Mỹ 2022 | Lạm phát ≠ VND mất giá so với USD (7 người nhầm) | **Chỉ số giá** chạy trên bảng tin thị trấn |
+| M2 | **Ngân hàng trung ương — người cầm vòi nước** | Lãi suất điều hành, truyền dẫn sang lãi vay/gửi, đánh đổi lạm phát – thất nghiệp | **Xoay núm lãi suất**: thấy lạm phát, thất nghiệp, *và khoản trả góp của chính bạn* thay đổi | Fed 2022 ~0% → >5%; NHNN tăng lãi suất cuối 2022 | Vay thả nổi khi lãi suất tăng thì trả **nhiều hơn** (13 người nghĩ giữ nguyên) | Lãi suất trong game **do NHTW mô phỏng điều chỉnh** |
+| M3 | **Đọc một bản tin kinh tế trong 60 giây** | GDP, tăng trưởng, thất nghiệp, chu kỳ kinh tế, chỉ báo dẫn dắt | "Giải mã tít báo": tít giả lập → chọn nghĩa đúng, ai được – ai mất | Tin GDP quý của VN (số thật, ghi nguồn) ⚠️ | "GDP tăng = ai cũng giàu hơn" | Mở **tòa tin tức** trong thị trấn (tin kinh tế ảnh hưởng game) |
+| M4 | **Hai tay lái: chính phủ & NHTW** | Chính sách tài khóa vs tiền tệ, đình lạm (stagflation), kích thích kinh tế | Đóng vai: bạn điều khiển cả thuế/chi tiêu và lãi suất khi nền kinh tế quá nóng/quá lạnh | Dầu mỏ 1973 (đình lạm); gói kích thích 2008–09; COVID-19 | "Chính phủ in thêm tiền là hết nghèo" | Mở vai **Thống đốc** trong chế độ Khủng hoảng |
+
+**④ ĐẦU TƯ & THỊ TRƯỜNG (2 bài)**
+| # | Bài | Cốt lõi | Tương tác chính | Chuyện thật | Bẫy | Game |
+|---|---|---|---|---|---|---|
+| I1 | **Chứng khoán: đầu tư hay đánh bạc?** | Rủi ro – lợi nhuận, đa dạng hóa, quỹ chỉ số/ETF, FOMO (Đào sâu: Beta, độ biến động) | Mô phỏng 10 năm: dồn hết 1 mã vs chia đều vs quỹ chỉ số | Biến động VN-Index ⚠️ | "Cổ phiếu đang lên thì sẽ lên tiếp" | Mở **sàn giao dịch** |
+| I2 | **Vàng, đất, tiền ảo: vì sao giá lên xuống điên cuồng?** | Giá trị thực vs giá thị trường, bong bóng, tài sản trú ẩn (Đào sâu: phái sinh phòng ngừa rủi ro — hãng bay & giá dầu) | Vẽ đường giá dự đoán rồi so với thực tế | Bong bóng dot-com 2000; vàng khi bất ổn | "Giá cao = đáng giá" | Mở **tiệm vàng & quầy ngoại tệ** |
+
+**⑤ TÀI CHÍNH CÔNG (2 bài)**
+| # | Bài | Cốt lõi | Tương tác chính | Chuyện thật | Bẫy | Game |
+|---|---|---|---|---|---|---|
+| G1 | **Tiền thuế của mình đi đâu?** | Thu ngân sách (thuế, phí, lệ phí; VAT trong ly trà sữa), chi đầu tư công, chi thường xuyên | **Chia ngân sách** một thành phố: trường, bệnh viện, đường cao tốc… và xem người dân phản ứng | Thuế GTGT hiện hành ⚠️; cao tốc Bắc – Nam (đầu tư công) | "Teen không đóng thuế" (VAT có trong mọi món mua) | **Tòa thị chính** hiện công trình theo ngân sách |
+| G2 | **Chính phủ vay nợ: tốt hay xấu?** | Thâm hụt, nợ công, trái phiếu chính phủ, khi nào vay để đầu tư là đáng | So 2 quốc gia giả định: vay để xây hạ tầng vs vay để chi tiêu | Khủng hoảng nợ Hy Lạp 2010 | "Nợ công lúc nào cũng xấu" | Vai **Bộ trưởng Tài chính** |
+
+**⑥ TÀI CHÍNH QUỐC TẾ (2 bài)**
+| # | Bài | Cốt lõi | Tương tác chính | Chuyện thật | Bẫy | Game |
+|---|---|---|---|---|---|---|
+| X1 | **Vì sao USD tăng thì du học & iPhone đắt hơn?** | Tỷ giá, cung – cầu ngoại tệ, ai lợi (xuất khẩu) ai thiệt (nhập khẩu, du học) | Kéo tỷ giá → giá iPhone, học phí du học, lợi nhuận một xưởng xuất khẩu | Tỷ giá USD/VND ⚠️ | Tỷ giá tăng = kinh tế VN đang sụp | Mở **cảng & quầy đổi tiền** |
+| X2 | **1997: khi cả châu Á sụp đổ trong vài tháng** | Dòng vốn nóng, cố định tỷ giá, cán cân thanh toán, vai trò IMF | Đặt người học là Thái Lan đầu 1997 *trước khi biết kết quả*: giữ hay thả tỷ giá? | Khủng hoảng tài chính châu Á 1997 | "Vốn ngoại đổ vào càng nhiều càng tốt" | Mở **phòng 1997** trong Bảo tàng |
+
+**Liên hệ với 3 bài đã code:** `p-budget` → làm lại thành **P1**; `p-inflation` → tách: phần sức mua/lãi kép/quỹ khẩn cấp ở **P3**, phần *nguồn gốc lạm phát & bẫy USD* chuyển sang **M1**; `c-breakeven` → làm lại thành **B1**. Giữ engine & video "Quả cầu tuyết", viết lại lời thoại theo khung 13.2c.
+
+#### 13.2e Mảng Kinh tế vĩ mô — vì sao tách riêng & cái gì chuyển về đây ✅
+- Đây là **lõi ban đầu của nhóm** ("hiểu tin tức kinh tế") và là chỗ teen hổng nhất trong khảo sát (chỉ **30%** đúng lạm phát, **13%** đúng vay thả nổi khi lãi suất tăng). Đặt mảng này **gần tâm ngân hà nhất**, nối dải sáng tới hầu hết các mảng khác.
+- **Chuyển về Vĩ mô:** nguồn gốc lạm phát (từ bài lạm phát cũ), "NHTW tăng lãi suất → khoản vay thả nổi" (từ bài Cá nhân #4 cũ), "Chính sách tài khóa vs tiền tệ" (từ Tài chính công #2 cũ).
+- **Ở lại mảng cũ:** Cá nhân giữ phần *bảo vệ tiền của mình* trước lạm phát (P3); Tài chính công giữ *ngân sách, thuế, nợ công* (G1, G2).
+- Game: Vĩ mô = **khu NHTW + tòa tin tức** trên bản đồ (khu thứ 7); chế độ chơi = vai **Thống đốc NHTW** (dùng chung với chế độ Khủng hoảng đổi vai, 6.4).
+- Alti Lion: thêm chủ đề KB cho GDP, CPI, lãi suất điều hành, đình lạm, chu kỳ kinh tế (3 cấp n/l/p).
+
+#### 13.2f Dải sáng nối ngang (prerequisite) gợi ý
+M1 → P3 · M2 → P2, B4 · M3 → I1 · M4 → G1, G2 · X1 → M1 · X2 → X1, M2 · B3 → B1 · B5 → B3, B4 · I2 → I1 · P4 → P3.
+
+---
+
+### 13.3 GAME: ĐỒ HỌA LOW-POLY KIỂU FOCUSTOWN + ANIMAL CROSSING, ĐIỀU KHIỂN BẰNG JOYSTICK ✅ (chi tiết 💡)
+
+**Tham chiếu phong cách** (✅ nhóm chọn): **Focustown** (app học tập, tự mô tả là *môi trường low-poly ấm cúng*: quán cà phê, thư viện, nhân vật tùy biến, mua phụ kiện bằng đồng xu) và **Animal Crossing**. ⚠️ **Chỉ lấy cảm hứng phong cách — không dùng hình, mô hình, nhân vật hay tên của hai game này** (Nintendo và nhà phát triển Focustown giữ bản quyền). Không đưa ảnh chụp của họ vào app, video hay proposal như thể là của nhóm.
+
+**✅ Nhóm chốt (18/10): tham chiếu CHÍNH là Animal Crossing** — bám phong cách Animal Crossing nhiều nhất có thể; Focustown chỉ là tham chiếu phụ (không khí ấm cúng, low-poly). Vẫn chỉ lấy *phong cách*, tự dựng mọi thứ.
+
+**Checklist "giống Animal Crossing" (dùng để tự soát mỗi phiên):**
+- **Camera:** cao, nghiêng ~40–50°, bám sau nhân vật; **mặt đất cong xuống ở xa** ("thế giới cuộn tròn") — làm bằng shader uốn đỉnh theo khoảng cách camera; ưu tiên làm trong 20/10, không còn là tùy chọn.
+- **Hình khối:** mọi thứ **mập, tròn, bo cạnh**, hơi "đồ chơi"; cây tán tròn/tán tam giác xếp tầng, thân ngắn; nhà mái to, cửa sổ ô vuông, hàng rào gỗ thấp.
+- **Mặt đất:** cỏ xanh tươi có **mảng hoa nhỏ & cỏ lăn tăn**, đường đất/đá lát bo tròn, **vách đá bậc thang** (2–3 tầng cao độ), sông/suối có thác nhỏ, cát ven biển.
+- **Ánh sáng & màu:** pastel bão hòa vừa, nắng ấm, bóng đổ mềm màu tím xanh (không đen); **đổi màu trời theo giờ thật** (sáng – trưa – hoàng hôn cam hồng – đêm xanh tím, đèn cửa sổ bật).
+- **Sự sống:** bướm, chim, lá rơi, cá nhảy dưới nước, NPC dạng **chibi tròn**; cây rung khi đi ngang, cỏ lay; bụi nhỏ dưới chân khi chạy.
+- **Âm thanh 💡:** tiếng bước chân đổi theo mặt đất (cỏ/gỗ/đá), nhạc nền nhẹ đổi theo giờ (nếu kịp; tắt được trong Cài đặt).
+- **Giao diện trong game:** khung thoại **bo tròn, màu kem, chữ hiện từng chữ** kèm tiếng "bíp" nhỏ; menu dạng **"điện thoại trong game"** (net worth, nhà & xe, bản đồ, nhiệm vụ) với icon tròn pastel — dùng lại bộ icon SVG của app.
+- **Nhà:** vào nhà = cắt cảnh sang **phòng nhìn chéo kiểu diorama**, nội thất đặt theo ô lưới (trang trí — 🔜 nếu thiếu thời gian).
+- ⚠️ Không dùng: tên, nhân vật, logo, nhạc, font, mô hình, ảnh chụp từ Animal Crossing; không gọi tên game này trong app.
+
+**Ngôn ngữ hình ảnh cần đạt:**
+- **3D low-poly**, đổ bóng phẳng/mềm, khối tròn mập mạp, tỉ lệ chibi (đầu to).
+- **Camera cao nhìn chéo xuống ~45°**, đi theo nhân vật; hiệu ứng "**thế giới cong**" (xem checklist trên — bắt buộc).
+- Bảng màu pastel ấm, ánh nắng vàng, bóng đổ mềm; cỏ có hoa, cây tròn đung đưa, đường lát gạch, nước trong; ban đêm đèn đường & cửa sổ sáng.
+- Nội thất ấm cúng kiểu Focustown khi vào nhà/quán (cắt cảnh sang phòng bên trong).
+- Giữ: thời tiết (mưa/nắng/tuyết) của giao diện nền; Potato Mode giảm bóng, giảm NPC.
+
+**✅ Nhóm chốt (18/10): 3D LOW-POLY THẬT — Phương án A, Three.js.** (Thay cho "không làm 3D" ở 6.1.) Phương án B chỉ để tham khảo.
+- **Phương án A — 3D low-poly thật (💡 Claude khuyên):** **Three.js** + bộ mô hình **miễn phí bản quyền CC0** (vd các bộ thành phố, xe, thiên nhiên, nội thất, nhân vật mini của **Kenney** và **Quaternius** ⚠️ kiểm tra lại giấy phép từng bộ khi tải, ghi vào `assets/CREDITS.md`). Có sẵn nhà nhiều cỡ, xe nhiều loại → hợp ngay với ý "mua nhà, xe" (13.4). Trông giống Focustown nhất. Rủi ro: hiệu năng trên điện thoại yếu (giải bằng Potato Mode, giới hạn số vật thể, bóng đổ đơn giản), tùy biến nhân vật 3D khó hơn 2D.
+- **Phương án B — 2,5D:** vẽ SVG/Canvas góc nhìn isometric, tô nhiều mặt phẳng giả low-poly. An toàn hơn nhưng khó đạt độ "ấm" và chiều sâu như mong muốn.
+- Nếu chọn A, ngân hà (13.1) cũng dùng Three.js → một engine cho cả app.
+
+**Điều khiển ✅:**
+- **Joystick ảo** ở góc trái dưới (điện thoại; 💡 thư viện nhẹ dạng nipplejs — MIT, hoặc tự viết), **phím mũi tên/WASD** trên máy tính.
+- **Nút hành động** ở góc phải dưới: hiện nhãn khi đứng gần cửa ("Vào ngân hàng", "Nói chuyện"). Va chạm với nhà, cây, nước.
+- ✅ **Không có chạm-để-đi** (nhóm chốt bỏ hẳn). Chỉ joystick + phím.
+- Khi vào game: **ẩn thanh điều hướng 5 tab**, có nút thoát; **nút Alti Lion nổi chuyển lên góc phải trên** để không đè nút hành động.
+
+**Nhân vật người chơi 💡 (mẫu đã duyệt hình 18/10, chờ nhóm chốt):** chibi low-poly **dựng hoàn toàn bằng khối hình học trong code** (Three.js, `flatShading`), không dùng mô hình tải về → tùy biến màu/kiểu dễ, không lo bản quyền.
+- Tỉ lệ: đầu ≈ 40% chiều cao, thân ngắn, chân ngắn; mắt đen bầu dục có chấm sáng, má hồng, miệng cười nhỏ; tóc = mũ chỏm + mái bằng các khối đa diện.
+- Tùy biến (khớp trình tạo nhân vật cũ): màu da, kiểu & màu tóc, áo, quần, giày, phụ kiện.
+- **Trang phục tự đổi theo giai đoạn nghề:** Học sinh (áo phông + balo vàng) → Nhân viên (sơ mi + cà vạt tím) → Chủ quán (tạp dề + mũ xanh lá) → Ông trùm (vest tối + cà vạt đỏ + vương miện vàng). Màu lấy từ bảng màu thương hiệu.
+- Hoạt ảnh: thở nhẹ khi đứng, đung đưa tay chân + nhún khi đi theo joystick, nghiêng đầu; tôn trọng Potato Mode & giảm chuyển động.
+
+**Bản đồ:** giữ 6 khu ở 6.1b + **khu thứ 7: NHTW & tòa tin tức** (Vĩ mô). Mỗi khu mở rộng khi học mảng tương ứng. Thế giới vẫn lớn hơn nhiều màn hình, camera theo nhân vật, có minimap.
+
+---
+
+### 13.4 NHÀ, XE & NET WORTH ✅ ý tưởng · 💡 luật kinh tế
+
+**Ý của nhóm ✅ — cách làm 13.4 cũng ✅ (nhóm chốt 18/10):** nhiều tiền → mua được **xe sang, nhà đẹp**; giai đoạn đầu chỉ nhà/xe bình thường; muốn giàu phải giải tốt các vấn đề kinh doanh.
+
+**⚠️ Góc nhìn giáo sư — chỗ này có thể phản tác dụng:** nếu xe sang chỉ là *phần thưởng khoe*, game đang dạy đúng điều app muốn chữa (khảo sát: **20/46** teen mua đồ vì bạn bè có). Giải pháp không phải bỏ ý tưởng, mà để **chính nhà và xe dạy tài chính**:
+1. **Tài sản vs tiêu sản:** xe **mất giá** mỗi tháng + tốn **xăng, bảo dưỡng, bảo hiểm, gửi xe**; nhà có thể **tăng giá** và **cho thuê** (tạo thu nhập) nhưng tốn phí bảo trì, thuế. Net worth tính theo **giá thị trường hiện tại**, nên mua xe sang quá sớm → net worth **giảm** và dòng tiền âm.
+2. **Quy tắc của người giàu thật:** chỉ mua món "khoe" khi **thu nhập thụ động** (lợi nhuận quán, tiền cho thuê nhà, cổ tức) **trả được chi phí nuôi nó**. Alti Lion nhắc khi người chơi định mua vượt sức.
+3. **Mua bằng vay:** được vay mua nhà/xe, nhưng cần **điểm tín dụng** (nối bài P2) và chịu **lãi suất do NHTW mô phỏng** (nối M2) → lãi suất tăng thì khoản trả tăng thật.
+4. **Mở khóa theo giai đoạn, không chỉ theo tiền:** món cao cấp cần cấp nghề/chuỗi cửa hàng (giai đoạn doanh nghiệp) → buộc phải *giỏi kinh doanh*, không chỉ cày tiền.
+5. **Xếp hạng theo net worth, không theo đồ:** người mua xe sang mà nợ nần sẽ xếp **dưới** người sống giản dị nhưng có tài sản sinh lời. Đây là "aha" của game.
+
+**Bậc tài sản gợi ý 💡** (giá theo đơn vị tiền trong game, chỉnh khi cân bằng):
+| Giai đoạn | Nhà | Xe |
+|---|---|---|
+| Cá nhân (đi làm) | Phòng trọ → căn hộ nhỏ | Đi bộ → xe đạp → xe máy |
+| Chủ quán | Nhà phố | Xe máy tốt → ô tô nhỏ |
+| Chuỗi cửa hàng | Nhà phố có sân vườn, có thể mua thêm căn để cho thuê | Ô tô gia đình |
+| Ông trùm 👑 | Biệt thự | Xe thể thao / xe sang |
+- Mỗi món có: giá mua, phí duy trì/tháng, % mất giá hoặc tăng giá/tháng, (nhà) tiền thuê nếu cho thuê.
+- Nhà mua về **trang trí nội thất được** (kiểu Animal Crossing/Focustown) bằng tiền trong game.
+
+**✅ Bảng xếp hạng "đứa nào nhiều tiền" (nhóm đồng ý dùng NPC cho demo):** cần máy chủ để so với người thật → **demo không có** (localStorage). 💡 Demo: xếp hạng với **6–8 NPC "bạn cùng lớp"** có phong cách khác nhau (người tiêu xài, người tiết kiệm, người liều, người kinh doanh giỏi) — vừa tạo động lực, vừa minh họa các lối sống tài chính. 🔜 Bản thật: bảng xếp hạng bạn bè/lớp học.
+
+---
+
+### 13.5 Mâu thuẫn & điểm chưa rõ — ✅ ĐÃ TRẢ LỜI 18/10
+- ✅ (1) **3D low-poly thật**, Three.js. (2) **Nhà/xe dạy tài sản vs tiêu sản** theo đúng 13.4, xếp hạng theo net worth. (3) **Xếp hạng với NPC** cho demo. (4) **Bỏ chạm-để-đi**, chỉ joystick + phím; nút Alti Lion lên góc phải trên khi trong game. (5) **Đồng ý lịch 13.6** và thứ tự hoãn. (6) Người duyệt nội dung: chờ nhóm phân công.
+
+_Câu hỏi gốc:_
+1. **3D low-poly hay 2,5D?** (13.3) — quyết định ảnh hưởng cả ngân hà lẫn game.
+2. **Xe sang/nhà đẹp là phần thưởng khoe hay công cụ dạy tài sản vs tiêu sản?** Claude khuyên cách 13.4.
+3. **Bảng xếp hạng:** đồng ý dùng NPC cho demo?
+4. **Chạm-để-đi** giữ làm tùy chọn hay bỏ hẳn?
+5. **Phạm vi trong 5 ngày còn lại:** khối lượng tăng (ngân hà + 3D + 20 bài làm lại + mảng mới + nhà/xe). Phải chọn cái **hoãn** — xem 13.6.
+6. **Ai duyệt nội dung bài:** cần 1 người (đề xuất Phước Tấn) duyệt số liệu + 1 người (Gia Mẫn) soát bản EN theo ngày.
+
+---
+
+### 13.6 Lịch mới (💡 chờ nhóm duyệt)
+Khối lượng tăng mạnh nhưng hạn không đổi → **giữ nguyên vòng lặp demo mục 8**, hoãn phần không lên video.
+
+| Ngày | Việc |
+|---|---|
+| **18/10 (chiều)** | Nhóm duyệt mục 13, trả lời 13.5. Cập nhật file này lên repo. |
+| **19/10** | **Ngân hà Altair** (3 tầng zoom, trạng thái, dải sáng, hành tinh nhà, danh sách) thay con đường; dữ liệu 6 mảng/20 bài (bài chưa có = hành tinh phác thảo). |
+| **20/10** | **Thị trấn low-poly**: Three.js + asset CC0, joystick + phím, camera, va chạm, 7 khu, NPC, thời tiết, nhân vật tùy biến, HUD net worth. |
+| **21/10** | **Chế độ Cá nhân** + **nhà & xe** (13.4) + bài **P1, P2, P3** (theo khung 13.2c). |
+| **22/10** | **Chế độ Doanh nghiệp** + bài **B1, B3, B4** + **M2** (núm lãi suất — trùng vòng demo). |
+| **23/10** | **1 cuộc khủng hoảng làm thật đẹp** (đề xuất 2008 hoặc 1929, có đổi vai Thống đốc) + **M1, M3** + deploy. |
+| 24–26/10 | Đệm: các bài còn lại (P4, P5, B2, B5, M4, I1–2, G1–2, X1–2), Khám phá 3 bài, sửa lỗi, kiểm thử điện thoại. |
+| 27–28/10 | Kiểm chứng số liệu/ảnh/giấy phép; khóa tính năng. |
+| 29–31/10 | Quay video, hoàn thiện PDF. |
+| **01/11** | Nộp trước 23:59. |
+
+**Hoãn sang sau demo (🔜) nếu thiếu thời gian, theo thứ tự hoãn trước:** màn chơi riêng cho Đầu tư/Công/Quốc tế → 2 cuộc khủng hoảng còn lại (để ở dạng phòng bảo tàng "sắp mở") → trang trí nội thất nhà → âm thanh.
+**Không hoãn:** ngân hà, thị trấn low-poly + joystick, net worth + nhà/xe, chế độ Cá nhân & Doanh nghiệp, M2, bản EN.
