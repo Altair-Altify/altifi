@@ -98,3 +98,4 @@
 .dg.bad{border-color:#EF4E4E}.dg.bad .dbar i{background:#EF4E4E}
 #dgPay.good{border-color:var(--line)}#dgPay .dbar i{background:#F5A524}
 body.potato #dialNeedle{transition:none}
+.q .qsub{display:block;margin-top:8px;font-size:14px;font-weight:700;line-height:1.55;color:var(--muted)}

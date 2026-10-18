@@ -8,6 +8,8 @@ import inflation from "./lessons/p-inflation";
 import bnpl from "./lessons/p-bnpl";
 import centralbank from "./lessons/m-centralbank";
 import breakeven from "./lessons/c-breakeven";
+import cash from "./lessons/c-cash";
+import funding from "./lessons/c-funding";
 import placement from "./placement";
 
 export interface Domain {
@@ -46,10 +48,10 @@ export const DOMAINS: Domain[] = [
     { id: "c-price", code: "B2", ic: "percent", day: "24/10", prereq: ["c-breakeven"],
       title: T("Định giá & khuyến mãi", "Pricing & promotions"), hook: T("Giá bao nhiêu thì đúng?", "What's the right price?"),
       unlock: T("Chỉnh giá & khuyến mãi", "Set prices & promotions"), planet: { shape: "rocky", palette: ["#E5873A", "#F2A65A", "#F9C98B", "#FFE6C2"], feature: "tagRing" } },
-    { id: "c-cash", code: "B3", ic: "drop", day: "22/10", prereq: ["c-breakeven"],
+    { id: "c-cash", code: "B3", ic: "drop", lesson: cash, day: "22/10", prereq: ["c-breakeven"],
       title: T("Lợi nhuận ≠ tiền mặt", "Profit ≠ cash"), hook: T("Lời mà vẫn phá sản — chuyện gì vậy?", "Profitable yet bankrupt — how?"),
       unlock: T("Báo cáo dòng tiền của quán", "Your shop's cash-flow report"), planet: { shape: "rocky", palette: ["#9C7A5B", "#B8977A", "#D4BC9F", "#EFE2CF"], feature: "craters" } },
-    { id: "c-funding", code: "B4", ic: "scale", day: "22/10", prereq: ["c-breakeven"],
+    { id: "c-funding", code: "B4", ic: "scale", lesson: funding, day: "22/10", prereq: ["c-breakeven"],
       title: T("Vay nợ hay gọi vốn", "Debt or equity"), hook: T("Vay ngân hàng hay gọi vốn kiểu Shark Tank?", "A bank loan or a Shark Tank pitch?"),
       unlock: T("Vay vốn / gọi vốn", "Loans & investors"), planet: { shape: "rocky", palette: ["#D98E2B", "#ECB04E", "#F6D27E", "#FFF0BF"], feature: "twin" } },
     { id: "c-growth", code: "B5", ic: "rocket", day: "25/10", prereq: ["c-cash", "c-funding"],

@@ -1,5 +1,7 @@
-/* Corporate finance · Lesson 1 — Revenue, costs, profit; fixed vs variable; break-even (design doc 3.4)
- * Linh's bubble-tea shop is a made-up example; every number is computed in the comments. */
+/* Business finance · B1 — "How much profit is in one cup of milk tea?" (design doc 13.2d ②, 6-beat frame 13.2c)
+ * Fixed vs variable costs, contribution per cup, break-even; trap "high revenue = high profit".
+ * Linh's milk-tea shop is a made-up example; every number is computed in the comments.
+ * ⚠️ Draft written with AI help — team review (ideally with a real shop owner's cost numbers). */
 import type { Lesson } from "../../lesson/types";
 
 // Price 40,000₫ · variable cost 18,000₫/cup · fixed 63,000,000₫/month · sells 3,000 cups/month
@@ -12,7 +14,7 @@ const lesson: Lesson = {
   icon: "🧋",
   ic: "scale",
   minutes: 8,
-  title: { vi: "Doanh thu, chi phí & điểm hòa vốn", en: "Revenue, costs & break-even" },
+  title: { vi: "Bán một ly trà sữa lời bao nhiêu?", en: "How much profit is in one cup of milk tea?" },
   desc: {
     vi: "Vì sao quán đông khách vẫn có thể lỗ: chi phí cố định vs biến đổi, đọc báo cáo kết quả kinh doanh mini, tính điểm hòa vốn.",
     en: "Why a busy shop can still lose money: fixed vs variable costs, reading a mini income statement, working out break-even.",
@@ -38,11 +40,17 @@ const lesson: Lesson = {
   steps: [
     {
       t: "learn", photo: { query: "bubble tea shop" }, art: "🧋🧋🧋👥👥👥 → 📉?", cap: { vi: "Đông khách ≠ có lời", en: "Busy ≠ profitable" },
-      title: { vi: "Quán đông mà vẫn lỗ?", en: "Busy, yet losing money?" },
+      title: { vi: "Bán một ly trà sữa lời bao nhiêu?", en: "How much profit is in one cup of milk tea?" },
       text: {
-        vi: "Linh mở quán trà sữa gần trường. Tháng nào cũng bán khoảng <b>3.000 ly</b>, giờ tan học khách xếp hàng. Vậy mà cuối tháng, Linh gần như không còn đồng lời nào. Chuyện gì đang xảy ra? Để trả lời, ta cần tách <b>chi phí</b> thành hai loại.",
-        en: "Linh opened a bubble-tea shop near a school. She sells about <b>3,000 cups</b> a month, with queues after class. Yet at month-end there's almost no profit left. What's going on? To answer, we need to split <b>costs</b> into two kinds.",
+        vi: "Linh mở quán trà sữa gần trường, bán <b>40.000₫</b> một ly. Tháng nào cũng bán khoảng <b>3.000 ly</b> — doanh thu 120 triệu, giờ tan học khách xếp hàng. Vậy mà cuối tháng, Linh gần như không còn đồng lời nào. Tiền đi đâu? Bài này bạn sẽ tự tính.",
+        en: "Linh opened a milk-tea shop near a school, selling cups at <b>40,000₫</b>. She sells about <b>3,000 cups</b> a month — 120 million in revenue, with queues after class. Yet at month-end there's almost no profit left. Where did the money go? You'll work it out.",
       },
+      lion: { vi: "Đông khách ≠ có lời. Nghe lạ đúng không? 🧋", en: "Busy ≠ profitable. Sounds odd, right? 🧋" },
+    },
+    {
+      t: "predict", q: { vi: "Đoán thử: mỗi ly 40.000₫, sau khi trừ MỌI chi phí (nguyên liệu, thuê, lương…), Linh lời bao nhiêu một ly?", en: "Guess: on each 40,000₫ cup, after EVERY cost (ingredients, rent, wages…), how much profit does Linh make?" },
+      art: "🧋 40.000₫ → 💰 ?", min: 0, max: 30000, step: 500, start: 15000, actual: 1000, unit: "vnd",
+      reveal: { vi: "Chỉ khoảng <b>1.000₫</b> một ly (lời 3 triệu ÷ 3.000 ly). Hầu hết mọi người đoán 15–20 nghìn — vì chỉ nghĩ tới tiền sữa, trà, trân châu mà quên tiền thuê và lương phải trả mỗi tháng.", en: "Only about <b>1,000₫</b> a cup (3 million profit ÷ 3,000 cups). Most people guess 15–20 thousand — they think of milk, tea and tapioca but forget the rent and wages due every month." },
     },
     {
       t: "learn", art: "📌 + 📦 = 🧾",
@@ -129,6 +137,13 @@ const lesson: Lesson = {
       reveal: { vi: "Khoảng 2.333 ly (63 triệu ÷ 27.000₫). Nhưng cẩn thận: giá cao hơn có thể khiến một số khách bỏ đi — doanh nghiệp phải cân nhắc khách nhạy cảm với giá đến mức nào.", en: "About 2,333 cups (63M ÷ 27,000₫). But careful: a higher price may drive some customers away — a business must weigh how price-sensitive its customers are." },
     },
     {
+      t: "pick", q: { vi: "Bẫy! Mỗi ly vẫn góp 22.000₫. Chọn mặt bằng nào LỜI nhất mỗi tháng?<span class=\"qsub\">🏫 Cạnh trường: thuê 25tr · nhân viên & quảng cáo 38tr · bán 3.000 ly<br>🏘️ Quầy trong hẻm: thuê 8tr · nhân viên & quảng cáo 15tr · bán 1.350 ly<br>🏬 Trung tâm thương mại: thuê 45tr · nhân viên & quảng cáo 45tr · bán 3.900 ly</span>", en: "Trap! Each cup still contributes 22,000₫. Which spot makes the MOST profit a month?<span class=\"qsub\">🏫 By the school: rent 25M · staff & ads 38M · sells 3,000 cups<br>🏘️ Alley kiosk: rent 8M · staff & ads 15M · sells 1,350 cups<br>🏬 Shopping mall: rent 45M · staff & ads 45M · sells 3,900 cups</span>" },
+      opts: [["🏫", { vi: "Cạnh trường", en: "By the school" }], ["🏘️", { vi: "Quầy trong hẻm", en: "Alley kiosk" }], ["🏬", { vi: "Trung tâm thương mại", en: "Shopping mall" }], ["🤷", { vi: "Như nhau", en: "All the same" }]],
+      a: 1,
+      why: { vi: "Hẻm: 1.350 × 22k = 29,7tr − 23tr = <b>+6,7tr</b>. Cạnh trường: 66tr − 63tr = +3tr. Trung tâm thương mại: 85,8tr − 90tr = <b>−4,2tr</b> — đông nhất, doanh thu cao nhất mà LỖ. Doanh thu cao ≠ lời nhiều; thứ quyết định là lãi góp so với chi phí cố định.", en: "Alley: 1,350 × 22k = 29.7M − 23M = <b>+6.7M</b>. School: 66M − 63M = +3M. Mall: 85.8M − 90M = <b>−4.2M</b> — the busiest, highest revenue, and a LOSS. High revenue ≠ high profit; what matters is contribution versus fixed costs." },
+      hint: { vi: "Mỗi chỗ: số ly × 22.000₫ rồi trừ thuê và nhân viên.", en: "For each spot: cups × 22,000₫, minus rent and staff." },
+    },
+    {
       t: "mcq", q: { vi: "Quán A: chi phí cố định cao, biến đổi thấp. Quán B: ngược lại. Doanh số cả hai cùng giảm 30%. Lợi nhuận quán nào lao dốc mạnh hơn?", en: "Shop A: high fixed, low variable costs. Shop B: the opposite. Both see sales drop 30%. Whose profit falls harder?" },
       o: [{ vi: "Quán A", en: "Shop A" }, { vi: "Quán B", en: "Shop B" }, { vi: "Như nhau", en: "The same" }, { vi: "Không quán nào bị ảnh hưởng", en: "Neither is affected" }],
       a: 0,
@@ -145,6 +160,17 @@ const lesson: Lesson = {
       need: 2,
       model: { vi: "Vì chi phí cố định (thuê, lương) quá lớn so với lãi góp mỗi ly, nên dù đông khách, số ly bán vẫn chưa vượt điểm hòa vốn.", en: "Because fixed costs (rent, salaries) are large compared with the contribution per cup, so even with queues the shop doesn't sell enough to pass break-even." },
       why: { vi: "Đông khách chỉ là doanh thu. Lời hay lỗ phụ thuộc cấu trúc chi phí và điểm hòa vốn.", en: "Queues are just revenue. Profit depends on the cost structure and the break-even point." },
+    },
+    {
+      t: "learn", art: "🧋 → 🧮 → 🏪",
+      title: { vi: "Dùng ngay hôm nay", en: "Use it today" },
+      text: { vi: "Lần tới đi mua trà sữa, thử làm 'kế toán' trong 1 phút:", en: "Next time you buy milk tea, play accountant for a minute:" },
+      items: [
+        ["🧮", { vi: "Ước lượng tiền nguyên liệu một ly (trà, sữa, trân châu, ly) — lãi góp còn bao nhiêu?", en: "Estimate the ingredients in one cup (tea, milk, tapioca, cup) — what's the contribution?" }],
+        ["🏪", { vi: "Đoán tiền thuê + lương của quán mỗi tháng — họ cần bán bao nhiêu ly/ngày để hòa vốn?", en: "Guess the shop's monthly rent + wages — how many cups a day to break even?" }],
+        ["👀", { vi: "Đếm khách trong 10 phút — quán này đang lời hay lỗ?", en: "Count customers for 10 minutes — is this shop making money?" }],
+      ],
+      lion: { vi: "🎮 Đã mở trong game: quầy trà sữa đầu tiên của bạn ở Phố kinh doanh — tự chọn giá và xem điểm hòa vốn mỗi tháng!", en: "🎮 Unlocked in the game: your first milk-tea kiosk on Business Street — set your price and see your break-even every month!" },
     },
   ],
   deep: [
