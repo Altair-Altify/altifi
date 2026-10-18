@@ -29,6 +29,10 @@
 - **(21/10) 5 case tháng do Claude soạn nháp** — ⚠️ quy định cuộc thi: nhóm phải đọc, sửa lời, kiểm số liệu (Madoff ~65 tỷ USD, 150 năm tù; Madrian & Shea 37% → 86%; Fed 2022–23; NHNN tăng lãi 2 lần cuối 2022) trước khi nộp.
 - **(20/10) Cửa có thể vào = nút hành động góc phải dưới hiện khi đứng gần (≤ 1,9 m); trong nhà/quầy hiện khung thoại kem + nút "Học ngay" nếu chưa học bài mở khóa nơi đó** — 13.3 yêu cầu nút hành động có nhãn; gắn mỗi nơi với cột "Game" của 13.2d để học xong có lý do vào game (13.2b-7).
 
+## Phiên 5 (tiếp) — 24–26/10: bài B2, B5 ✅ (đã push) → mảng Doanh nghiệp đủ 5/5 bài
+- **B2 "Giá bao nhiêu thì đúng?"** (`c-price`): hai quầy (cạnh trường / khu văn phòng) → **đoán** giá lời nhất cạnh trường (35k) → biểu đồ cầu theo giá (độ dốc = độ nhạy giá) → tính lợi nhuận khu văn phòng (45k lời nhất) → **chuyện thật** chiến tranh voucher (viết trung lập) → **bẫy** giảm giá 14% phải bán thêm 33% → trùm cuối → Dùng ngay. Đào sâu: độ co giãn (tính). Số cầu là số giả định, có ghi chú.
+- **B5 "Mở 10 chi nhánh cùng lúc: liều hay khôn?"** (`c-growth`): 3 phương án A/B/C → **đoán** → chiết khấu & NPV → tính PV, NPV, hoàn vốn của C → **bảng so sánh 3 phương án** (A NPV −473, B +100, C +52) → **chuyện thật** Starbucks đóng ~600 cửa hàng 7/2008 + Kodak → **bẫy** "càng nhiều chi nhánh càng giàu" → trùm cuối → Dùng ngay. Đào sâu: IRR (tính), ăn thịt doanh số.
+
 ## Phiên 5 (tiếp) — 24–26/10: bài P4, P5 ✅ (đã push) → mảng Cá nhân đủ 5/5 bài
 - **P4 "Làm sao biết mình sắp bị lừa?"** (`p-scam`): tin nhắn "việc nhẹ 500k/ngày" → **đoán** 1tr với lãi 5%/tuần sau 1 năm (12,6tr) → cơ chế Ponzi → **bấm cờ đỏ** trong đoạn chat tuyển CTV → phân loại tin nhắn an toàn/lừa (OTP, mật khẩu game, trúng thưởng, "thầy chứng khoán") → **chuyện thật** Madoff + trái phiếu 2022 (ẩn danh) → **bẫy** "bạn mình rút được tiền rồi" → trùm cuối → Dùng ngay. Đào sâu: toán kim tự tháp (6ⁿ), 2%/tuần.
 - **P5 "Lương 10 triệu, cầm về được bao nhiêu?"** (`p-salary`): **đoán** thực nhận (8,95tr) → **phiếu lương** từng dòng → tính lương 15tr + quỹ khẩn cấp → thuế TNCN lũy tiến từng phần (không nêu số giảm trừ cụ thể) → chọn bảo hiểm nên mua trước → **bẫy** gộp vs thực nhận (12tr gộp < 11tr thực nhận) → trùm cuối (làm thêm không bảo hiểm) → Dùng ngay. Đào sâu: chi phí thật của một nhân viên, bảo hiểm là chia sẻ rủi ro.
@@ -287,7 +291,7 @@ Nhóm đo trên altifi.vercel.app ở khung 375×812 và gửi đúng diff sửa
 ## ▶️ Việc đầu tiên của phiên sau (cập nhật 18/10 tối, giờ VN)
 **Trạng thái:** mọi việc trong lịch 13.6 tới **23/10 đã xong và đã deploy** (thị trấn 7 khu, chế độ Cá nhân, chế độ Doanh nghiệp, khủng hoảng 1929 hai vai, bài P1–P3, B1, B3, B4, M1–M3). Đang làm dòng **24–26/10**.
 1. `git pull`, đọc mục "Quyết định Claude Code tự đưa ra" ở đầu file + các mục Phiên 5. `npm install && npm run dev`, `node scripts/playthrough.cjs vi` (đã gồm 10 bài; bước `predict` báo WRONG là đúng thiết kế).
-2. Làm tiếp các bài còn thiếu theo thứ tự 13.6: ~~P4, P5~~ (xong), **B2, B5, M4, I1, I2, G1, G2, X1, X2** (khung 6 nhịp 13.2c — xem `src/content/lessons/p-bnpl.ts` làm mẫu; nhớ thêm `lesson:` vào node trong `src/content/domains.ts` và thêm id vào `scripts/playthrough.cjs`). Tiến độ từng bài ghi ở các mục Phiên 5/6 phía trên.
+2. Làm tiếp các bài còn thiếu theo thứ tự 13.6: ~~P4, P5, B2, B5~~ (xong), **M4, I1, I2, G1, G2, X1, X2** (khung 6 nhịp 13.2c — xem `src/content/lessons/p-bnpl.ts` làm mẫu; nhớ thêm `lesson:` vào node trong `src/content/domains.ts` và thêm id vào `scripts/playthrough.cjs`). Tiến độ từng bài ghi ở các mục Phiên 5/6 phía trên.
 3. Sau đó: Khám phá 3 bài (mục 4), sửa lỗi, thử trên điện thoại thật (nhóm).
 4. Kiểm tra nhanh trước khi push: build, playthrough, và Playwright 375×812 (5 tab, mở bài học, vào thị trấn, kéo joystick, thoát). Script tham khảo đã dùng: mở tab Chơi → `A.goTown()`; trong dev có `window.__town` để dịch chuyển nhân vật.
 5. Tổng kết tuần: nếu từ 18:00 thứ Năm 22/10 (giờ VN) chưa có bản tổng kết ở đầu file thì viết.

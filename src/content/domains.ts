@@ -14,6 +14,8 @@ import mnews from "./lessons/m-news";
 import breakeven from "./lessons/c-breakeven";
 import cash from "./lessons/c-cash";
 import funding from "./lessons/c-funding";
+import cprice from "./lessons/c-price";
+import growth from "./lessons/c-growth";
 import placement from "./placement";
 
 export interface Domain {
@@ -49,7 +51,7 @@ export const DOMAINS: Domain[] = [
     { id: "c-breakeven", code: "B1", ic: "calc", lesson: breakeven, day: "22/10", prereq: [],
       title: T("Chi phí & điểm hòa vốn", "Costs & break-even"), hook: T("Bán một ly trà sữa lời bao nhiêu?", "How much profit is in one cup of milk tea?"),
       unlock: T("Quầy hàng đầu tiên", "Your first stall"), planet: { shape: "rocky", palette: ["#C99A6B", "#DDB78B", "#EED3AE", "#FFF3E0"], feature: "boba" } },
-    { id: "c-price", code: "B2", ic: "percent", day: "24/10", prereq: ["c-breakeven"],
+    { id: "c-price", code: "B2", ic: "percent", lesson: cprice, day: "24/10", prereq: ["c-breakeven"],
       title: T("Định giá & khuyến mãi", "Pricing & promotions"), hook: T("Giá bao nhiêu thì đúng?", "What's the right price?"),
       unlock: T("Chỉnh giá & khuyến mãi", "Set prices & promotions"), planet: { shape: "rocky", palette: ["#E5873A", "#F2A65A", "#F9C98B", "#FFE6C2"], feature: "tagRing" } },
     { id: "c-cash", code: "B3", ic: "drop", lesson: cash, day: "22/10", prereq: ["c-breakeven"],
@@ -58,7 +60,7 @@ export const DOMAINS: Domain[] = [
     { id: "c-funding", code: "B4", ic: "scale", lesson: funding, day: "22/10", prereq: ["c-breakeven"],
       title: T("Vay nợ hay gọi vốn", "Debt or equity"), hook: T("Vay ngân hàng hay gọi vốn kiểu Shark Tank?", "A bank loan or a Shark Tank pitch?"),
       unlock: T("Vay vốn / gọi vốn", "Loans & investors"), planet: { shape: "rocky", palette: ["#D98E2B", "#ECB04E", "#F6D27E", "#FFF0BF"], feature: "twin" } },
-    { id: "c-growth", code: "B5", ic: "rocket", day: "25/10", prereq: ["c-cash", "c-funding"],
+    { id: "c-growth", code: "B5", ic: "rocket", lesson: growth, day: "25/10", prereq: ["c-cash", "c-funding"],
       title: T("Mở rộng & NPV", "Growth & NPV"), hook: T("Mở 10 chi nhánh cùng lúc: liều hay khôn?", "Opening 10 branches at once: bold or smart?"),
       unlock: T("Chi nhánh trên các lô đất", "Branches on the map's plots"), planet: { shape: "rocky", palette: ["#7FA35B", "#A3C27A", "#C9DDA0", "#EEF5D8"], feature: "cities" } },
   ]),
