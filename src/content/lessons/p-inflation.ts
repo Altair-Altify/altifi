@@ -1,6 +1,8 @@
-/* Personal finance · Lesson 2 — Emergency fund, inflation & compound interest (with animated video)
- * Survey misconceptions targeted (design doc 1.3): compound vs simple interest; inflation ≠ the dong falling vs the dollar.
- * ⚠️ Verify before submission: Vietnam's 2008 average CPI inflation ≈ 23% (GSO). All other numbers are computed here. */
+/* Personal finance · P3 — "Why is my 100k slowly shrinking?" (design doc 13.2d, 6-beat frame 13.2c, with animated video)
+ * Buying power, real rate, compounding, rule of 72, emergency fund. Survey trap targeted: compound ≠ simple interest (12/46).
+ * Where inflation comes from + "inflation ≠ the dong falling vs the dollar" moved to M1 (13.2e).
+ * ⚠️ Draft written with AI help — team review. Verify: Vietnam's 2008 average CPI inflation ≈ 23% (GSO); milk-tea prices 2015/2025
+ * in the hook are illustrative. All other numbers are computed here. */
 import type { Lesson } from "../../lesson/types";
 import type { VideoDef } from "../../lesson/video";
 
@@ -97,68 +99,66 @@ const lesson: Lesson = {
   domain: "personal",
   icon: "⛄",
   ic: "percent",
-  minutes: 8,
-  title: { vi: "Lạm phát, lãi kép & quỹ khẩn cấp", en: "Inflation, compounding & emergency funds" },
+  minutes: 7,
+  title: { vi: "Vì sao 100 nghìn của mình đang teo dần?", en: "Why is my 100k slowly shrinking?" },
   desc: {
-    vi: "Vì sao tiền để yên lại 'teo' đi, lạm phát khác tỷ giá ra sao, lãi suất thực, quy tắc 72 và nên cất quỹ khẩn cấp ở đâu.",
-    en: "Why idle cash 'shrinks', how inflation differs from the exchange rate, real interest, the rule of 72, and where an emergency fund belongs.",
+    vi: "Sức mua, lãi suất thực = lãi − lạm phát, quả cầu tuyết lãi kép, quy tắc 72, và để quỹ khẩn cấp ở đâu.",
+    en: "Buying power, real interest = rate − inflation, the compound-interest snowball, the rule of 72, and where an emergency fund belongs.",
   },
   prereq: { vi: "lãi suất là 'giá' của việc dùng tiền: gửi thì được trả lãi, vay thì phải trả lãi.", en: "interest is the 'price' of using money: savers get paid interest, borrowers pay it." },
   review: {
-    title: { vi: "Lãi suất & lạm phát", en: "Interest & inflation" },
+    title: { vi: "Sức mua & lãi kép", en: "Buying power & compounding" },
     points: [
-      { vi: "Gửi tiền → ngân hàng trả lãi cho bạn. Vay tiền → bạn trả lãi.", en: "Save → the bank pays you interest. Borrow → you pay interest." },
-      { vi: "Lãi kép = lãi trên cả tiền lãi cũ ⛄.", en: "Compound interest = interest on past interest ⛄." },
-      { vi: "Lạm phát = giá cả <b>nói chung</b> tăng (đo bằng CPI).", en: "Inflation = prices <b>in general</b> rise (measured by CPI)." },
+      { vi: "Giá cả tăng → cùng số tiền mua được ít hơn (mất <b>sức mua</b>).", en: "Prices rise → the same money buys less (it loses <b>buying power</b>)." },
       { vi: "Lãi suất thực ≈ lãi suất − lạm phát.", en: "Real interest ≈ interest rate − inflation." },
+      { vi: "Lãi kép = lãi trên cả tiền lãi cũ ⛄ — KHÔNG phải lãi đơn.", en: "Compound interest = interest on past interest ⛄ — NOT simple interest." },
+      { vi: "Quy tắc 72: số năm gấp đôi ≈ 72 ÷ lãi suất.", en: "Rule of 72: years to double ≈ 72 ÷ rate." },
     ],
   },
   info: {
-    s: { vi: "Lạm phát làm tiền mất sức mua; lãi kép giúp tiền lớn nhanh — lãi suất thực ≈ lãi − lạm phát.", en: "Inflation erodes buying power; compounding grows money fast — real rate ≈ interest − inflation." },
+    s: { vi: "Tiền để yên mất sức mua vì lạm phát; lãi kép giúp tiền lớn nhanh — lãi suất thực ≈ lãi − lạm phát.", en: "Idle money loses buying power to inflation; compounding grows money fast — real rate ≈ interest − inflation." },
     l: {
-      vi: "Lạm phát là khi mặt bằng giá chung tăng (đo bằng CPI), nên tiền để yên mua được ít hơn. Nó khác với việc VND mất giá so với USD (đó là tỷ giá). Lãi kép là lãi sinh ra trên cả tiền lãi cũ — càng để lâu càng lớn; quy tắc 72 ước lượng thời gian gấp đôi. Thứ thật sự quan trọng là lãi suất thực ≈ lãi suất − lạm phát. Quỹ khẩn cấp (3–6 tháng chi phí thiết yếu) nên để ở nơi an toàn, rút nhanh.",
-      en: "Inflation is a rise in the general price level (measured by CPI), so idle money buys less. It's different from the dong weakening against the dollar (that's the exchange rate). Compound interest is interest earned on past interest — the longer, the bigger; the rule of 72 estimates doubling time. What really matters is the real rate ≈ interest − inflation. An emergency fund (3–6 months of essentials) belongs somewhere safe and quick to access.",
+      vi: "Khi mặt bằng giá tăng (lạm phát, đo bằng CPI), tiền để yên mua được ít hơn — đó là lý do 100 nghìn 'teo' dù con số không đổi. Muốn giữ sức mua, tiền phải sinh lãi ít nhất bằng lạm phát: lãi suất thực ≈ lãi suất − lạm phát. Lãi kép là lãi sinh ra trên cả tiền lãi cũ — càng để lâu càng lớn; quy tắc 72 ước lượng thời gian gấp đôi. Quỹ khẩn cấp (3–6 tháng chi phí thiết yếu) nên để nơi an toàn, rút nhanh. (Nguồn gốc của lạm phát và chuyện tỷ giá USD học ở bài M1.)",
+      en: "When the general price level rises (inflation, measured by CPI), idle money buys less — that's why 100k 'shrinks' even though the number stays the same. To keep buying power, money must earn at least inflation: real rate ≈ interest − inflation. Compound interest is interest earned on past interest — the longer, the bigger; the rule of 72 estimates doubling time. An emergency fund (3–6 months of essentials) belongs somewhere safe and quick to reach. (Where inflation comes from, and the USD exchange rate, are in lesson M1.)",
     },
   },
-  kb: ["inflation", "realrate", "compound", "emergency", "fx"],
+  kb: ["inflation", "realrate", "compound", "emergency"],
   steps: [
+    /* 1 · Hook */
+    {
+      t: "learn", photo: { query: "Ben Thanh Market Ho Chi Minh City" }, art: "🧋 25k → 🧋 45k", cap: { vi: "100k từng mua 4 ly. Giờ chỉ 2 ly.", en: "100k used to buy 4 cups. Now just 2." },
+      title: { vi: "Vì sao 100 nghìn của mình đang teo dần?", en: "Why is my 100k slowly shrinking?" },
+      text: {
+        vi: "Tờ 100.000₫ trong ống heo vẫn là 100.000₫. Nhưng năm nào nó cũng <b>mua được ít hơn</b> một chút, vì giá cả nói chung tăng — gọi là <b>lạm phát</b>. Tiền không mất đi, nó mất <b>sức mua</b>. Bài này: làm sao để tiền của bạn không teo, mà còn lớn lên như quả cầu tuyết.",
+        en: "The 100,000₫ note in your piggy bank is still 100,000₫. But every year it <b>buys a little less</b>, because prices in general go up — that's <b>inflation</b>. The money doesn't disappear; it loses <b>buying power</b>. This lesson: how to stop your money shrinking — and make it grow like a snowball.",
+      },
+      lion: { vi: "Năm 2008, lạm phát ở Việt Nam khoảng 23% — tiền để yên mất gần ¼ sức mua chỉ trong một năm!", en: "In 2008 Vietnam's inflation was about 23% — idle money lost almost a quarter of its buying power in one year!" },
+    },
+    /* 2 · Guess first */
+    {
+      t: "predict", q: { vi: "Đoán thử: để 100.000₫ trong ống heo 10 năm, giá cả tăng 4% mỗi năm. Khi đó nó mua được lượng hàng bằng bao nhiêu tiền hôm nay?", en: "Guess: you leave 100,000₫ in a piggy bank for 10 years while prices rise 4% a year. Then it buys what how much buys today?" },
+      art: "🐷 100.000₫ · ⏳ 10", min: 0, max: 100000, step: 1000, start: 90000, actual: 67600, unit: "vnd",
+      reveal: { vi: "Chỉ khoảng 67.600₫ — mất gần ⅓ sức mua, dù tờ tiền vẫn ghi 100.000₫. (100.000 ÷ 1,04¹⁰.) Lạm phát âm thầm 'ăn' tiền để yên.", en: "Only about 67,600₫ — almost ⅓ of its buying power gone, though the note still says 100,000₫. (100,000 ÷ 1.04¹⁰.) Inflation quietly eats idle money." },
+    },
+    /* 3 · Mechanism: the snowball + three jars */
     { t: "video", video: compoundVideo },
     {
-      t: "learn", photo: { query: "Ben Thanh Market Ho Chi Minh City" }, art: "🧋 30.000₫ → 🧋 33.000₫", cap: { vi: "Cùng một ly, giá cao hơn", en: "Same drink, higher price" },
-      title: { vi: "Lạm phát: tiền 'teo' trong ngăn kéo", en: "Inflation: money shrinking in the drawer" },
-      text: {
-        vi: "Lạm phát là khi <b>mặt bằng giá chung</b> tăng lên — không chỉ một món. Ở Việt Nam, Cục Thống kê đo nó bằng <b>chỉ số giá tiêu dùng (CPI)</b>: giá của một 'giỏ' hàng hóa, dịch vụ mà gia đình hay mua. Năm 2008, lạm phát bình quân ở Việt Nam lên tới khoảng <b>23%</b> — tiền tiết kiệm mất gần một phần tư sức mua chỉ trong một năm.",
-        en: "Inflation is when the <b>general price level</b> rises — not just one item. Vietnam's statistics office measures it with the <b>consumer price index (CPI)</b>: the price of a 'basket' of goods and services households typically buy. In 2008, Vietnam's average inflation reached about <b>23%</b> — savings lost nearly a quarter of their buying power in one year.",
+      t: "chart", q: { vi: "Ba người cùng có 10 triệu, lạm phát 4%/năm. Đường nào là ống heo? (tính theo sức mua hôm nay)", en: "Three people each have 10 million; inflation is 4% a year. Which line is the piggy bank? (in today's buying power)" },
+      chart: {
+        kind: "line",
+        labels: [{ vi: "0", en: "0" }, { vi: "2 năm", en: "2 yrs" }, { vi: "4 năm", en: "4 yrs" }, { vi: "6 năm", en: "6 yrs" }, { vi: "8 năm", en: "8 yrs" }, { vi: "10 năm", en: "10 yrs" }],
+        series: [
+          { name: { vi: "A · gửi tiết kiệm 6%", en: "A · savings at 6%" }, color: "#5B5BD6", data: [10, 10.39, 10.79, 11.21, 11.64, 12.09] },
+          { name: { vi: "B · ống heo 0%", en: "B · piggy bank 0%" }, color: "#EF4E4E", data: [10, 9.25, 8.55, 7.9, 7.31, 6.76] },
+          { name: { vi: "C · quỹ chỉ số ~9% (lên xuống thất thường)", en: "C · index fund ~9% (bumpy)" }, color: "#2BB673", data: [10, 10.98, 12.06, 13.25, 14.55, 15.97] },
+        ],
+        y: { vi: "triệu ₫ theo giá hôm nay", en: "million ₫ at today's prices" },
+        source: { vi: "Tính minh họa: giá trị ÷ 1,04^năm", en: "Illustrative: value ÷ 1.04^years" },
       },
-    },
-    {
-      t: "mcq", q: { vi: "Câu nào mô tả ĐÚNG lạm phát?", en: "Which one CORRECTLY describes inflation?" },
-      o: [
-        { vi: "Mặt bằng giá chung tăng, cùng số tiền mua được ít hơn", en: "The general price level rises, so the same money buys less" },
-        { vi: "Đồng Việt Nam mất giá so với đô la Mỹ", en: "The Vietnamese dong loses value against the US dollar" },
-        { vi: "Giá một món hàng tăng vì hết hàng", en: "One product's price rises because it sold out" },
-        { vi: "Ngân hàng giảm lãi suất tiết kiệm", en: "Banks cut savings interest rates" },
-      ],
+      o: [{ vi: "B — đường đi xuống", en: "B — the line going down" }, { vi: "A — đường đi lên chậm", en: "A — the slowly rising line" }, { vi: "C — đường đi lên nhanh", en: "C — the fast-rising line" }, { vi: "Không đường nào giảm", en: "None of them falls" }],
       a: 0,
-      why: {
-        vi: "Bẫy phổ biến! VND mất giá so với USD là chuyện <b>tỷ giá</b> (giá của đồng tiền so với ngoại tệ). Lạm phát đo giá cả <b>trong nước</b>. Hai thứ có thể liên quan, nhưng không phải một.",
-        en: "Classic trap! The dong weakening against the dollar is about the <b>exchange rate</b> (a currency's price in foreign money). Inflation measures <b>domestic</b> prices. They can be linked, but they're not the same thing.",
-      },
-      hint: { vi: "Lạm phát nói về giá của <b>hàng hóa</b> nói chung, không phải giá của một đồng tiền khác.", en: "Inflation is about the price of <b>goods</b> in general, not the price of another currency." },
-    },
-    {
-      t: "sort", q: { vi: "Lạm phát hay tỷ giá?", en: "Inflation or exchange rate?" },
-      buckets: [["🛒", { vi: "Lạm phát", en: "Inflation" }], ["💱", { vi: "Tỷ giá", en: "Exchange rate" }]],
-      items: [
-        ["🍜", { vi: "Bát phở từ 40k lên 45k, rau thịt cũng tăng", en: "Phở goes 40k → 45k, and veg and meat too" }, 0],
-        ["💵", { vi: "1 USD đổi được nhiều VND hơn năm ngoái", en: "1 USD buys more dong than last year" }, 1],
-        ["📊", { vi: "CPI tăng 4% so với cùng kỳ", en: "CPI up 4% year on year" }, 0],
-        ["🎓", { vi: "Học phí ở Mỹ không đổi (USD) nhưng tính ra VND đắt hơn", en: "US tuition unchanged in USD but costs more in dong" }, 1],
-        ["⚡", { vi: "Điện, xăng, thực phẩm cùng tăng giá", en: "Power, fuel and food all get pricier" }, 0],
-        ["📱", { vi: "iPhone nhập khẩu đắt hơn chỉ vì đô la lên giá", en: "Imported iPhones cost more only because the dollar rose" }, 1],
-      ],
-      why: { vi: "Giá nhiều thứ trong nước cùng tăng → lạm phát. Giá của đồng tiền so với ngoại tệ thay đổi → tỷ giá.", en: "Many domestic prices rising together → inflation. A currency's price vs foreign money changing → exchange rate." },
-      hint: { vi: "Có nhắc tới USD/ngoại tệ không? Nếu có, thường là tỷ giá.", en: "Does it mention USD or foreign money? If so, it's usually the exchange rate." },
+      why: { vi: "Ống heo giữ nguyên con số nhưng sức mua giảm còn ~6,8 triệu. Gửi tiết kiệm 6% thắng lạm phát 4% (lãi thực ~2%). Quỹ chỉ số trung bình cao hơn nhưng có năm giảm — không hợp để giữ quỹ khẩn cấp.", en: "The piggy bank keeps its number but its buying power falls to ~6.8M. Savings at 6% beat 4% inflation (real ~2%). The index fund averages more but has down years — not for an emergency fund." },
+      hint: { vi: "Tiền không sinh lãi thì sức mua đi lên hay đi xuống?", en: "Money earning nothing: does its buying power go up or down?" },
     },
     {
       t: "calc", q: { vi: "Bạn gửi 10.000.000₫, lãi 6%/năm. Lạm phát năm đó 4%.", en: "You deposit 10,000,000₫ at 6% a year. Inflation that year is 4%." },
@@ -171,49 +171,51 @@ const lesson: Lesson = {
       why: { vi: "Lãi 600.000₫, nhưng giỏ hàng đắt thêm 400.000₫ → sức mua chỉ tăng ~200.000₫ = ~2%. Lãi suất thực ≈ 6% − 4%.", en: "You earn 600,000₫, but the basket costs 400,000₫ more → buying power grows only ~200,000₫ = ~2%. Real rate ≈ 6% − 4%." },
       hint: { vi: "Bước 3: lãi suất thực ≈ lãi suất danh nghĩa − lạm phát.", en: "Step 3: real rate ≈ nominal rate − inflation." },
     },
+    /* 4 · The real story */
     {
-      t: "chart", q: { vi: "10 triệu, 8%/năm. Sau 30 năm, lãi kép cho số tiền khoảng gấp mấy lần lãi đơn?", en: "10 million at 8% a year. After 30 years, compound gives roughly how many times as much as simple?" },
-      chart: {
-        kind: "bar",
-        labels: [{ vi: "0 năm", en: "0 yrs" }, { vi: "10 năm", en: "10 yrs" }, { vi: "20 năm", en: "20 yrs" }, { vi: "30 năm", en: "30 yrs" }],
-        series: [
-          { name: { vi: "Lãi đơn", en: "Simple" }, color: "#B3B2CC", data: [10, 18, 26, 34] },
-          { name: { vi: "Lãi kép", en: "Compound" }, color: "#2BB673", data: [10, 21.6, 46.6, 100.6] },
-        ],
-        y: { vi: "triệu ₫", en: "million ₫" },
-        source: { vi: "Tính toán minh họa, lãi ghép hằng năm", en: "Illustrative calculation, compounded yearly" },
+      t: "learn", photo: { query: "Vietnam 2008 market prices" }, art: "📈 2008: CPI ~23%",
+      title: { vi: "Chuyện thật: Việt Nam 2008", en: "Real story: Vietnam 2008" },
+      text: {
+        vi: "Năm 2008, lạm phát bình quân ở Việt Nam lên khoảng <b>23%</b> (Tổng cục Thống kê). Người để tiền mặt ở nhà mất gần một phần tư sức mua. Ngân hàng phải nâng lãi tiết kiệm lên rất cao, nhưng nhiều tháng lãi vẫn thấp hơn lạm phát — tức lãi suất thực <b>âm</b>: gửi tiền vẫn 'lỗ' sức mua.",
+        en: "In 2008 Vietnam's average inflation reached about <b>23%</b> (General Statistics Office). People holding cash at home lost almost a quarter of its buying power. Banks pushed savings rates very high, yet for many months they were still below inflation — a <b>negative</b> real rate: even savers lost buying power.",
       },
-      o: [{ vi: "Khoảng 3 lần", en: "About 3 times" }, { vi: "Bằng nhau", en: "The same" }, { vi: "Khoảng 10 lần", en: "About 10 times" }, { vi: "Ít hơn lãi đơn", en: "Less than simple" }],
-      a: 0,
-      why: { vi: "100,6 ÷ 34 ≈ 3. Để ý: 10 năm đầu hai cột gần bằng nhau, khoảng cách bùng lên về sau — đó là lý do 'thời gian' quan trọng nhất.", en: "100.6 ÷ 34 ≈ 3. Notice the bars are close for the first 10 years and the gap explodes later — that's why time matters most." },
-      hint: { vi: "So cột 30 năm: 100,6 và 34.", en: "Compare the 30-year bars: 100.6 and 34." },
+    },
+    /* 5 · Trap (survey: 12/46 mixed up compound and simple interest) */
+    {
+      t: "mcq", q: { vi: "Gửi 10 triệu, lãi kép 8%/năm. Sau 2 năm bạn có bao nhiêu?", en: "You deposit 10 million at 8% a year, compounded. How much after 2 years?" },
+      o: [{ vi: "11.600.000₫", en: "11,600,000₫" }, { vi: "11.664.000₫", en: "11,664,000₫" }, { vi: "12.000.000₫", en: "12,000,000₫" }, { vi: "10.800.000₫", en: "10,800,000₫" }],
+      a: 1,
+      why: { vi: "Năm 1: 10tr × 1,08 = 10,8tr. Năm 2 tính lãi trên 10,8tr: × 1,08 = 11,664tr. Đáp án 11,6tr là <b>lãi đơn</b> — trong khảo sát của nhóm, 12/46 bạn nhầm như vậy. Chênh 64k nhỏ lúc đầu, nhưng sau 30 năm là gấp ba!", en: "Year 1: 10M × 1.08 = 10.8M. Year 2 earns on 10.8M: × 1.08 = 11.664M. 11.6M is <b>simple</b> interest — 12 of 46 teens in our survey made that mistake. A 64k gap at first, but three times as much after 30 years!" },
+      hint: { vi: "Năm thứ hai, lãi được tính trên số tiền nào?", en: "In year two, what amount earns interest?" },
     },
     {
       t: "predict", q: { vi: "Đoán thử: gửi tiền lãi kép 6%/năm thì bao nhiêu năm tiền gấp đôi?", en: "Guess: at 6% a year compounded, how many years until money doubles?" },
       art: "💰 → 💰💰", min: 1, max: 30, step: 1, start: 20, actual: 11.9, unit: "yr",
-      reveal: { vi: "Khoảng 12 năm. Quy tắc 72: 72 ÷ 6 = 12. (Chính xác là 11,9 năm.) Nhiều người đoán gần 17 năm — vì quen nghĩ theo lãi đơn: 100% ÷ 6%.", en: "About 12 years. Rule of 72: 72 ÷ 6 = 12 (exactly 11.9). Many people guess ~17 years — thinking in simple interest: 100% ÷ 6%." },
+      reveal: { vi: "Khoảng 12 năm. Quy tắc 72: 72 ÷ 6 = 12. (Chính xác là 11,9 năm.) Nhiều người đoán gần 17 năm — vì quen nghĩ theo lãi đơn: 100% ÷ 6%. Quy tắc 72 chạy cả chiều ngược lại: nợ thẻ 24%/năm thì ~3 năm là nợ gấp đôi!", en: "About 12 years. Rule of 72: 72 ÷ 6 = 12 (exactly 11.9). Many people guess ~17 years — thinking in simple interest: 100% ÷ 6%. It works backwards too: card debt at 24% a year doubles in ~3 years!" },
     },
+    /* 6 · Boss + use it today */
     {
-      t: "match", q: { vi: "Nối khái niệm với ý nghĩa", en: "Match each idea to its meaning" },
-      pairs: [
-        [{ vi: "☂️ Quỹ khẩn cấp", en: "☂️ Emergency fund" }, { vi: "3–6 tháng chi phí thiết yếu", en: "3–6 months of essential costs" }],
-        [{ vi: "📉 Lãi suất thực", en: "📉 Real interest" }, { vi: "Lãi danh nghĩa − lạm phát", en: "Nominal rate − inflation" }],
-        [{ vi: "7️⃣2️⃣ Quy tắc 72", en: "7️⃣2️⃣ Rule of 72" }, { vi: "Số năm gấp đôi ≈ 72 ÷ lãi suất", en: "Years to double ≈ 72 ÷ rate" }],
-        [{ vi: "🛒 CPI", en: "🛒 CPI" }, { vi: "Giá của một giỏ hàng tiêu biểu", en: "Price of a typical basket" }],
-      ],
-      why: { vi: "Bốn công cụ này đủ để bạn đánh giá một khoản tiết kiệm có thật sự 'lớn lên' hay không.", en: "These four tools let you judge whether savings are really growing." },
-    },
-    {
-      t: "pick", q: { vi: "Quỹ khẩn cấp nên để ở đâu?", en: "Where should an emergency fund live?" },
-      opts: [["📈", { vi: "Cổ phiếu một công ty bạn thích", en: "Shares of a company you like" }], ["🥇", { vi: "Vàng cất ở nhà", en: "Gold kept at home" }], ["🏦", { vi: "Tiết kiệm ngân hàng ngắn hạn / không kỳ hạn", en: "Short-term or instant-access bank savings" }], ["🤝", { vi: "Cho bạn vay lấy lãi", en: "Lend it to a friend for interest" }]],
+      t: "pick", q: { vi: "Trùm cuối: bạn để dành được 3 triệu làm quỹ khẩn cấp. Để ở đâu?", en: "Final boss: you've saved 3 million as an emergency fund. Where do you keep it?" },
+      opts: [["📈", { vi: "Cổ phiếu một công ty đang hot", en: "Shares of a hot company" }], ["🐷", { vi: "Ống heo ở nhà cho dễ lấy", en: "A piggy bank at home, easy to grab" }], ["🏦", { vi: "Tài khoản tiết kiệm có lãi, rút được nhanh", en: "An interest-earning savings account you can access quickly" }], ["🤝", { vi: "Cho bạn vay lấy lãi 5%/tuần", en: "Lend it to a friend at 5% a week" }]],
       a: 2,
-      why: { vi: "Quỹ khẩn cấp cần <b>an toàn</b> và <b>rút nhanh</b> hơn là lợi nhuận cao. Cổ phiếu và vàng có thể giảm giá đúng lúc bạn cần tiền.", en: "An emergency fund needs to be <b>safe</b> and <b>quick to reach</b> more than high-return. Stocks and gold can drop exactly when you need the money." },
-      hint: { vi: "Khi có chuyện gấp, bạn cần tiền ngay và không muốn nó vừa mất giá.", en: "In an emergency you need the money now — and not right after it lost value." },
+      why: { vi: "Quỹ khẩn cấp cần <b>an toàn</b> và <b>rút nhanh</b>, và nên có lãi để không teo. Ống heo dễ lấy nhưng mất sức mua; cổ phiếu có thể giảm đúng lúc bạn cần tiền; '5%/tuần' là cờ đỏ lừa đảo.", en: "An emergency fund must be <b>safe</b> and <b>quick to reach</b>, and earn something so it doesn't shrink. A piggy bank is handy but loses buying power; shares can drop just when you need cash; '5% a week' is a scam red flag." },
+      hint: { vi: "Ba yêu cầu: an toàn, rút nhanh, không bị teo.", en: "Three needs: safe, quick to reach, not shrinking." },
     },
     {
       t: "order", q: { vi: "Sắp xếp thứ tự ưu tiên hợp lý cho người mới đi làm", en: "Order these priorities for someone with a first job" },
       items: [["🪣", { vi: "Để dành một quỹ khẩn cấp nhỏ", en: "Build a small emergency buffer" }], ["💳", { vi: "Trả hết nợ lãi cao (thẻ, BNPL)", en: "Pay off high-interest debt (cards, BNPL)" }], ["☂️", { vi: "Đủ quỹ khẩn cấp 3–6 tháng", en: "Grow the fund to 3–6 months" }], ["🌳", { vi: "Đầu tư dài hạn, đa dạng hóa", en: "Invest long-term, diversified" }]],
       why: { vi: "Trả nợ lãi 24%/năm là 'lợi nhuận chắc chắn' 24% — khó khoản đầu tư nào sánh được. Nhưng nên có một quỹ nhỏ trước để khỏi vay thêm khi có chuyện.", en: "Paying off 24%-a-year debt is a guaranteed 24% 'return' — hard to beat. But keep a small buffer first so a surprise doesn't push you into new debt." },
+    },
+    {
+      t: "learn", art: "🏦 ⛄ 72",
+      title: { vi: "Dùng ngay hôm nay", en: "Use it today" },
+      text: { vi: "Ba việc nhỏ làm được ngay:", en: "Three small things you can do right now:" },
+      items: [
+        ["🔎", { vi: "Hỏi bố mẹ lãi suất tiết kiệm ở ngân hàng nhà mình đang là bao nhiêu — so với lạm phát năm nay", en: "Ask your parents what savings rate your family's bank pays — compare it with this year's inflation" }],
+        ["🐷", { vi: "Tiền để dành lâu hơn vài tháng: đừng để mãi trong ống heo", en: "Money you'll keep for more than a few months: don't leave it in the piggy bank" }],
+        ["7️⃣2️⃣", { vi: "Gặp mức lãi nào cũng chia 72 để biết bao lâu gấp đôi (kể cả lãi nợ!)", en: "Whenever you see a rate, divide 72 by it to see the doubling time (debt too!)" }],
+      ],
+      lion: { vi: "🎮 Đã mở trong game: Sổ tiết kiệm ở Ngân hàng — lãi suất chạy theo ngân hàng trung ương mô phỏng!", en: "🎮 Unlocked in the game: a savings book at the Bank — its rate follows the simulated central bank!" },
     },
   ],
   deep: [

@@ -15,7 +15,7 @@ const LANG = process.argv[2] || 'vi';
   await p.goto((process.env.BASE_URL || 'http://localhost:5173/'), { waitUntil: 'networkidle' });
   await p.evaluate(() => localStorage.clear()); await p.reload({ waitUntil: 'networkidle' });
   const results = [];
-  for (const [id, deep] of [['p-budget', false], ['p-budget', true], ['p-inflation', false], ['p-inflation', true], ['c-breakeven', false], ['c-breakeven', true]]) {
+  for (const [id, deep] of [['p-budget', false], ['p-budget', true], ['p-bnpl', false], ['p-bnpl', true], ['p-inflation', false], ['p-inflation', true], ['c-breakeven', false], ['c-breakeven', true]]) {
     await p.evaluate(([id, deep]) => A.startLesson(id, deep), [id, deep]);
     await p.waitForTimeout(300);
     let guard = 0;

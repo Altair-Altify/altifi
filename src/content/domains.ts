@@ -5,6 +5,7 @@ import type { TL } from "../i18n/i18n";
 import type { CourseNode, DomainId, Lesson } from "../lesson/types";
 import budget from "./lessons/p-budget";
 import inflation from "./lessons/p-inflation";
+import bnpl from "./lessons/p-bnpl";
 import breakeven from "./lessons/c-breakeven";
 import placement from "./placement";
 
@@ -24,7 +25,7 @@ export const DOMAINS: Domain[] = [
     { id: "p-budget", code: "P1", ic: "piggy", lesson: budget, day: "21/10", prereq: [],
       title: T("Tiền tiêu vặt & ngân sách", "Pocket money & budgets"), hook: T("Tiền tiêu vặt của mình biến đi đâu hết?", "Where does my pocket money disappear to?"),
       unlock: T("Sổ chi tiêu", "Spending log"), planet: { shape: "rocky", palette: ["#F4A28C", "#F7C59F", "#9FD6A8", "#FFF1D6"], feature: "leak" } },
-    { id: "p-bnpl", code: "P2", ic: "card", day: "21/10", prereq: ["p-budget"],
+    { id: "p-bnpl", code: "P2", ic: "card", lesson: bnpl, day: "21/10", prereq: ["p-budget"],
       title: T("Trả sau & tín dụng", "Pay-later & credit"), hook: T("“Trả sau 0%” có thật sự 0 đồng?", "Is “0% pay later” really free?"),
       unlock: T("Thẻ tín dụng & điểm tín dụng", "Credit card & credit score"), planet: { shape: "rocky", palette: ["#C86B85", "#E89AAE", "#F6C6D0", "#FFE9EE"], feature: "cardRing" } },
     { id: "p-inflation", code: "P3", ic: "drop", lesson: inflation, day: "21/10", prereq: [],
