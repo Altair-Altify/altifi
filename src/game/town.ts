@@ -120,7 +120,7 @@ export class Town {
   teleport(x: number, z: number) { this.pos.set(x, z); this.heading = Math.PI; this.snapCamera(); }
   setEra(e: { year: number; scene: string; index: number } | null) {
     this.era = e;
-    this.canvas.style.filter = e ? "sepia(.72) saturate(.75) contrast(1.06)" : "";
+    this.canvas.style.filter = !e ? "" : e.year < 1950 ? "sepia(.72) saturate(.75) contrast(1.06)" : "saturate(.8) contrast(1.04)"; // 1929: old photo · 1997: faded film
     if (e?.scene === "run") { // the queue in front of the bank
       const bank = this.world.doors.find((d) => d.id === "bank")!;
       this.npcs.forEach((n, i) => { // they're already in line when the scene opens (the last ones still arriving)
@@ -316,7 +316,11 @@ export class Town {
     c.fillStyle = "#1E2433"; c.fillRect(0, 0, 512, 64);
     c.font = "bold 34px Nunito, sans-serif"; c.textBaseline = "middle";
     let txt = `VNX ${s.v.toFixed(1)} ${up ? "▲" : "▼"} ${Math.abs(s.ch).toFixed(2)}%   ·   ALT ${(52.3 + s.v / 400).toFixed(1)} ▲   ·   TRS ${(18.4 - s.ch).toFixed(1)} ${up ? "▼" : "▲"}   ·   `;
-    if (this.era) { // 1929: the Dow, from the boom to the bottom
+    if (this.era?.year === 1997) { // 1997: index = baht per US dollar
+      const boom = this.era.scene === "boom";
+      up = boom;
+      txt = `1997 · USD/THB ${this.era.index.toFixed(1)} ${boom ? "=" : "▲"}   ·   ${boom ? "SET ▲ · PROPERTY ▲ · BANKS ▲" : "SET ▼ · PROPERTY ▼ · FINANCE COS ▼"}   ·   `;
+    } else if (this.era) { // 1929: the Dow, from the boom to the bottom
       const dow = (381 * this.era.index) / 100, boom = this.era.scene === "boom";
       up = boom;
       txt = `${this.era.year} · DOW ${dow.toFixed(0)} ${boom ? "▲ +0.8%" : "▼ " + (100 - this.era.index) + "%"}   ·   ${boom ? "STEEL ▲ · RADIO ▲ · AUTOS ▲" : "STEEL ▼ · RADIO ▼ · BANKS ▼"}   ·   `;

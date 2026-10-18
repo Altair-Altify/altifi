@@ -209,7 +209,7 @@ body.night .mestat{border:1px solid var(--line)}
 .exsmall .pill{font-size:10px}
 .soonpill{display:inline-flex;align-items:center;gap:4px}
 .museum-h{display:flex;align-items:center;gap:6px;margin-top:18px}
-.rooms{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.rooms{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
 .room{position:relative;padding:0;overflow:hidden;margin:0}
 .room .exbody{padding:8px 8px 10px}
 .roomyr{position:absolute;left:8px;top:8px;color:#fff;font-weight:900;font-size:15px;border-radius:10px;padding:2px 8px;box-shadow:0 3px 0 rgba(0,0,0,.18);z-index:2}

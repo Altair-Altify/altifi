@@ -149,7 +149,7 @@ const lesson: Lesson = {
         ["🔎", { vi: "Đọc tin 'vốn ngoại kỷ lục': hỏi đó là nhà máy hay tiền ngắn hạn?", en: "Reading 'record foreign inflows': ask — factories or short-term money?" }],
         ["🧠", { vi: "Khi ai cũng nói 'lần này khác', hãy nhớ Bangkok 1997.", en: "When everyone says 'this time is different', remember Bangkok 1997." }],
       ],
-      lion: { vi: "🎮 Đã mở trong game: Phòng 1997 trong Bảo tàng Khủng hoảng (phần chơi đang được dựng)!", en: "🎮 Unlocked in the game: the 1997 room in the Crisis Museum (gameplay being built)!" },
+      lion: { vi: "🎮 Đã mở trong game: Phòng 1997 trong Bảo tàng Khủng hoảng — vào vai Thống đốc Thái Lan!", en: "🎮 Unlocked in the game: the 1997 room in the Crisis Museum — play Thailand's Governor!" },
     },
   ],
   deep: [
