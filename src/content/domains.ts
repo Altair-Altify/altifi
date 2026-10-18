@@ -11,6 +11,7 @@ import salary from "./lessons/p-salary";
 import centralbank from "./lessons/m-centralbank";
 import minflation from "./lessons/m-inflation";
 import mnews from "./lessons/m-news";
+import mpolicy from "./lessons/m-policy";
 import breakeven from "./lessons/c-breakeven";
 import cash from "./lessons/c-cash";
 import funding from "./lessons/c-funding";
@@ -74,7 +75,7 @@ export const DOMAINS: Domain[] = [
     { id: "m-news", code: "M3", ic: "doc", lesson: mnews, day: "23/10", prereq: ["i-stocks"],
       title: T("GDP & chu kỳ kinh tế", "GDP & the business cycle"), hook: T("Đọc một bản tin kinh tế trong 60 giây", "Read an economic news story in 60 seconds"),
       unlock: T("Tòa tin tức trong thị trấn", "The newsroom in town"), planet: { shape: "rocky", palette: ["#6F5BBF", "#9585D9", "#BFB4EE", "#ECE8FF"], feature: "satellites" } },
-    { id: "m-policy", code: "M4", ic: "sliders", day: "25/10", prereq: ["g-tax", "g-debt"],
+    { id: "m-policy", code: "M4", ic: "sliders", lesson: mpolicy, day: "25/10", prereq: ["g-tax", "g-debt"],
       title: T("Tài khóa & tiền tệ", "Fiscal & monetary policy"), hook: T("Hai tay lái: chính phủ & NHTW", "Two steering wheels: government & central bank"),
       unlock: T("Vai Thống đốc trong chế độ Khủng hoảng", "The Governor role in Crisis mode"), planet: { shape: "rocky", palette: ["#584AA8", "#7C6CCB", "#A99BE6", "#E2DCFF"], feature: "twinMoons" } },
   ]),
