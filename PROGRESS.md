@@ -279,12 +279,13 @@ Nhóm đo trên altifi.vercel.app ở khung 375×812 và gửi đúng diff sửa
 - Bài test xếp lớp vẫn gợi ý theo thứ tự bài đã có nội dung (P1 → P3 → B1).
 - Ảnh Wikimedia vẫn chưa test được vì mạng phiên bị chặn (như phiên 2).
 
-## ▶️ Việc đầu tiên của phiên sau (20/10 — Thị trấn low-poly, mục 13.3)
-0. Thị trấn mở từ tab Chơi qua `goTown()` trong `src/ui/play.ts` (sau cú lao camera của `HomeSpace.dive`) — thay `openTown()` tạm bằng thị trấn thật; giữ **nắng pastel**, thời tiết vẽ vào `#wxTown`.
-1. Đọc `ALTIFI_DESIGN.md` **mục 13** (13.1b, 13.3 checklist "giống Animal Crossing", 13.4, 13.6) + file này. `npm install && npm run dev`, `node scripts/playthrough.cjs vi`.
-2. **Dùng lại engine của ngân hà**: cùng Three.js (đã tách chunk), cách tô phẳng từng mặt + nhiễu trong `src/galaxy/planet.ts` (`fbm`, `seeded`, `flatShading`), mẫu class `Galaxy` trong `src/galaxy/scene.ts` (resize, vòng lặp tự dừng qua `hidden()`, `motion` cho Khoai tây/giảm chuyển động, nhãn HTML qua `project()`). Thêm `src/game/` cho thị trấn.
-3. Làm theo 13.6 ngày 20/10: Three.js + asset CC0 (Kenney/Quaternius — **kiểm tra giấy phép từng bộ, ghi `assets/CREDITS.md`**), joystick + WASD (không chạm-để-đi), camera cao ~45° bám nhân vật + shader "thế giới cong", va chạm, 7 khu (thêm khu NHTW & tòa tin tức), NPC chibi, thời tiết, nhân vật dựng bằng khối hình học (tùy biến, đổi trang phục theo giai đoạn), HUD net worth (đặt `S.game.netWorth`, đẩy giá trị theo tháng vào `S.game.history`).
-4. Khi vào game: ẩn thanh 5 tab, có nút thoát, nút Alti Lion nổi lên góc phải trên. Hành tinh nhà trên ngân hà đã dẫn sang tab Chơi — có thể cho số đèn đọc từ tiến độ thị trấn.
+## ▶️ Việc đầu tiên của phiên sau (cập nhật 18/10 tối, giờ VN)
+**Trạng thái:** mọi việc trong lịch 13.6 tới **23/10 đã xong và đã deploy** (thị trấn 7 khu, chế độ Cá nhân, chế độ Doanh nghiệp, khủng hoảng 1929 hai vai, bài P1–P3, B1, B3, B4, M1–M3). Đang làm dòng **24–26/10**.
+1. `git pull`, đọc mục "Quyết định Claude Code tự đưa ra" ở đầu file + các mục Phiên 5. `npm install && npm run dev`, `node scripts/playthrough.cjs vi` (đã gồm 10 bài; bước `predict` báo WRONG là đúng thiết kế).
+2. Làm tiếp các bài còn thiếu theo thứ tự 13.6: **P4, P5, B2, B5, M4, I1, I2, G1, G2, X1, X2** (khung 6 nhịp 13.2c — xem `src/content/lessons/p-bnpl.ts` làm mẫu; nhớ thêm `lesson:` vào node trong `src/content/domains.ts` và thêm id vào `scripts/playthrough.cjs`). Tiến độ từng bài ghi ở các mục Phiên 5/6 phía trên.
+3. Sau đó: Khám phá 3 bài (mục 4), sửa lỗi, thử trên điện thoại thật (nhóm).
+4. Kiểm tra nhanh trước khi push: build, playthrough, và Playwright 375×812 (5 tab, mở bài học, vào thị trấn, kéo joystick, thoát). Script tham khảo đã dùng: mở tab Chơi → `A.goTown()`; trong dev có `window.__town` để dịch chuyển nhân vật.
+5. Tổng kết tuần: nếu từ 18:00 thứ Năm 22/10 (giờ VN) chưa có bản tổng kết ở đầu file thì viết.
 
 ## Phiên 2 — 18/10/2026 · Nâng cấp giao diện (mục 10c) ✅ có bản chạy được
 
