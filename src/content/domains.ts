@@ -16,6 +16,8 @@ import istocks from "./lessons/i-stocks";
 import ibubbles from "./lessons/i-bubbles";
 import gtax from "./lessons/g-tax";
 import gdebt from "./lessons/g-debt";
+import xfx from "./lessons/x-fx";
+import x1997 from "./lessons/x-1997";
 import breakeven from "./lessons/c-breakeven";
 import cash from "./lessons/c-cash";
 import funding from "./lessons/c-funding";
@@ -100,10 +102,10 @@ export const DOMAINS: Domain[] = [
       unlock: T("Vai Bộ trưởng Tài chính", "The Finance Minister role"), planet: { shape: "gas", palette: ["#5A86E0", "#86A9EE", "#B7CDF6", "#E3ECFC"], feature: "saturn", size: 1.15 } },
   ]),
   area({ id: "intl", short: T("Quốc tế", "International"), ic: "ship", color: "#2FAE73", title: T("Tài chính quốc tế", "International Finance"), desc: T("Tỷ giá, dòng vốn, khủng hoảng 1997", "Exchange rates, capital flows, the 1997 crisis") }, [
-    { id: "x-fx", code: "X1", ic: "swap", day: "26/10", prereq: ["m-inflation"],
+    { id: "x-fx", code: "X1", ic: "swap", lesson: xfx, day: "26/10", prereq: ["m-inflation"],
       title: T("Tỷ giá", "Exchange rates"), hook: T("Vì sao USD tăng thì du học & iPhone đắt hơn?", "Why does a strong dollar make iPhones and studying abroad pricier?"),
       unlock: T("Cảng & quầy đổi tiền", "The port & exchange desk"), planet: { shape: "rocky", palette: ["#2E9B6A", "#5DBE8C", "#E4766A", "#F3B0A6"], feature: "split" } },
-    { id: "x-1997", code: "X2", ic: "globe", day: "26/10", prereq: ["x-fx", "m-centralbank"],
+    { id: "x-1997", code: "X2", ic: "globe", lesson: x1997, day: "26/10", prereq: ["x-fx", "m-centralbank"],
       title: T("Khủng hoảng châu Á 1997", "The 1997 Asian crisis"), hook: T("1997: khi cả châu Á sụp đổ trong vài tháng", "1997: when Asia crashed in a few months"),
       unlock: T("Phòng 1997 trong Bảo tàng Khủng hoảng", "The 1997 room in the Crisis Museum"), planet: { shape: "rocky", palette: ["#4E6B5C", "#6F8C7B", "#97B3A0", "#D0E2D4"], feature: "cracked" } },
   ]),

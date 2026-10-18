@@ -16,6 +16,8 @@
 - **(21/10) Lãi suất mô phỏng: NHTW 4% → 5% (tháng 5) → 6% (tháng 7); vay thả nổi = NHTW + 6,5%; cố định 12,5%; tiết kiệm = NHTW + 1,6%; thẻ tín dụng 30%/năm; lạm phát 3,5%/năm** — gần đúng diễn biến 2022 để bài M2 có hậu quả thật. ⚠️ Cần kiểm chứng/ghi nguồn trước khi nộp.
 - **(21/10) Bảng giá nhà/xe** (phòng trọ 2,5tr/tháng, căn hộ thuê 5,5tr, xe máy 35tr, căn hộ 1,6 tỷ, ô tô nhỏ 550tr…) và **7 bạn NPC có quỹ đạo tài sản theo lối sống** (người liều mất 65% ở tháng 5 khi quỹ sụp…) — số "gần thật", chỉnh khi cân bằng game (13.4 cho phép).
 - **(21/10) Mỗi tháng có 30% khả năng gặp sự cố (ốm 4tr / hỏng điện thoại 3tr) từ tháng 3** — để quỹ khẩn cấp và bảo hiểm có ý nghĩa (6.3 "sự kiện bất ngờ").
+- **(26/10) X1/X2: tỷ giá USD/VND 2020–2024 (≈ 23,1 → 25,4 nghìn), baht 25 → ~50–56/USD, mức mất giá 1997–98 (Indonesia ~80%, Thái ~55%, Hàn ~50%, Malaysia ~45%), gói IMF (Thái ~17 tỷ, Indonesia ~40 tỷ, Hàn ~57 tỷ USD) đều là số làm tròn theo trí nhớ** — biểu đồ ghi "cần kiểm chứng" ngay trên màn hình. ⚠️ nhóm đối chiếu NHNN / IMF.
+- **(26/10) "Phòng 1997" trong Bảo tàng hiện thẻ "bài X2 đã mở phòng này, vai chơi đang dựng" (chưa chơi được)** — 13.6 xếp 1973/2008 sau 26/10 và X2 chỉ yêu cầu "mở phòng"; dựng vai Thống đốc Thái Lan như 1929 cần thêm ~1 ngày, để sau Khám phá.
 - **(24/10) Mọi số liệu thị trường trong I1/I2 (VN-Index 2022, Nasdaq 2000–02, Bitcoin 2020–22) là số làm tròn theo trí nhớ** — biểu đồ Bitcoin ghi "cần kiểm chứng" ngay trên màn hình. ⚠️ nhóm đối chiếu.
 - **(24/10) P5 không nêu mức giảm trừ gia cảnh / biểu thuế TNCN cụ thể, chỉ nói "lương 10tr chưa phải nộp thuế"** — luật thuế TNCN đang được sửa (2025–26), Claude không tra được bản mới nhất; ⚠️ nhóm bổ sung số hiện hành. Tỷ lệ doanh nghiệp đóng 21,5% trong phần Đào sâu ghi "giả định".
 - **(23/10) Số liệu thật dùng trong M1/M3 lấy từ trí nhớ của Claude, chưa tra lại được (mạng phiên bị chặn)**: CPI VN 2007–2013, Zimbabwe 231 triệu % (7/2008), GDP VN 2019–2024 — ⚠️ nhóm đối chiếu Tổng cục Thống kê trước khi nộp.
@@ -29,6 +31,10 @@
 - **(21/10) Phí trễ hạn BNPL 60.000₫/kỳ, lãi thẻ 30%/năm trong P2 là số minh họa** (ghi rõ "giả định" trong bài) — mỗi ví/ngân hàng mỗi khác; ⚠️ nhóm kiểm một sản phẩm thật để dẫn nguồn.
 - **(21/10) 5 case tháng do Claude soạn nháp** — ⚠️ quy định cuộc thi: nhóm phải đọc, sửa lời, kiểm số liệu (Madoff ~65 tỷ USD, 150 năm tù; Madrian & Shea 37% → 86%; Fed 2022–23; NHNN tăng lãi 2 lần cuối 2022) trước khi nộp.
 - **(20/10) Cửa có thể vào = nút hành động góc phải dưới hiện khi đứng gần (≤ 1,9 m); trong nhà/quầy hiện khung thoại kem + nút "Học ngay" nếu chưa học bài mở khóa nơi đó** — 13.3 yêu cầu nút hành động có nhãn; gắn mỗi nơi với cột "Game" của 13.2d để học xong có lý do vào game (13.2b-7).
+
+## Phiên 5 (tiếp) — 24–26/10: bài X1, X2 ✅ (đã push) → **đủ 20/20 bài của 13.2d**
+- **X1 "Vì sao USD tăng thì du học & iPhone đắt hơn?"** (`x-fx`): **đoán** học phí 30.000 USD khi tỷ giá 23k → 25k (+60tr/năm) → phân loại cầu/cung USD → **tính** iPhone +2tr, xưởng may xuất khẩu lời 100tr → 300tr → **chuyện thật** USD/VND 2020–24 & Fed 2022 → **bẫy** "tỷ giá tăng = kinh tế sụp" → trùm cuối (chuẩn bị tiền du học) → Dùng ngay. Đào sâu: ngang giá sức mua (tính).
+- **X2 "1997: khi cả châu Á sụp đổ trong vài tháng"** (`x-1997`): **đoán** nợ 1 triệu USD khi baht 25 → 50 (25 → 50 triệu baht) → xếp thứ tự vòng xoáy 1997 → **bạn là Thống đốc Thái Lan 6/1997, chưa biết kết quả: giữ hay thả?** → **chuyện thật** mức mất giá 4 nước + gói IMF, Hàn Quốc quyên vàng → phân loại vốn dài hạn / vốn nóng → **bẫy** "vốn ngoại càng nhiều càng tốt" → trùm cuối (tránh một năm 1997) → Dùng ngay. Đào sâu: IMF cứu hỏa hay làm khó + nợ USD của tập đoàn Hàn (tính). Bảo tàng có thêm thẻ phòng 1997.
 
 ## Phiên 5 (tiếp) — 24–26/10: bài G1, G2 ✅ (đã push) → mảng Tài chính công đủ 2/2 bài
 - **G1 "Tiền thuế của mình đi đâu?"** (`g-tax`): **đoán** thuế GTGT trong ly trà sữa 35k (~3.200₫, giả định 10%) → phân loại thu/chi ngân sách → **chia ngân sách thành phố 100 tỷ** (dạng hũ, 4 hũ) → đầu tư công vs chi một lần → **chuyện thật** cao tốc Bắc – Nam (không nêu số) → **bẫy** "teen không đóng thuế" → trùm cuối (sửa trường hay quảng trường) → Dùng ngay. Đào sâu: thuế lũy thoái của GTGT (tính).
@@ -303,9 +309,9 @@ Nhóm đo trên altifi.vercel.app ở khung 375×812 và gửi đúng diff sửa
 
 ## ▶️ Việc đầu tiên của phiên sau (cập nhật 18/10 tối, giờ VN)
 **Trạng thái:** mọi việc trong lịch 13.6 tới **23/10 đã xong và đã deploy** (thị trấn 7 khu, chế độ Cá nhân, chế độ Doanh nghiệp, khủng hoảng 1929 hai vai, bài P1–P3, B1, B3, B4, M1–M3). Đang làm dòng **24–26/10**.
-1. `git pull`, đọc mục "Quyết định Claude Code tự đưa ra" ở đầu file + các mục Phiên 5. `npm install && npm run dev`, `node scripts/playthrough.cjs vi` (đã gồm 10 bài; bước `predict` báo WRONG là đúng thiết kế).
-2. Làm tiếp các bài còn thiếu theo thứ tự 13.6: ~~P4, P5, B2, B5, M4, I1, I2, G1, G2~~ (xong), **X1, X2** (khung 6 nhịp 13.2c — xem `src/content/lessons/p-bnpl.ts` làm mẫu; nhớ thêm `lesson:` vào node trong `src/content/domains.ts` và thêm id vào `scripts/playthrough.cjs`). Tiến độ từng bài ghi ở các mục Phiên 5/6 phía trên.
-3. Sau đó: Khám phá 3 bài (mục 4), sửa lỗi, thử trên điện thoại thật (nhóm).
+1. `git pull`, đọc mục "Quyết định Claude Code tự đưa ra" ở đầu file + các mục Phiên 5. `npm install && npm run dev`, `node scripts/playthrough.cjs vi` (đã gồm 20 bài; bước `predict` báo WRONG là đúng thiết kế).
+2. Làm tiếp các bài còn thiếu theo thứ tự 13.6: ~~P4, P5, B2, B5, M4, I1, I2, G1, G2, X1, X2~~ — **xong cả 20 bài**. Bài mới theo khung 6 nhịp 13.2c (mẫu `src/content/lessons/p-bnpl.ts`; thêm `lesson:` vào node trong `src/content/domains.ts` và id vào `scripts/playthrough.cjs`).
+3. **Việc tiếp theo: Khám phá 3 bài (mục 4 — gợi ý trong mục 4: SpaceX, vàng tăng khi bất ổn, một doanh nghiệp VN trung lập)**, rồi sửa lỗi; thử trên điện thoại thật là việc của nhóm. Sau đó nếu còn thời gian: vai chơi phòng 1997.
 4. Kiểm tra nhanh trước khi push: build, playthrough, và Playwright 375×812 (5 tab, mở bài học, vào thị trấn, kéo joystick, thoát). Script tham khảo đã dùng: mở tab Chơi → `A.goTown()`; trong dev có `window.__town` để dịch chuyển nhân vật.
 5. Tổng kết tuần: nếu từ 18:00 thứ Năm 22/10 (giờ VN) chưa có bản tổng kết ở đầu file thì viết.
 

@@ -30,6 +30,7 @@ function museum() {
     <div class="cr-room"><div class="cr-yr" style="background:#8A5A44">1929</div><div><b>${tx(CRISIS_1929.title)}</b><p>${tx(CRISIS_1929.intro)}</p>
       <div class="lf-btns"><button class="btn good" onclick="A.crisisStart('saver')">${t("cr.roleSaver")}</button><button class="btn" onclick="A.crisisStart('gov')">${t("cr.roleGov")}</button></div></div></div>
     <div class="cr-room soon"><div class="cr-yr" style="background:#E07B22">1973</div><div><b>${t("cr.r1973")}</b><p>${t("cr.soonRoom")}</p></div></div>
+    <div class="cr-room soon"><div class="cr-yr" style="background:#4E6B5C">1997</div><div><b>${t("cr.r1997")}</b><p>${t("cr.r1997T")}</p></div></div>
     <div class="cr-room soon"><div class="cr-yr" style="background:#3D5AFE">2008</div><div><b>${t("cr.r2008")}</b><p>${t("cr.soonRoom")}</p></div></div>`);
 }
 townHooks.doors.push((b) => { if (b.id !== "museum") return false; museum(); return true; });

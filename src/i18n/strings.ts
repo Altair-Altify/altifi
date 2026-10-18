@@ -481,6 +481,8 @@ export const STRINGS = {
   "cr.roleSaver": ["Vai người dân", "Play an ordinary saver"],
   "cr.roleGov": ["Vai Thống đốc Fed", "Play the Fed Governor"],
   "cr.r1973": ["Khủng hoảng dầu mỏ 1973", "The 1973 oil shock"],
+  "cr.r1997": ["Khủng hoảng tài chính châu Á 1997", "The 1997 Asian financial crisis"],
+  "cr.r1997T": ["Bài X2 đã mở phòng này. Vai chơi (Thống đốc Thái Lan, giữ hay thả tỷ giá) đang được dựng.", "Lesson X2 unlocked this room. The role (Thailand's Governor: hold or float) is being built."],
   "cr.r2008": ["Khủng hoảng tài chính 2008", "The 2008 financial crisis"],
   "cr.soonRoom": ["Phòng đang được dựng — sắp mở.", "This room is being built — opening soon."],
   "cr.noSpoiler": ["Không ai biết trước kết cục — chọn như thể bạn đang sống ở thời điểm đó.", "Nobody knows the ending yet — choose as if you were living in that moment."],
