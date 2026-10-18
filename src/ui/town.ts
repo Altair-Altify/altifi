@@ -38,7 +38,7 @@ const ZONE_DAY: Record<ZoneId, string> = { personal: "21/10", corporate: "22/10"
 
 let town: Town | null = null, failed = false, near: Target | null = null;
 /** The Personal mode (src/ui/life.ts) plugs in here: it handles doors while a life is running and adds HUD bits. */
-export const townHooks: { door?: (b: BuildingSpec) => boolean; hud?: () => void; arrive?: () => void } = {};
+export const townHooks: { doors: ((b: BuildingSpec) => boolean)[]; hud?: () => void; arrive: (() => void)[]; leave: (() => void)[] } = { doors: [], arrive: [], leave: [] };
 export const getTown = () => town;
 const host = document.createElement("div");
 host.className = "tw-gl";
@@ -92,7 +92,7 @@ export function openTown() {
   bindJoystick();
   setTimeout(() => $("#twHint")?.classList.add("off"), 4200);
   townHooks.hud?.();
-  townHooks.arrive?.();
+  townHooks.arrive.forEach((f) => f());
 }
 
 /* ---- district banner (shown when you walk into another district) ---- */
@@ -151,7 +151,7 @@ function townAct() {
   talkingTo = tg;
   if (tg.kind === "npc") { tg.npc.talking = true; say(`${tg.npc.p.name} · ${tx(tg.npc.p.style)}`, tx(tg.npc.p.line), [], "#B39DFF"); return; }
   const b = tg.door.b, n = nodeOf(b.lesson), place = tx(b.name), zc = town.map.zones.find((z) => z.id === b.zone)?.color;
-  if (townHooks.door?.(b)) return;
+  if (townHooks.doors.some((h) => h(b))) return;
   if (b.id === "home") { say(place, t("tw.home", { n: lessonsDone() }), [[t("tw.wardrobe"), "A.townWardrobe()"]], zc); return; }
   if (b.id === "museum") { say(place, t("tw.museum"), [], zc); return; }
   if (n) {
@@ -306,6 +306,7 @@ function bindJoystick() {
 }
 
 function leaveTown() {
+  townHooks.leave.forEach((f) => f());
   town?.stop();
   clearInterval(typeTimer);
   keys.clear();

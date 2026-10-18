@@ -72,14 +72,14 @@ function lifeStart() {
 /** Play tab → "My Life": open the town (and offer to start if needed). */
 let pendingIntro = false;
 function playLife() { pendingIntro = !life(); (window as any).A.goTown(); }
-townHooks.arrive = () => {
+townHooks.arrive.push(() => {
   const tw = getTown(); if (tw && life()) tw.setRide(life()!.vehicle);
   if (pendingBiz) { pendingBiz = false; setTimeout(startBizScenario, noMotion() ? 0 : 1000); return; }
   if (pendingIntro) { pendingIntro = false; setTimeout(intro, noMotion() ? 0 : 1000); }
-};
+});
 
 /* ---- doors ---- */
-townHooks.door = (b) => {
+townHooks.doors.push((b) => {
   const L = life();
   if (!L) { if (b.id === "office" || b.id === "dealer") { intro(); return true; } if (b.id === "shop") { say(tx(b.name), t("bz.needLife"), [[t("lf.start"), "A.lifeStart()"]], "#F5A524"); return true; } return false; }
   switch (b.id) {
@@ -92,7 +92,7 @@ townHooks.door = (b) => {
     case "home": home(); return true;
   }
   return false;
-};
+});
 
 /* ---- Office: this month's decision ---- */
 const nextCase = (L: Life): Case | undefined => CASES.find((c) => !L.cases.includes(c.id));

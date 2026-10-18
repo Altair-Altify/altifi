@@ -59,6 +59,8 @@ export class Town {
   private bugs: { g: THREE.Group; c: THREE.Vector3; a: number; s: number }[] = [];
   private dust: { m: THREE.Mesh; v: THREE.Vector3; life: number }[] = []; private dustT = 0;
   private tick = { v: 1284.6, ch: 0.4, x: 0, t: 0 };
+  /** Crisis mode (design doc 6.4): the town turns into another year — sepia, red stock board, bank run, dark shops. */
+  private era: { year: number; scene: string; index: number } | null = null;
   private fish: { m: THREE.Mesh; t: number; a: number; x: number; z: number } | null = null; private fishT = 4;
   /** movement input, x = east, y = south, length ≤ 1 (set by the joystick / keys) */
   readonly input = new THREE.Vector2();
@@ -116,6 +118,20 @@ export class Town {
   get zone() { return this.zoneNow; }
   /** Put the player somewhere (e.g. in front of the shop when Business mode starts). */
   teleport(x: number, z: number) { this.pos.set(x, z); this.heading = Math.PI; this.snapCamera(); }
+  setEra(e: { year: number; scene: string; index: number } | null) {
+    this.era = e;
+    this.canvas.style.filter = e ? "sepia(.72) saturate(.75) contrast(1.06)" : "";
+    if (e?.scene === "run") { // the queue in front of the bank
+      const bank = this.world.doors.find((d) => d.id === "bank")!;
+      this.npcs.forEach((n, i) => { // they're already in line when the scene opens (the last ones still arriving)
+        n.queue = [bank.x + (i % 2 ? 0.45 : -0.45), bank.z + 0.6 + i * 0.85];
+        const late = this.motion && i >= this.npcs.length - 2;
+        n.pos.set(n.queue[0] + (late ? 4 + i : 0), n.queue[1] + (late ? 3 : 0)); n.heading = Math.PI;
+        n.av.group.position.set(n.pos.x, 0, n.pos.y); n.av.group.rotation.y = n.heading;
+      });
+    } else this.npcs.forEach((n) => (n.queue = undefined));
+    this.applySky(true);
+  }
   setHour(h: number | null) { this.hourOverride = h; this.applySky(true); }
 
   resize() {
@@ -155,6 +171,11 @@ export class Town {
     this.sun.color.copy(mix(a[5], b[5], k));
     this.sun.intensity = a[6] + (b[6] - a[6]) * k;
     this.glow = a[7] + (b[7] - a[7]) * k;
+    if (this.era && this.era.scene !== "boom") { // grey skies; in the slump the shops are dark
+      (this.scene.background as THREE.Color).set(this.era.scene === "slump" ? "#9E9A92" : "#B8B3A8");
+      (this.scene.fog as THREE.Fog).color.set("#B8B3A8");
+      if (this.era.scene === "slump") this.glow = 0;
+    }
     this.world.windows.emissive.set("#FFC46B").multiplyScalar(this.glow * 0.95);
     this.world.lampGlow.opacity = this.glow * 0.55;
   }
@@ -201,7 +222,14 @@ export class Town {
     for (const n of this.npcs) {
       const toP = Math.hypot(this.pos.x - n.pos.x, this.pos.y - n.pos.y);
       let speed = 0;
-      if (n.talking || toP < 2.6) { // stop and look at the player
+      if (n.queue) { // crisis: walk to your place in the bank queue, then wait facing the door
+        const dx = n.queue[0] - n.pos.x, dz = n.queue[1] - n.pos.y, d = Math.hypot(dx, dz);
+        if (d > 0.15) {
+          const step = Math.min(d, NPC_SPEED * 1.6 * dt);
+          n.pos.set(n.pos.x + (dx / d) * step, n.pos.y + (dz / d) * step); speed = (step / Math.max(dt, 1e-3)) / RUN;
+          const want = Math.atan2(dx, dz); let dh = want - n.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); n.heading += dh * Math.min(1, dt * 8);
+        } else { let dh = Math.PI - n.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); n.heading += dh * Math.min(1, dt * 5); }
+      } else if (n.talking || toP < 2.6) { // stop and look at the player
         const want = Math.atan2(this.pos.x - n.pos.x, this.pos.y - n.pos.y);
         let dh = want - n.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); n.heading += dh * Math.min(1, dt * 6);
       } else if (n.wait > 0) n.wait -= dt;
@@ -283,10 +311,16 @@ export class Town {
     const tk = this.world.ticker; if (!tk) return;
     const s = this.tick; s.t -= dt; s.x -= dt * 60;
     if (s.t <= 0) { s.t = 2.5; const d = (Math.random() - 0.48) * 6; s.v += d; s.ch = (d / s.v) * 100 + s.ch * 0.6; }
-    const c = tk.ctx, up = s.ch >= 0;
+    const c = tk.ctx;
+    let up = s.ch >= 0;
     c.fillStyle = "#1E2433"; c.fillRect(0, 0, 512, 64);
     c.font = "bold 34px Nunito, sans-serif"; c.textBaseline = "middle";
-    const txt = `VNX ${s.v.toFixed(1)} ${up ? "▲" : "▼"} ${Math.abs(s.ch).toFixed(2)}%   ·   ALT ${(52.3 + s.v / 400).toFixed(1)} ▲   ·   TRS ${(18.4 - s.ch).toFixed(1)} ${up ? "▼" : "▲"}   ·   `;
+    let txt = `VNX ${s.v.toFixed(1)} ${up ? "▲" : "▼"} ${Math.abs(s.ch).toFixed(2)}%   ·   ALT ${(52.3 + s.v / 400).toFixed(1)} ▲   ·   TRS ${(18.4 - s.ch).toFixed(1)} ${up ? "▼" : "▲"}   ·   `;
+    if (this.era) { // 1929: the Dow, from the boom to the bottom
+      const dow = (381 * this.era.index) / 100, boom = this.era.scene === "boom";
+      up = boom;
+      txt = `${this.era.year} · DOW ${dow.toFixed(0)} ${boom ? "▲ +0.8%" : "▼ " + (100 - this.era.index) + "%"}   ·   ${boom ? "STEEL ▲ · RADIO ▲ · AUTOS ▲" : "STEEL ▼ · RADIO ▼ · BANKS ▼"}   ·   `;
+    }
     const wTxt = c.measureText(txt).width; if (s.x < -wTxt) s.x += wTxt;
     c.fillStyle = up ? "#4BE38A" : "#FF6B6B";
     c.fillText(txt, s.x, 34); c.fillText(txt, s.x + wTxt, 34);

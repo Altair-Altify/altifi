@@ -26,7 +26,7 @@ export const PERSONAS: Persona[] = [
     line: T2("Mỗi lần nạp có 20–50k thôi mà cộng lại cả tháng gần bằng tiền ăn sáng… Mình đang ghi sổ chi tiêu thử.", "Each top-up is only 20–50k, but over a month it's almost my breakfast money… I'm trying a spending log.") },
 ];
 
-export interface Npc { p: Persona; av: Avatar; pos: THREE.Vector2; target: THREE.Vector2; heading: number; wait: number; stuck: number; talking: boolean }
+export interface Npc { p: Persona; av: Avatar; pos: THREE.Vector2; target: THREE.Vector2; heading: number; wait: number; stuck: number; talking: boolean; queue?: [number, number] }
 
 export function makeNpcs(nodes: [number, number][], count: number): Npc[] {
   const rnd = seeded(77);
