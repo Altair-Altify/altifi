@@ -1,8 +1,8 @@
-/* ---------- Town screen UI: HUD, joystick, action button, dialogue (design doc 13.3) ----------
+/* ---------- Town screen UI: HUD, joystick, action button, dialogue, minimap, wardrobe (design doc 13.3) ----------
  * Opened from the Play tab after the dive from the home planet. The 5-tab nav is covered (full-screen overlay),
  * there is an exit button, the Alti Lion button moves to the top-right corner (.phone.ingame) so it never sits on
  * the action button. Joystick bottom-left (touch/mouse), WASD / arrow keys on a computer (Shift = run,
- * E / Space / Enter = action). No tap-to-walk (13.5-4). */
+ * E / Space / Enter = action, M = map). No tap-to-walk (13.5-4). */
 import { $, esc, shortVnd } from "../core/util";
 import { S, save, PO, noMotion, lessonsDone } from "../core/state";
 import { reg } from "../core/actions";
@@ -11,10 +11,11 @@ import { wxOverlay } from "./weather";
 import { t, tx, lang } from "../i18n/i18n";
 import { icon, IC } from "./icons";
 import { runCounts } from "./fx";
+import { setCtx } from "../assistant/context";
 import { DOMAINS } from "../content/domains";
-import { Town } from "../game/town";
-import { defaultLook, type Look, type Stage } from "../game/avatar";
-import type { Door } from "../game/world";
+import { Town, type Target } from "../game/town";
+import { defaultLook, SKINS, HAIRS, TOPS, BOTTOMS, type Look, type Stage } from "../game/avatar";
+import type { Zone, ZoneId, World } from "../game/world";
 
 /* ---- game state (design doc 13.4: net worth is what counts) ---- */
 export interface TownSave { cash: number; history: number[]; stage: Stage; look: Look }
@@ -31,8 +32,10 @@ export function ensureGame(): TownSave {
 }
 
 const nodeOf = (id?: string) => (id ? DOMAINS.flatMap((d) => d.nodes).find((n) => n.id === id) : undefined);
+/** When the playable part of each district arrives (design doc 13.6). */
+const ZONE_DAY: Record<ZoneId, string> = { personal: "21/10", corporate: "22/10", macro: "22/10", museum: "23/10", markets: "24–26/10", public: "24–26/10", intl: "24–26/10" };
 
-let town: Town | null = null, failed = false, nearDoor: Door | null = null;
+let town: Town | null = null, failed = false, near: Target | null = null;
 const host = document.createElement("div");
 host.className = "tw-gl";
 const shown = () => host.isConnected && !!$("#overlay")?.classList.contains("townov") && !document.hidden;
@@ -42,7 +45,9 @@ function hud() {
   return `<div class="tw-top">
       <button class="tw-btn" onclick="A.exitTown()" aria-label="${esc(t("tw.exit"))}">${icon("back", { size: 22 })}</button>
       <div class="tw-nw" title="${esc(t("top.netWorth"))}">${icon("wallet", { size: 20, color: IC.wallet })}<span class="tw-nwk">${t("top.netWorth")}</span><b data-ck="twnw" data-to="${g.cash}" data-fmt="vnd">${shortVnd(g.cash, lang())}</b></div>
-    </div>`;
+    </div>
+    <button class="tw-map" id="twMap" onclick="A.townMap()" aria-label="${esc(t("tw.map"))}"><canvas width="184" height="144"></canvas></button>
+    <div class="tw-zone" id="twZone" aria-live="polite"></div>`;
 }
 export function openTown() {
   ensureGame();
@@ -53,16 +58,20 @@ export function openTown() {
     <div class="tw-joy" id="twJoy" aria-hidden="true"><div class="tw-ring"><div class="tw-knob" id="twKnob"></div></div></div>
     <button class="tw-act" id="twAct" hidden onclick="A.townAct()"></button>
     <div class="tw-talk" id="twTalk" hidden role="dialog" aria-live="polite"></div>
+    <div class="tw-sheet" id="twSheet" hidden role="dialog"></div>
+    <div class="tw-big" id="twBig" hidden role="dialog" onclick="A.townMap()"></div>
     <p class="tw-hint" id="twHint">${t(matchMedia("(pointer:fine)").matches ? "tw.hintKeys" : "tw.hintJoy")}</p>
   </div>`, { cls: "townov" });
   $(".phone")!.classList.add("ingame");
+  setCtx({ key: "town", where: t("tw.where"), title: t("pl.homeT"), answered: true, kb: ["budget", "compound", "fixedfloat", "breakeven", "stocks"] });
   const stage = $("#twStage")!;
   if (failed) { stage.innerHTML = `<div class="tw-nogl">${t("tw.noGL")}</div>`; return; }
   const g = ensureGame();
   if (!town) {
     try {
-      town = new Town(host, { hidden: () => !shown(), near: onNear }, PO(), g.look, g.stage);
+      town = new Town(host, { hidden: () => !shown(), near: onNear, zone: onZone, frame: onFrame }, PO(), g.look, g.stage);
       host.appendChild(town.canvas);
+      if (import.meta.env.DEV) (window as any).__town = town; // tests / screenshots
       new ResizeObserver(() => town?.resize()).observe(host);
     } catch { failed = true; stage.innerHTML = `<div class="tw-nogl">${t("tw.noGL")}</div>`; return; }
   }
@@ -70,7 +79,7 @@ export function openTown() {
   town.motion = !noMotion();
   town.frozen = false;
   town.input.set(0, 0);
-  nearDoor = null;
+  near = null; mapStatic = null; lastZone = "";
   town.resize();
   town.arrive();
   town.start();
@@ -78,23 +87,41 @@ export function openTown() {
   setTimeout(() => $("#twHint")?.classList.add("off"), 4200);
 }
 
+/* ---- district banner (shown when you walk into another district) ---- */
+let lastZone = "", zoneTimer: ReturnType<typeof setTimeout> | undefined;
+function onZone(z: Zone | null) {
+  const el = $("#twZone");
+  if (!el || !z || z.id === lastZone) return;
+  lastZone = z.id;
+  el.innerHTML = `<i style="background:${z.color}"></i>${esc(tx(z.name))}`;
+  el.classList.add("on");
+  clearTimeout(zoneTimer);
+  zoneTimer = setTimeout(() => el.classList.remove("on"), 2400);
+  setCtx({ key: "town", where: t("tw.where"), title: tx(z.name), answered: true, kb: ZONE_KB[z.id] });
+}
+const ZONE_KB: Record<ZoneId, string[]> = {
+  personal: ["budget", "leaks", "compound", "emergency", "score"], corporate: ["breakeven", "profit", "debt"], markets: ["stocks", "bond", "fx"],
+  macro: ["inflation", "realrate", "fixedfloat"], public: ["debt", "bond"], intl: ["fx"], museum: ["crisis1929", "crisis1973", "crisis2008"],
+};
+
 /* ---- action button + dialogue ---- */
-function onNear(d: Door | null) {
-  nearDoor = d;
+function onNear(tg: Target | null) {
+  near = tg;
   const b = $("#twAct");
   if (!b) return;
-  if (!d || town?.frozen) { b.hidden = true; return; }
+  if (!tg || town?.frozen) { b.hidden = true; return; }
   b.hidden = false;
-  b.innerHTML = `${icon(d.b.ic, { size: 22, color: "#fff", tint: 0.3 })}<span>${esc(t("tw.enter", { place: tx(d.b.name) }))}</span>`;
+  if (tg.kind === "door") b.innerHTML = `${icon(tg.door.b.ic, { size: 22, color: "#fff", tint: 0.3 })}<span>${esc(tg.door.b.lot ? t("tw.look", { place: tx(tg.door.b.name) }) : t("tw.enter", { place: tx(tg.door.b.name) }))}</span>`;
+  else b.innerHTML = `${icon("chat", { size: 22, color: "#fff", tint: 0.3 })}<span>${esc(t("tw.talk", { name: tg.npc.p.name }))}</span>`;
 }
-let typeTimer: ReturnType<typeof setInterval> | undefined;
-function say(name: string, text: string, buttons: [string, string][] = []) {
+let typeTimer: ReturnType<typeof setInterval> | undefined, talkingTo: Target | null = null;
+function say(name: string, text: string, buttons: [string, string][] = [], color = "#F5A524") {
   const box = $("#twTalk");
   if (!box || !town) return;
   town.frozen = true; town.input.set(0, 0);
   $("#twAct")!.hidden = true;
   box.hidden = false;
-  box.innerHTML = `<div class="tw-name">${esc(name)}</div><p id="twText"></p><div class="tw-tbtns">${buttons.map(([l, f]) => `<button class="btn good" onclick="${f}">${l}</button>`).join("")}<button class="btn ghost" onclick="A.townTalkClose()">${t("tw.ok")}</button></div>`;
+  box.innerHTML = `<div class="tw-name" style="background:${color}">${esc(name)}</div><p id="twText"></p><div class="tw-tbtns">${buttons.map(([l, f]) => `<button class="btn good" onclick="${f}">${l}</button>`).join("")}<button class="btn ghost" onclick="A.townTalkClose()">${t("tw.ok")}</button></div>`;
   const p = $("#twText")!;
   clearInterval(typeTimer);
   if (noMotion()) { p.textContent = text; return; }
@@ -104,23 +131,107 @@ function say(name: string, text: string, buttons: [string, string][] = []) {
 function townTalkClose() {
   clearInterval(typeTimer);
   const box = $("#twTalk"); if (box) box.hidden = true;
+  if (talkingTo?.kind === "npc") talkingTo.npc.talking = false;
+  talkingTo = null;
   if (town) town.frozen = false;
-  onNear(nearDoor);
+  onNear(near);
 }
 function townAct() {
-  const d = nearDoor;
-  if (!d || !town || town.frozen) return;
-  const b = d.b, n = nodeOf(b.lesson), place = tx(b.name);
-  if (b.id === "home") { say(place, t("tw.home", { n: lessonsDone() })); return; }
+  const tg = near;
+  if (!tg || !town || town.frozen) return;
+  talkingTo = tg;
+  if (tg.kind === "npc") { tg.npc.talking = true; say(`${tg.npc.p.name} · ${tx(tg.npc.p.style)}`, tx(tg.npc.p.line), [], "#B39DFF"); return; }
+  const b = tg.door.b, n = nodeOf(b.lesson), place = tx(b.name), zc = town.map.zones.find((z) => z.id === b.zone)?.color;
+  if (b.id === "home") { say(place, t("tw.home", { n: lessonsDone() }), [[t("tw.wardrobe"), "A.townWardrobe()"]], zc); return; }
+  if (b.id === "museum") { say(place, t("tw.museum"), [], zc); return; }
   if (n) {
     const done = !!S.lessons[n.id];
-    if (done) say(place, t("tw.open", { what: tx(n.unlock) }));
-    else say(place, t("tw.locked", { what: tx(n.unlock), code: n.code, hook: tx(n.hook) }), n.lesson ? [[t("tw.learn"), `A.townLearn('${n.id}')`]] : []);
+    if (done) say(place, t("tw.open", { what: tx(n.unlock), day: ZONE_DAY[b.zone] }), [], zc);
+    else if (n.lesson) say(place, t("tw.locked", { what: tx(n.unlock), code: n.code, hook: tx(n.hook) }), [[t("tw.learn"), `A.townLearn('${n.id}')`]], zc);
+    else say(place, t("tw.lockedSoon", { what: tx(n.unlock), code: n.code, hook: tx(n.hook), day: n.day }), [], zc);
     return;
   }
-  say(place, t("tw.soon"));
+  say(place, t("tw.soon"), [], zc);
 }
 function townLearn(id: string) { leaveTown(); (window as any).A.startLesson(id); }
+
+/* ---- wardrobe at home: skin, hair colour & style, top, trousers (the outfit style follows your career stage) ---- */
+function townWardrobe() {
+  townTalkClose();
+  const sh = $("#twSheet"); if (!sh || !town) return;
+  town.frozen = true; town.input.set(0, 0); $("#twAct")!.hidden = true; town.lift = 1; town.heading = 0; // camera raises you above the sheet, you face the camera
+  const g = ensureGame(), L = g.look;
+  const row = (label: string, key: keyof Look, vals: string[]) => `<div class="tw-row"><span>${label}</span><div>${vals.map((v) => `<button class="tw-sw${L[key] === v ? " on" : ""}" style="background:${v}" onclick="A.townLook('${key}','${v}')" aria-label="${label} ${v}"></button>`).join("")}</div></div>`;
+  const styles = [t("tw.hair0"), t("tw.hair1"), t("tw.hair2")];
+  sh.innerHTML = `<h3>${t("tw.wardrobe")}</h3>
+    ${row(t("tw.skin"), "skin", SKINS)}${row(t("tw.hairC"), "hair", HAIRS)}
+    <div class="tw-row"><span>${t("tw.hairS")}</span><div>${styles.map((s, i) => `<button class="tw-chip${L.style === i ? " on" : ""}" onclick="A.townLook('style',${i})">${s}</button>`).join("")}</div></div>
+    ${row(t("tw.top"), "top", TOPS)}${row(t("tw.bottom"), "bottom", BOTTOMS)}
+    <p class="tw-note">${t("tw.stageNote", { stage: t("tw.st." + g.stage) })}</p>
+    <button class="btn good" onclick="A.townWardrobeClose()">${t("tw.done")}</button>`;
+  sh.hidden = false;
+}
+function townLook(key: keyof Look, v: string | number) {
+  const g = ensureGame();
+  (g.look as any)[key] = key === "style" ? +v : v;
+  save();
+  town?.setLook(g.look, g.stage);
+  townWardrobe();
+}
+function townWardrobeClose() { const sh = $("#twSheet"); if (sh) sh.hidden = true; if (town) { town.frozen = false; town.lift = 0; } onNear(near); }
+
+/* ---- minimap (top-left) + full map (tap it or press M) ---- */
+let mapStatic: HTMLCanvasElement | null = null, mapT = 0;
+const MAPX: [number, number] = [-50, 50], MAPZ: [number, number] = [-46, 32];
+function drawMapStatic(w: World, W: number, H: number) {
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d")!, sx = W / (MAPX[1] - MAPX[0]), sz = H / (MAPZ[1] - MAPZ[0]);
+  const X = (v: number) => (v - MAPX[0]) * sx, Z = (v: number) => (v - MAPZ[0]) * sz;
+  x.fillStyle = "#A9DB82"; x.fillRect(0, 0, W, H);
+  x.fillStyle = "#F3E2B3"; x.fillRect(0, 0, W, Z(w.seaZ + 4));
+  x.fillStyle = "#7CCDF0"; x.fillRect(0, 0, W, Z(w.seaZ));
+  x.lineCap = "round"; x.strokeStyle = "#F4E6C3";
+  for (const [x0, z0, x1, z1, rw] of w.roads) { x.lineWidth = Math.max(1.5, rw * sx); x.beginPath(); x.moveTo(X(x0), Z(z0)); x.lineTo(X(x1), Z(z1)); x.stroke(); }
+  for (const b of w.buildings) {
+    const zc = w.zones.find((z) => z.id === b.zone)!.color;
+    x.fillStyle = b.lot ? "#D9B98C" : zc; x.globalAlpha = b.lot ? 0.8 : 1;
+    const bx = X(b.x - b.w / 2), bz = Z(b.z! - b.d / 2), bw = b.w * sx, bd = b.d * sz;
+    x.beginPath(); (x as any).roundRect ? (x as any).roundRect(bx, bz, bw, bd, Math.min(3, bw / 3)) : x.rect(bx, bz, bw, bd); x.fill();
+  }
+  x.globalAlpha = 1;
+  x.fillStyle = "#E9E1D2"; x.beginPath(); x.arc(X(0), Z(4), 6 * sx, 0, 7); x.fill();
+  x.fillStyle = "#7CCDF0"; x.beginPath(); x.arc(X(0), Z(4), 2.4 * sx, 0, 7); x.fill();
+  return c;
+}
+function drawMap(cv: HTMLCanvasElement, big = false) {
+  if (!town) return;
+  const w = town.map, W = cv.width, H = cv.height, x = cv.getContext("2d")!;
+  if (big || !mapStatic) { const st = drawMapStatic(w, W, H); if (!big) mapStatic = st; x.drawImage(st, 0, 0); } else x.drawImage(mapStatic, 0, 0);
+  const sx = W / (MAPX[1] - MAPX[0]), sz = H / (MAPZ[1] - MAPZ[0]);
+  for (const n of town.npcs) { x.fillStyle = "#B39DFF"; x.beginPath(); x.arc((n.pos.x - MAPX[0]) * sx, (n.pos.y - MAPZ[0]) * sz, big ? 5 : 3.5, 0, 7); x.fill(); }
+  const px = (town.pos.x - MAPX[0]) * sx, pz = (town.pos.y - MAPZ[0]) * sz, r = big ? 11 : 8, a = town.heading;
+  x.save(); x.translate(px, pz); x.rotate(-a + Math.PI);
+  x.fillStyle = "#FFFFFF"; x.beginPath(); x.arc(0, 0, r, 0, 7); x.fill();
+  x.fillStyle = "#E5484D"; x.beginPath(); x.moveTo(0, -r * 0.75); x.lineTo(r * 0.55, r * 0.5); x.lineTo(0, r * 0.2); x.lineTo(-r * 0.55, r * 0.5); x.closePath(); x.fill();
+  x.restore();
+}
+function onFrame() {
+  const now = performance.now();
+  if (now - mapT < 140) return; // ~7 fps is plenty for a minimap
+  mapT = now;
+  const cv = $("#twMap canvas") as HTMLCanvasElement | null;
+  if (cv) drawMap(cv);
+}
+function townMap() {
+  const big = $("#twBig"); if (!big || !town) return;
+  if (!big.hidden) { big.hidden = true; town.frozen = false; onNear(near); return; }
+  townTalkClose();
+  town.frozen = true; town.input.set(0, 0); $("#twAct")!.hidden = true;
+  const W = 680, H = Math.round((W * (MAPZ[1] - MAPZ[0])) / (MAPX[1] - MAPX[0]));
+  big.innerHTML = `<div class="tw-bigin"><h3>${t("tw.map")}</h3><div class="tw-bigmap"><canvas width="${W}" height="${H}"></canvas>${town.map.zones.map((z) => `<span class="tw-zl" style="left:${Math.min(84, Math.max(16, (((z.x0 + z.x1) / 2 - MAPX[0]) / (MAPX[1] - MAPX[0])) * 100))}%;top:${(((z.z0 + z.z1) / 2 - MAPZ[0]) / (MAPZ[1] - MAPZ[0])) * 100}%"><i style="background:${z.color}"></i>${esc(tx(z.name))}</span>`).join("")}</div><p class="tw-note">${t("tw.mapClose")}</p></div>`;
+  big.hidden = false;
+  drawMap(big.querySelector("canvas")!, true);
+}
 
 /* ---- joystick (touch / mouse) + keyboard ---- */
 let joyBound = false;
@@ -158,12 +269,14 @@ function bindJoystick() {
   if (joyBound) return;
   joyBound = true;
   window.addEventListener("keydown", (e) => {
-    if (!shown() || (e.target as HTMLElement)?.closest?.("input,textarea,.chat")) return;
+    if (!shown() || (e.target as HTMLElement)?.closest?.("input,textarea,.chat,.aspanel")) return;
     const k = e.key.toLowerCase();
     if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) { keys.add(k); applyKeys(); e.preventDefault(); $("#twHint")?.classList.add("off"); }
     if (k === "shift" && town) town.run = true;
-    if (k === "e" || k === " " || k === "enter") { if (town?.frozen) townTalkClose(); else townAct(); e.preventDefault(); }
-    if (k === "escape") { if (town?.frozen) townTalkClose(); else exitTown(); }
+    const sheet = !$("#twSheet")?.hidden, big = !$("#twBig")?.hidden;
+    if (k === "m") townMap();
+    if (k === "e" || k === " " || k === "enter") { e.preventDefault(); if (big) townMap(); else if (sheet) townWardrobeClose(); else if (talkingTo) townTalkClose(); else townAct(); }
+    if (k === "escape") { if (big) townMap(); else if (sheet) townWardrobeClose(); else if (talkingTo) townTalkClose(); else exitTown(); }
   });
   window.addEventListener("keyup", (e) => {
     const k = e.key.toLowerCase();
@@ -177,10 +290,12 @@ function leaveTown() {
   town?.stop();
   clearInterval(typeTimer);
   keys.clear();
+  if (talkingTo?.kind === "npc") talkingTo.npc.talking = false;
+  talkingTo = null;
   $(".phone")!.classList.remove("ingame");
 }
 function exitTown() { leaveTown(); closeO(); }
 /** Re-draw the HUD numbers (net worth changes). */
 export function refreshTownHud() { const r = $("#twRoot"); if (r) runCounts(r, fmtCount); }
 
-reg({ exitTown, townAct, townTalkClose, townLearn });
+reg({ exitTown, townAct, townTalkClose, townLearn, townWardrobe, townLook, townWardrobeClose, townMap });

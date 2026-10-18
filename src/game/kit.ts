@@ -94,7 +94,7 @@ export function blobTex() {
   if (blobT) return blobT;
   const c = document.createElement("canvas"); c.width = c.height = 64;
   const x = c.getContext("2d")!, g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-  g.addColorStop(0, "rgba(70,60,140,0.55)"); g.addColorStop(0.6, "rgba(70,60,140,0.35)"); g.addColorStop(1, "rgba(70,60,140,0)");
+  g.addColorStop(0, "rgba(48,40,104,0.5)"); g.addColorStop(0.6, "rgba(48,40,104,0.3)"); g.addColorStop(1, "rgba(48,40,104,0)");
   x.fillStyle = g; x.fillRect(0, 0, 64, 64);
   blobT = new THREE.CanvasTexture(c);
   return blobT;

@@ -14,6 +14,16 @@
 
 ## Phiên 5 — 20/10: Thị trấn low-poly (mục 13.3) — đang làm
 
+### Bước 2 — 7 khu, NPC, ngày–đêm, bản đồ, tủ đồ ✅ (đã push)
+- **Bản đồ ~96 × 70 m, 7 khu** (`BUILDINGS`/`ZONES` trong `src/game/world.ts`, mỗi nơi gắn bài mở khóa theo cột "Game" 13.2d): Khu dân cư (nhà có vườn rào, công ty đầu tiên, phòng khám & bảo hiểm, ngân hàng, chợ) · Bảo tàng Khủng hoảng (băng rôn 1929/1973/2008) · Phố kinh doanh (quán trà sữa có ly khổng lồ trên mái, 2 lô đất trống "bán", kho nhà cung cấp) · Khu tài chính (sàn giao dịch có **bảng giá chạy** — chỉ số mô phỏng "VNX", tiệm vàng & ngoại tệ, tòa quỹ kính) · **NHTW & Tòa tin tức** (khu thứ 7) · Trung tâm hành chính (tòa thị chính mái vòm + cờ, Bộ Tài chính, trường học) · Cảng biển (bãi cát, cầu tàu, tàu hàng, cần cẩu, container, phao, sóng biển).
+- Quảng trường có ghế đá; vách đá bậc thang 2 tầng ở mép bản đồ (trang trí); cây tròn/thông/dừa; không đặt cây ngay phía nam đường để không che nhân vật.
+- **7 NPC "bạn cùng lớp"** (`src/game/npc.ts`) mỗi người một lối sống tài chính (tiêu xài, tiết kiệm, liều, chủ quán, nhà đầu tư, cẩn thận, mê nạp game): đi dọc đường, dừng lại quay về phía bạn khi đến gần, nút "Nói chuyện với …" → một câu về cách họ tiêu tiền. Sẽ là bảng xếp hạng net worth ở 21/10.
+- **Trời theo giờ thật** (sáng – trưa – hoàng hôn hồng cam – đêm xanh tím); ban đêm **cửa sổ và đèn đường sáng**, có vệt sáng dưới đèn. Thử giờ khác bằng `?hour=20` trên URL (dùng khi quay video).
+- **Minimap** góc trái trên (bạn = mũi tên đỏ, NPC = chấm tím), chạm (hoặc phím M) → **bản đồ lớn** có tên 7 khu. **Biển tên khu** hiện khi bước sang khu khác; Alti Lion đổi ngữ cảnh theo khu.
+- **Tủ đồ** ở nhà (Vào nhà → Thay đồ): màu da, màu tóc, kiểu tóc (ngắn/dài/búi), áo, quần; lưu vào `S.game.look`; trang phục vẫn tự đổi theo nghề.
+- Bướm bay trên đồng cỏ, bụi dưới chân khi chạy; Khoai tây: ít cây/NPC hơn, không bướm; giảm chuyển động: NPC đứng yên, không gió.
+- Đi gần nơi có bài: đã học → "Đã mở: … (phần chơi có từ ngày …)"; chưa học, bài đã có nội dung → nút **Học ngay** mở bài; bài chưa có → "bài sắp có · ngày".
+
 ### Bước 1 — bản tối thiểu chạy được ✅ (đã push)
 - `src/game/kit.ts`: bộ dựng khối gộp mọi vật tĩnh thành **1 mesh tô màu theo đỉnh** (vài draw call cho cả thị trấn), shader **thế giới cong** (`bend()`: xa camera thì mặt đất cong xuống) + **gió** (tán cây, cỏ, hoa lay), bóng tròn mềm.
 - `src/game/avatar.ts`: nhân vật chibi dựng bằng khối (đầu ~40%, mắt bầu dục có chấm sáng, má hồng, tóc mũ chỏm + mái), **trang phục theo giai đoạn** (học sinh/nhân viên/chủ quán/ông trùm), thở khi đứng, vung tay chân + nhún khi đi.
