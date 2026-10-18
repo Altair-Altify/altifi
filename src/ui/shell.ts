@@ -7,12 +7,12 @@ import { lion } from "../mascot/lion";
 import { pageAnim, stopTalk, startTalk, paintTalk, talkId, LINES, confetti, countAttrs, runCounts } from "./fx";
 import { icon, IC } from "./icons";
 import { hydrateImages } from "./realimage";
-import { wxOverlay } from "./weather";
+import { syncSky } from "./skybg";
 import { setCtx } from "../assistant/context";
 import { refreshFab, placeFab } from "../assistant/assistant";
 import { learnView, homeFirst, learnCtx, afterLearnRender } from "./learn";
 import { exploreView } from "./explore";
-import { playView } from "./play";
+import { playView, afterPlayRender } from "./play";
 import { meView } from "./me";
 import { settingsView, getSetSub, clearSetSub } from "./settings";
 
@@ -54,7 +54,9 @@ export function render(enter = false) {
   const scr = $("#screen")!;
   scr.innerHTML = views[tab]();
   scr.classList.toggle("gxmode", !!$("#gxHost"));
+  syncSky(tab !== "learn" && !document.body.classList.contains("imgbg")); // light galaxy behind Explore / Me / Settings / Play
   if (tab === "learn") afterLearnRender();
+  if (tab === "play") afterPlayRender();
   scr.classList.toggle("enter", enter);
   if (enter) setTimeout(() => scr.classList.remove("enter"), 900);
   document.querySelectorAll<HTMLButtonElement>(".nav button").forEach((b) => {
@@ -81,10 +83,10 @@ export function rerenderAll() {
   render();
   if (ovShown() && ovRerender) ovRerender();
 }
-export function openO(html: string, opts?: { noWx?: boolean }) {
+export function openO(html: string, opts?: { cls?: string }) {
   const o = $("#overlay")!, isNew = !o.classList.contains("show");
-  o.innerHTML = '<div class="bgpat" aria-hidden="true"></div>' + (opts?.noWx ? "" : wxOverlay()) + html;
-  o.classList.add("show");
+  o.innerHTML = html; // lessons keep a plain background (13.1b-6)
+  o.className = "overlay show" + (opts?.cls ? " " + opts.cls : "");
   $(".phone")!.classList.add("ov");
   if (isNew) pageAnim(1, o);
   requestAnimationFrame(placeFab);
@@ -113,7 +115,7 @@ export function backHome() {
 export function moodFor(p: number): [string, number, string] {
   return p >= 0.99 ? ["cheer", 100, t("res.m.cheer")] : p >= 0.66 ? ["happy", 78, t("res.m.happy")] : p >= 0.33 ? ["wow", 48, t("res.m.wow")] : ["sad", 14, t("res.m.sad")];
 }
-export function resultPopup(o: { title: string; sub: string; stats: Array<[string | number, string]>; pct: number; extra?: string; buttons: Array<[string, string, string?]>; noWx?: boolean }) {
+export function resultPopup(o: { title: string; sub: string; stats: Array<[string | number, string]>; pct: number; extra?: string; buttons: Array<[string, string, string?]>; }) {
   const [mood, lvl, label] = moodFor(o.pct);
   openO(`<div class="resultbg"><div class="resultcard" role="dialog" aria-label="${esc(o.title)}">
     <div class="rc-face m-${mood}">${lion(118, mood)}</div>
@@ -122,7 +124,7 @@ export function resultPopup(o: { title: string; sub: string; stats: Array<[strin
     <div class="happy"><div class="hrow"><span>${t("res.happiness", { name: BN() })}</span><b>${label}</b></div><div class="hbar"><i style="width:${lvl}%"></i></div></div>
     ${o.extra || ""}
     <div class="rc-btns">${o.buttons.map(([l, f, c]) => `<button class="btn ${c || ""}" onclick="${f}">${l}</button>`).join("")}</div>
-  </div></div>`, { noWx: o.noWx });
+  </div></div>`);
   if (o.pct >= 0.66) confetti();
 }
 

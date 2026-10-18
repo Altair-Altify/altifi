@@ -6,7 +6,7 @@
 import * as THREE from "three";
 import type { DomainId, PlanetDef } from "../lesson/types";
 import { DOMAINS } from "../content/domains";
-import { layoutSystems, HOME_POS, GALAXY_R, ORBIT_Z, type SystemSpot } from "./layout";
+import { layoutSystems, HOME_POS, ORBIT_Z, type SystemSpot } from "./layout";
 import { makePlanet, seedOf, type PState, type PlanetObj } from "./planet";
 import { buildSky, glowTex, type Sky } from "./sky";
 
@@ -15,7 +15,7 @@ export interface GxNode { id: string; domain: DomainId; state: PState; planet: P
 export interface GxModel {
   nodes: GxNode[];
   links: { from: string; to: string; lit: boolean }[];
-  complete: DomainId[]; // areas whose constellation is shown
+  cons: { id: DomainId; lit: boolean[]; complete: boolean }[]; // one star per lesson, lit when done; complete = every lesson incl. "soon" (13.1b-1)
   homeLights: number;
   comet: boolean;
   night: boolean; potato: boolean; motion: boolean;
@@ -97,7 +97,8 @@ export class Galaxy {
   private links: THREE.Mesh | null = null;
   private altair: THREE.Group | null = null;
   private comet: { g: THREE.Group; tail: THREE.Points; hist: THREE.Vector3[]; lastLevel: number } | null = null;
-  private cons: THREE.Group[] = [];
+  private cons: { g: THREE.Group; stars: { s: THREE.Sprite; lit: boolean }[]; complete: boolean }[] = [];
+  private insets = { top: 56, bottom: 90 };
   private themeKey = ""; private dynKey = "";
   readonly pos = new Map<string, THREE.Vector3>(); // label anchors
   level: Level = 1; focusDom: DomainId | null = null; focusNode: string | null = null;
@@ -130,7 +131,7 @@ export class Galaxy {
     this.motion = m.motion;
     const theme = `${m.night}|${m.potato}`;
     if (theme !== this.themeKey) { this.themeKey = theme; this.dynKey = ""; this.buildStatic(m); }
-    const dyn = JSON.stringify([m.nodes.map((n) => n.state), m.links, m.complete, m.homeLights, m.comet]);
+    const dyn = JSON.stringify([m.nodes.map((n) => n.state), m.links, m.cons, m.homeLights, m.comet]);
     if (dyn !== this.dynKey) { this.dynKey = dyn; this.buildDynamic(m); }
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, m.potato ? 1 : 2));
     this.dirty = true;
@@ -176,11 +177,11 @@ export class Galaxy {
       this.planets.set(n.id, p); this.dynGroup.add(p.group);
     });
     // home planet (bridge to the Play tab): more town lights as the player progresses
-    const home = makePlanet({ shape: "rocky", palette: ["#5AA9E6", "#7CCB8A", "#A9DE8F", "#FFF3D6"], feature: "cities" }, 1.15, 4242, "done", "#7CCB8A", { night: m.night, detail, noRing: true });
+    const home = makePlanet({ shape: "rocky", palette: ["#5AA9E6", "#7CCB8A", "#A9DE8F", "#FFF3D6"], feature: "cities" }, 1.8, 4242, "done", "#7CCB8A", { night: m.night, detail, noRing: true });
     home.group.position.copy(HOME_POS);
     for (let i = 0; i < m.homeLights; i++) {
       const a = i * 2.39996, y = ((i * 0.37) % 1.6) - 0.8, n = new THREE.Vector3(Math.cos(a) * Math.sqrt(1 - y * y), y, Math.sin(a) * Math.sqrt(1 - y * y));
-      const l = sprite("#FFD45A", 0.55, 1, m.night); l.position.copy(n.multiplyScalar(1.28)); home.spin.add(l);
+      const l = sprite("#FFD45A", 0.85, 1, m.night); l.position.copy(n.multiplyScalar(1.8 * 1.12)); home.spin.add(l);
     }
     this.home = home; this.dynGroup.add(home.group);
     // light bands
@@ -195,15 +196,16 @@ export class Galaxy {
       return { a: A, b: B, ca: colorOf(nf.domain), cb: colorOf(nt.domain), lit: l.lit, ctrl, w: nf.domain === nt.domain ? 0.11 : 0.14 };
     });
     if (list.length) { this.links = ribbons(list, m.night); this.dynGroup.add(this.links); }
-    // constellations of finished areas
-    m.complete.forEach((id) => {
-      const s = this.sysById.get(id)!, out = s.center.clone().setY(0).normalize(), base = s.center.clone().add(out.multiplyScalar(s.radius + 13));
-      base.y = 3;
-      const g = new THREE.Group(), pts = s.planets.map((p) => base.clone().add(p.pos.clone().sub(s.center).multiplyScalar(1.15)));
-      pts.forEach((p, i) => { const st = sprite(i % 2 ? "#FFFFFF" : "#FFE08A", 3.2, 1, m.night); st.position.copy(p); g.add(st); });
-      g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: lighten(colorOf(id), m.night ? 0.4 : 0), transparent: true, opacity: 0.8 })));
-      this.pos.set("con:" + id, base.clone().add(new THREE.Vector3(0, 0, 0)));
-      this.cons.push(g); this.dynGroup.add(g);
+    // constellations (seen at level 1): each system's planets are its stars — a star lights up per finished lesson;
+    // when every lesson of the area is done (incl. "soon" ones) the lines glow gold and the whole figure pulses
+    m.cons.forEach((c) => {
+      const s = this.sysById.get(c.id)!, g = new THREE.Group(), col = colorOf(c.id);
+      const pts = s.planets.map((p) => p.pos.clone().setY(1.2));
+      const stars = pts.map((p, i) => { const st = sprite(c.lit[i] ? (c.complete ? "#FFE08A" : "#FFFFFF") : lighten(col, 0.3), 1, c.lit[i] ? 1 : 0.45, m.night); st.position.copy(p); g.add(st); return { s: st, lit: c.lit[i] }; });
+      const lineC = c.complete ? new THREE.Color("#FFD45A") : m.night ? lighten(col, 0.3) : new THREE.Color(col).multiplyScalar(0.8);
+      g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: lineC, transparent: true, opacity: c.complete ? 0.95 : 0.28 })));
+      if (c.complete) { const glow = sprite("#FFD45A", s.radius * 2.6, m.night ? 0.35 : 0.3, m.night); glow.position.copy(s.center); g.add(glow); }
+      this.cons.push({ g, stars, complete: c.complete }); this.dynGroup.add(g);
     });
     // reward comet
     this.comet = null;
@@ -222,16 +224,33 @@ export class Galaxy {
 
   /* ---------- camera framing per level ---------- */
   private aspect() { return this.w / Math.max(1, this.h); }
-  galDist() { const e = 72 * DEG; return Math.max(GALAXY_R / (TAN * Math.min(this.aspect(), 1.3)), (GALAXY_R * Math.sin(e)) / TAN) * 1.02; }
-  private sysDist(id: DomainId) { const s = this.sysById.get(id)!, e = this.elevFor(60); return Math.max(s.rx / (TAN * Math.min(this.aspect(), 1.2)), (s.rz * Math.sin(e) * 1.25) / TAN) * 1.06; }
+  /** Room left for the scene between the HUD (top) and the floating card (bottom), in px — set by the HTML layer. */
+  setInsets(top: number, bottom: number) {
+    if (Math.abs(top - this.insets.top) < 2 && Math.abs(bottom - this.insets.bottom) < 2) return;
+    this.insets = { top, bottom };
+    if (!this.tw && this.level < 3) this.rig = this.rigFor(this.level, this.level === 2 ? this.focusDom : null);
+    this.dirty = true;
+  }
+  /** Distance + vertical view shift so a box (half-sizes hx, hz on the plane) fills the free area of the screen. */
+  private fit(hx: number, hz: number, elev: number) {
+    const { top, bottom } = this.insets, avail = Math.max(0.35, (this.h - top - bottom) / this.h);
+    const dist = Math.max(hx / (TAN * this.aspect()), (hz * Math.sin(elev)) / (TAN * avail)) * 1.04;
+    return { dist, shift: (bottom - top) / (2 * this.h) };
+  }
+  private galBox() {
+    let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+    this.layout.forEach((s) => { x0 = Math.min(x0, s.center.x - 9); x1 = Math.max(x1, s.center.x + 9); z0 = Math.min(z0, s.center.z - 9); z1 = Math.max(z1, s.center.z + 9); });
+    return { cx: (x0 + x1) / 2, cz: (z0 + z1) / 2, hx: (x1 - x0) / 2, hz: (z1 - z0) / 2 };
+  }
+  galDist() { const b = this.galBox(); return this.fit(b.hx, b.hz, 72 * DEG).dist; }
   private planetDist(id: string) { const r = this.planetSpot.get(id)!.r * 2.7; return r / (TAN * Math.min(this.aspect(), 1)) * 1.05; }
   private elevFor(dist: number) {
     const lo = 40, hi = this.galDist(), k = THREE.MathUtils.clamp(Math.log(dist / lo) / Math.log(hi / lo), 0, 1);
     return (60 + 12 * k) * DEG;
   }
   private rigFor(level: Level, id?: string | null): Rig {
-    if (level === 1) return { target: new THREE.Vector3(0, 0, 4), dist: this.galDist(), elev: 72 * DEG, shift: 0.1 };
-    if (level === 2) { const s = this.sysById.get(id as DomainId)!, d = this.sysDist(s.id); return { target: s.center.clone(), dist: d, elev: this.elevFor(d), shift: 0.1 }; }
+    if (level === 1) { const b = this.galBox(), f = this.fit(b.hx, b.hz, 72 * DEG); return { target: new THREE.Vector3(b.cx, 0, b.cz), dist: f.dist, elev: 72 * DEG, shift: f.shift }; }
+    if (level === 2) { const s = this.sysById.get(id as DomainId)!, e = 62 * DEG, f = this.fit(s.rx, s.rz, e); return { target: s.center.clone(), dist: f.dist, elev: e, shift: f.shift }; }
     return { target: this.planetSpot.get(id!)!.pos.clone(), dist: this.planetDist(id!), elev: 14 * DEG, shift: 0.235 };
   }
 
@@ -401,7 +420,7 @@ export class Galaxy {
     this.camera.aspect = w / h;
     if (!this.tw) { // keep the current level framed after a resize
       if (this.level === 3 && this.focusNode) this.rig = this.rigFor(3, this.focusNode);
-      else if (this.level === 2 && this.focusDom && Math.abs(this.rig.dist - this.sysDist(this.focusDom)) < 1e-3) this.rig = this.rigFor(2, this.focusDom);
+      else if (this.level === 2 && this.focusDom) this.rig = this.rigFor(2, this.focusDom);
       else if (this.level === 1) this.rig = this.rigFor(1);
     }
     this.dirty = true;
@@ -452,7 +471,13 @@ export class Galaxy {
     if (this.altair && motion) this.altair.children.slice(1).forEach((s, i) => s.scale.setScalar([20, 7.5, 46][i] * (1 + 0.05 * Math.sin(t * 1.6 + i))));
     if (this.links) { const u = (this.links.material as THREE.ShaderMaterial).uniforms; u.uTime.value = t; u.uMotion.value = motion ? 1 : 0; u.uW.value = Math.max(0.05, this.rig.dist / 40); }
     this.updateComet(t, motion);
-    this.cons.forEach((c, i) => c.children.forEach((s, j) => { if ((s as THREE.Sprite).isSprite) (s as THREE.Sprite).material.opacity = motion ? 0.75 + 0.25 * Math.sin(t * 2 + j + i) : 1; }));
+    const conVis = this.level === 1 || (this.level === 2 && this.rig.dist > this.galDist() * 0.3);
+    this.cons.forEach((c, i) => {
+      c.g.visible = conVis;
+      if (!conVis) return;
+      const k = this.rig.dist * 0.011; // keep stars a few px wide at any zoom
+      c.stars.forEach((st, j) => { st.s.scale.setScalar(k * (st.lit ? (c.complete ? 1.6 : 1.25) : 0.7) * (motion && c.complete ? 1 + 0.15 * Math.sin(t * 2.4 + j + i) : 1)); });
+    });
     this.sky?.update(t, motion, this.camera);
     (this.sky?.mats || []).forEach((m) => (m.uniforms.uPR.value = this.renderer.getPixelRatio()));
     this.renderer.render(this.scene, this.camera);

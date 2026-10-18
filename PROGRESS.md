@@ -2,6 +2,27 @@
 
 > Đọc file này + `ALTIFI_DESIGN.md` ở đầu mỗi phiên. Cập nhật ở cuối mỗi phiên.
 
+## Phiên 4 — chỉnh theo nhóm duyệt (mục 13.1b) ✅
+
+**Kết quả:** đã ghi quyết định vào `ALTIFI_DESIGN.md` **mục 13.1b**. `npm run build` không lỗi; `node scripts/playthrough.cjs vi` vẫn đúng hết (2 bước `predict` báo WRONG là đúng thiết kế, không chấm điểm). Đã kiểm thử bằng Playwright ở khung 375px: chòm sao hoàn chỉnh khi xong đủ 4 bài Vĩ mô (kể cả bài "Sắp có") → pill ✦ + huy hiệu `dom-macro`; Bỏ qua thẻ test → viên thuốc, chạm → mở lại; tab Chơi → bay xuống thị trấn (có thời tiết); màn bài học không còn họa tiết/thời tiết. Đã chụp tầng ngân hà, tầng hệ, Khám phá, Tôi ở Light và Night.
+
+### Đã xong
+1. **Chòm sao (13.1b-1):** ở tầng ngân hà mỗi hệ là một chòm sao: mỗi hành tinh là một ngôi sao, **bài xong thì sao sáng**, đường nối mờ. Xong **mọi bài của mảng, tính cả bài "Sắp có"** → đường nối vàng, cả chòm nhấp nháy, hào quang, pill có ✦, nhận huy hiệu mảng. `domainDone` (`src/content/badges.ts`) giờ tính đủ mọi bài (huy hiệu mảng đã nhận ở bản cũ vẫn được giữ trong save).
+2. **Tầng ngân hà (13.1b-2):** cả ngân hà là elip kéo dài theo chiều dọc (`GZ = 1.55`), 6 hệ trải đều dọc 3 nhánh (bán kính 22 → 82, mỗi nhánh 2 hệ) → phủ gần kín màn hình điện thoại. Camera tự canh khung theo **vùng trống giữa HUD và thẻ dưới đáy** (`setInsets`). Nhãn mảng = viên thuốc (chấm màu · tên ngắn · %), tránh nhau (thử đặt phía trên ngôi sao trước khi đẩy xuống), luôn nằm trong vùng giữa HUD và thẻ đáy.
+3. **Tầng hệ (13.1b-3):** hành tinh to gấp 2 (bán kính 1,25 → 2,5; quỹ đạo giãn theo). Nhãn bài = viên thuốc nhỏ dưới hành tinh (mã + tên ngắn); trạng thái, sao, ngày chỉ ở thẻ tầng 3. Nhãn chạm vùng HUD/thẻ đáy thì ẩn (hết thẻ "SẮP CÓ" lẹm sau breadcrumb).
+4. **Bụi sao (13.1b-4):** chỉ nằm dọc nhánh xoắn, hạt nhỏ, mờ dần ra rìa và ra mép nhánh, thêm lớp sáng mờ (haze) dọc nhánh; hạt không phóng to khi zoom gần.
+5. **Thẻ dưới đáy (13.1b-5):** một hàng thấp (icon · tiêu đề · nút tròn), dùng chung cho bài test xếp lớp / tiếp tục bài / bài gợi ý. Vuốt xuống hoặc bấm **Bỏ qua** → viên thuốc; trạng thái lưu ở `S.galaxy.mini`.
+6. **Nền theo tab (13.1b-6):**
+   - Khám phá · Tôi · Cài đặt (và Chơi): **nền ngân hà nhẹ** `src/ui/skybg.ts` (canvas 2D vẽ 1 lần theo theme/kích thước, trôi rất chậm bằng CSS, đứng yên khi Khoai tây/giảm chuyển động). Không chạy Three.js. Thẻ chuyển sang **kính mờ**. Tương phản đã tính: chữ trên trời Light `#4A4672` ≥ 5,9:1, Night `#CFCBEF` ≥ 7,3:1; chữ phụ trên kính Light 4,8:1, Night 6,5:1.
+   - **Chơi:** trang chính là **hành tinh nhà trong không gian** (`src/galaxy/home.ts`, đèn thị trấn theo tiến độ). Chạm hành tinh / nút "Bay xuống thị trấn" → camera lao xuống bề mặt → màn **thị trấn tạm** nắng pastel (thị trấn thật làm phiên sau). Các thẻ chế độ chơi, bảo tàng giữ bên dưới.
+   - **Thời tiết** chỉ còn trong thị trấn (`#wxTown`); **bỏ họa tiết tiền** (xóa `src/ui/pattern.ts`, `.bgpat`); màn bài học nền trơn; theme **"Ảnh của tôi"** ẩn nền ngân hà nhẹ và thay nền trời của tab Học bằng ảnh.
+
+### Lỗi / lưu ý đã biết (phiên 4)
+- Vẫn **chưa thử trên điện thoại thật**; tab Chơi giờ có ngữ cảnh WebGL thứ hai (hành tinh nhà) — cần xem hiệu năng máy yếu.
+- Màn thị trấn tạm dùng hình SVG `townScene` cũ (có viền trời riêng); sẽ thay bằng thị trấn low-poly.
+- Ở Night, chữ trên trang Tôi nằm trên dải ngân hà sáng: đủ tương phản theo tính toán nhưng nên nhìn lại trên máy thật.
+- Nền nhẹ chỉ vẽ lại khi đổi theme/kích thước; đổi theme khi đang ở tab Khám phá thì được vẽ lại lúc render lại tab.
+
 ## Phiên 3 — phần việc ngày 19/10 (làm sớm tối 18/10) · Dải ngân hà Altair (mục 13.1) + 6 mảng/20 bài (13.2d) ✅ có bản chạy được
 
 **Kết quả:** `npm run build` sạch (tsc không lỗi). `node scripts/playthrough.cjs vi` vẫn xanh (mọi bước có chấm điểm đều RIGHT, không lỗi console). Kiểm thử Playwright (Chromium + WebGL SwiftShader) các luồng: lần đầu mở → tự lướt từ tầng 1 vào tầng 2 · chạm hành tinh → tầng 3 · HẠ CÁNH → tên lửa → mở bài · đóng bài → quay lại đúng hành tinh · nhặt sao chổi (+20 XP) · kéo/lăn chuột → tầng 1 · chạm hệ → tầng 2 · chip "Nên biết trước" → bay sang hành tinh ở mảng khác · Danh sách ↔ Ngân hà · đổi VI/EN · sang tab khác rồi quay lại · Khoai tây + giảm chuyển động (cắt thẳng, không tên lửa). Đã chụp Sáng/Tối.
@@ -43,7 +64,8 @@
 - Ảnh Wikimedia vẫn chưa test được vì mạng phiên bị chặn (như phiên 2).
 
 ## ▶️ Việc đầu tiên của phiên sau (20/10 — Thị trấn low-poly, mục 13.3)
-1. Đọc `ALTIFI_DESIGN.md` **mục 13** (13.3 checklist "giống Animal Crossing", 13.4, 13.6) + file này. `npm install && npm run dev`, `node scripts/playthrough.cjs vi`.
+0. Thị trấn mở từ tab Chơi qua `goTown()` trong `src/ui/play.ts` (sau cú lao camera của `HomeSpace.dive`) — thay `openTown()` tạm bằng thị trấn thật; giữ **nắng pastel**, thời tiết vẽ vào `#wxTown`.
+1. Đọc `ALTIFI_DESIGN.md` **mục 13** (13.1b, 13.3 checklist "giống Animal Crossing", 13.4, 13.6) + file này. `npm install && npm run dev`, `node scripts/playthrough.cjs vi`.
 2. **Dùng lại engine của ngân hà**: cùng Three.js (đã tách chunk), cách tô phẳng từng mặt + nhiễu trong `src/galaxy/planet.ts` (`fbm`, `seeded`, `flatShading`), mẫu class `Galaxy` trong `src/galaxy/scene.ts` (resize, vòng lặp tự dừng qua `hidden()`, `motion` cho Khoai tây/giảm chuyển động, nhãn HTML qua `project()`). Thêm `src/game/` cho thị trấn.
 3. Làm theo 13.6 ngày 20/10: Three.js + asset CC0 (Kenney/Quaternius — **kiểm tra giấy phép từng bộ, ghi `assets/CREDITS.md`**), joystick + WASD (không chạm-để-đi), camera cao ~45° bám nhân vật + shader "thế giới cong", va chạm, 7 khu (thêm khu NHTW & tòa tin tức), NPC chibi, thời tiết, nhân vật dựng bằng khối hình học (tùy biến, đổi trang phục theo giai đoạn), HUD net worth (đặt `S.game.netWorth`, đẩy giá trị theo tháng vào `S.game.history`).
 4. Khi vào game: ẩn thanh 5 tab, có nút thoát, nút Alti Lion nổi lên góc phải trên. Hành tinh nhà trên ngân hà đã dẫn sang tab Chơi — có thể cho số đèn đọc từ tiến độ thị trấn.

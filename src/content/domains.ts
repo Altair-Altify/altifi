@@ -11,7 +11,7 @@ import placement from "./placement";
 export interface Domain {
   id: DomainId; ic: string;
   color: string; // system / nebula color (13.1 "Màu 6 mảng")
-  title: TL; tag?: TL; desc: TL;
+  title: TL; short: TL; tag?: TL; desc: TL;
   nodes: CourseNode[];
 }
 
@@ -20,7 +20,7 @@ const area = (d: Omit<Domain, "nodes">, nodes: N[]): Domain => ({ ...d, nodes: n
 const T = (vi: string, en: string) => ({ vi, en });
 
 export const DOMAINS: Domain[] = [
-  area({ id: "personal", ic: "piggy", color: "#F7867A", title: T("Tài chính cá nhân", "Personal Finance"), tag: T("Tiền của tôi", "My money"), desc: T("Chi tiêu, tín dụng, tiết kiệm, lừa đảo, lương & thuế", "Spending, credit, saving, scams, pay & tax") }, [
+  area({ id: "personal", short: T("Cá nhân", "Personal"), ic: "piggy", color: "#F7867A", title: T("Tài chính cá nhân", "Personal Finance"), tag: T("Tiền của tôi", "My money"), desc: T("Chi tiêu, tín dụng, tiết kiệm, lừa đảo, lương & thuế", "Spending, credit, saving, scams, pay & tax") }, [
     { id: "p-budget", code: "P1", ic: "piggy", lesson: budget, day: "21/10", prereq: [],
       title: T("Tiền tiêu vặt & ngân sách", "Pocket money & budgets"), hook: T("Tiền tiêu vặt của mình biến đi đâu hết?", "Where does my pocket money disappear to?"),
       unlock: T("Sổ chi tiêu", "Spending log"), planet: { shape: "rocky", palette: ["#F4A28C", "#F7C59F", "#9FD6A8", "#FFF1D6"], feature: "leak" } },
@@ -37,7 +37,7 @@ export const DOMAINS: Domain[] = [
       title: T("Lương, thuế & bảo hiểm", "Pay, tax & insurance"), hook: T("Lương 10 triệu, cầm về được bao nhiêu?", "A 10-million salary — how much do I take home?"),
       unlock: T("Việc làm có lương & bảo hiểm", "Paid jobs & insurance"), planet: { shape: "rocky", palette: ["#E8956B", "#F3B98A", "#F8D9A8", "#FFF0D2"], feature: "strata" } },
   ]),
-  area({ id: "corporate", ic: "shop", color: "#F5A524", title: T("Tài chính doanh nghiệp", "Business Finance"), tag: T("Quán của tôi", "My shop"), desc: T("Mở một quán trà sữa — mỗi bài là một khủng hoảng thật của quán", "Run a milk-tea shop — every lesson is one of its real crises") }, [
+  area({ id: "corporate", short: T("Doanh nghiệp", "Business"), ic: "shop", color: "#F5A524", title: T("Tài chính doanh nghiệp", "Business Finance"), tag: T("Quán của tôi", "My shop"), desc: T("Mở một quán trà sữa — mỗi bài là một khủng hoảng thật của quán", "Run a milk-tea shop — every lesson is one of its real crises") }, [
     { id: "c-breakeven", code: "B1", ic: "calc", lesson: breakeven, day: "22/10", prereq: [],
       title: T("Chi phí & điểm hòa vốn", "Costs & break-even"), hook: T("Bán một ly trà sữa lời bao nhiêu?", "How much profit is in one cup of milk tea?"),
       unlock: T("Quầy hàng đầu tiên", "Your first stall"), planet: { shape: "rocky", palette: ["#C99A6B", "#DDB78B", "#EED3AE", "#FFF3E0"], feature: "boba" } },
@@ -54,7 +54,7 @@ export const DOMAINS: Domain[] = [
       title: T("Mở rộng & NPV", "Growth & NPV"), hook: T("Mở 10 chi nhánh cùng lúc: liều hay khôn?", "Opening 10 branches at once: bold or smart?"),
       unlock: T("Chi nhánh trên các lô đất", "Branches on the map's plots"), planet: { shape: "rocky", palette: ["#7FA35B", "#A3C27A", "#C9DDA0", "#EEF5D8"], feature: "cities" } },
   ]),
-  area({ id: "macro", ic: "sliders", color: "#8B6CF0", title: T("Kinh tế vĩ mô", "Macroeconomics"), tag: T("Nền kinh tế vận hành ra sao", "How the economy works"), desc: T("Lạm phát, lãi suất, GDP, chính sách — lõi để hiểu tin tức kinh tế", "Inflation, interest rates, GDP, policy — the core of reading economic news") }, [
+  area({ id: "macro", short: T("Vĩ mô", "Macro"), ic: "sliders", color: "#8B6CF0", title: T("Kinh tế vĩ mô", "Macroeconomics"), tag: T("Nền kinh tế vận hành ra sao", "How the economy works"), desc: T("Lạm phát, lãi suất, GDP, chính sách — lõi để hiểu tin tức kinh tế", "Inflation, interest rates, GDP, policy — the core of reading economic news") }, [
     { id: "m-inflation", code: "M1", ic: "chart", day: "23/10", prereq: ["p-inflation"],
       title: T("Nguồn gốc lạm phát", "Where inflation comes from"), hook: T("Lạm phát đến từ đâu?", "Where does inflation come from?"),
       unlock: T("Chỉ số giá trên bảng tin thị trấn", "A price index on the town board"), planet: { shape: "gas", palette: ["#B79CFF", "#E0B8FF", "#FFC2D9", "#9D7BF0"], feature: "swell", size: 1.3 } },
@@ -68,7 +68,7 @@ export const DOMAINS: Domain[] = [
       title: T("Tài khóa & tiền tệ", "Fiscal & monetary policy"), hook: T("Hai tay lái: chính phủ & NHTW", "Two steering wheels: government & central bank"),
       unlock: T("Vai Thống đốc trong chế độ Khủng hoảng", "The Governor role in Crisis mode"), planet: { shape: "rocky", palette: ["#584AA8", "#7C6CCB", "#A99BE6", "#E2DCFF"], feature: "twinMoons" } },
   ]),
-  area({ id: "markets", ic: "chart", color: "#1BB0C2", title: T("Đầu tư & thị trường", "Investing & Markets"), desc: T("Rủi ro – lợi nhuận, đa dạng hóa, bong bóng, tài sản trú ẩn", "Risk & return, diversification, bubbles, safe havens") }, [
+  area({ id: "markets", short: T("Đầu tư", "Investing"), ic: "chart", color: "#1BB0C2", title: T("Đầu tư & thị trường", "Investing & Markets"), desc: T("Rủi ro – lợi nhuận, đa dạng hóa, bong bóng, tài sản trú ẩn", "Risk & return, diversification, bubbles, safe havens") }, [
     { id: "i-stocks", code: "I1", ic: "chart", day: "25/10", prereq: ["p-inflation"],
       title: T("Cổ phiếu & đa dạng hóa", "Stocks & diversification"), hook: T("Chứng khoán: đầu tư hay đánh bạc?", "Stocks: investing or gambling?"),
       unlock: T("Sàn giao dịch", "The stock exchange"), planet: { shape: "rocky", palette: ["#2D8FA0", "#4FB3C0", "#8ED8DC", "#DDF6F4"], feature: "bars" } },
@@ -76,7 +76,7 @@ export const DOMAINS: Domain[] = [
       title: T("Bong bóng & tài sản trú ẩn", "Bubbles & safe havens"), hook: T("Vàng, đất, tiền ảo: vì sao giá lên xuống điên cuồng?", "Gold, land, crypto: why do prices swing so wildly?"),
       unlock: T("Tiệm vàng & quầy ngoại tệ", "Gold shop & currency desk"), planet: { shape: "rocky", palette: ["#3C7F86", "#5FA5A8", "#9CCFC9", "#E2F3EE"], feature: "crystals" } },
   ]),
-  area({ id: "public", ic: "bank", color: "#3D7BF5", title: T("Tài chính công", "Public Finance"), desc: T("Thuế, ngân sách nhà nước, nợ công", "Taxes, the state budget, public debt") }, [
+  area({ id: "public", short: T("Tài chính công", "Public"), ic: "bank", color: "#3D7BF5", title: T("Tài chính công", "Public Finance"), desc: T("Thuế, ngân sách nhà nước, nợ công", "Taxes, the state budget, public debt") }, [
     { id: "g-tax", code: "G1", ic: "pie", day: "26/10", prereq: [],
       title: T("Thuế & ngân sách nhà nước", "Taxes & the state budget"), hook: T("Tiền thuế của mình đi đâu?", "Where do my taxes go?"),
       unlock: T("Công trình ở tòa thị chính", "Projects at the town hall"), planet: { shape: "rocky", palette: ["#3D7BF5", "#7AA7FA", "#F5B841", "#7ED3A1", "#F28C8C"], feature: "pie" } },
@@ -84,7 +84,7 @@ export const DOMAINS: Domain[] = [
       title: T("Thâm hụt & nợ công", "Deficits & public debt"), hook: T("Chính phủ vay nợ: tốt hay xấu?", "Government borrowing: good or bad?"),
       unlock: T("Vai Bộ trưởng Tài chính", "The Finance Minister role"), planet: { shape: "gas", palette: ["#5A86E0", "#86A9EE", "#B7CDF6", "#E3ECFC"], feature: "saturn", size: 1.15 } },
   ]),
-  area({ id: "intl", ic: "ship", color: "#2FAE73", title: T("Tài chính quốc tế", "International Finance"), desc: T("Tỷ giá, dòng vốn, khủng hoảng 1997", "Exchange rates, capital flows, the 1997 crisis") }, [
+  area({ id: "intl", short: T("Quốc tế", "International"), ic: "ship", color: "#2FAE73", title: T("Tài chính quốc tế", "International Finance"), desc: T("Tỷ giá, dòng vốn, khủng hoảng 1997", "Exchange rates, capital flows, the 1997 crisis") }, [
     { id: "x-fx", code: "X1", ic: "swap", day: "26/10", prereq: ["m-inflation"],
       title: T("Tỷ giá", "Exchange rates"), hook: T("Vì sao USD tăng thì du học & iPhone đắt hơn?", "Why does a strong dollar make iPhones and studying abroad pricier?"),
       unlock: T("Cảng & quầy đổi tiền", "The port & exchange desk"), planet: { shape: "rocky", palette: ["#2E9B6A", "#5DBE8C", "#E4766A", "#F3B0A6"], feature: "split" } },

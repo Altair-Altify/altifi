@@ -1,15 +1,13 @@
 /* Achievement badges (design doc 10c.3 & 10c.5): earned ones are kept in S.badges forever. */
 import type { T } from "../i18n/i18n";
 import type { State } from "../core/state";
-import { DOMAINS, isReal } from "./domains";
+import { DOMAINS } from "./domains";
 
 export interface Badge { id: string; ic: string; color: string; name: T; how: T; test: (S: State) => boolean }
 
 const done = (S: State) => Object.keys(S.lessons).length;
-export const domainDone = (S: State, id: string) => {
-  const real = DOMAINS.find((d) => d.id === id)!.nodes.filter(isReal);
-  return real.length > 0 && real.every((l) => S.lessons[l.id]);
-};
+/** An area is complete when EVERY lesson of it is done — "coming soon" ones included (design doc 13.1b-1). */
+export const domainDone = (S: State, id: string) => DOMAINS.find((d) => d.id === id)!.nodes.every((n) => S.lessons[n.id]);
 
 export const BADGES: Badge[] = [
   { id: "first", ic: "sparkle", color: "#5B5BD6", name: { vi: "Bước đầu tiên", en: "First step" }, how: { vi: "Học xong 1 bài bất kỳ.", en: "Finish any lesson." }, test: (S) => done(S) >= 1 },
@@ -21,7 +19,7 @@ export const BADGES: Badge[] = [
   { id: "xp100", ic: "trophy", color: "#E0A800", name: { vi: "100 XP", en: "100 XP" }, how: { vi: "Tích lũy 100 XP.", en: "Earn 100 XP." }, test: (S) => S.xp >= 100 },
   { id: "chest", ic: "chestOpen", color: "#C97A06", name: { vi: "Săn sao chổi", en: "Comet catcher" }, how: { vi: "Nhặt một sao chổi thưởng trong dải ngân hà.", en: "Catch a reward comet in the galaxy." }, test: (S) => S.chests.length > 0 },
   { id: "placement", ic: "target", color: "#0E9F9A", name: { vi: "Biết mình ở đâu", en: "Know thyself" }, how: { vi: "Làm bài test xếp lớp.", en: "Take the placement test." }, test: (S) => !!S.placement },
-  ...DOMAINS.map((d): Badge => { const n = d.title as T; return { id: "dom-" + d.id, ic: d.ic, color: d.color, name: n, how: { vi: `Học xong mọi bài hiện có của mảng "${n.vi}".`, en: `Finish every available lesson in "${n.en}".` }, test: (S) => domainDone(S, d.id) }; }),
+  ...DOMAINS.map((d): Badge => { const n = d.title as T; return { id: "dom-" + d.id, ic: d.ic, color: d.color, name: n, how: { vi: `Học xong cả ${DOMAINS.find((x) => x.id === d.id)!.nodes.length} bài của mảng "${n.vi}" để chòm sao hoàn chỉnh.`, en: `Finish all ${DOMAINS.find((x) => x.id === d.id)!.nodes.length} lessons of "${n.en}" to complete its constellation.` }, test: (S) => domainDone(S, d.id) }; }),
 ];
 
 /** Adds newly earned badges to S.badges; returns them (for a toast). */

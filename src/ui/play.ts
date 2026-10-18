@@ -1,12 +1,16 @@
 /* ---------- Play tab (design doc section 6) — replaces the base demo's "Crisis Game" tab ----------
  * Day 18: navigation + mode overview. Low-poly town (20/10), Personal (21/10), Business (22/10), one crisis (23/10) — design doc 13.6. */
-import { shortVnd } from "../core/util";
-import { S } from "../core/state";
+import { shortVnd, esc } from "../core/util";
+import { S, PO, noMotion, lessonsDone } from "../core/state";
+import { reg } from "../core/actions";
+import { openO } from "./shell";
+import { wxOverlay } from "./weather";
+import { HomeSpace } from "../galaxy/home";
 import { t, tx, lang } from "../i18n/i18n";
 import { lion } from "../mascot/lion";
 import { DOMAINS } from "../content/domains";
 import { icon, IC } from "./icons";
-import { illus } from "./scenes";
+import { illus, townScene } from "./scenes";
 import { realImage } from "./realimage";
 
 /* Crisis Museum rooms (design doc 6.4) — real archive photos via RealImage.
@@ -30,12 +34,44 @@ const RATING = [["!!", "#1BADA6"], ["!", "#2BB673"], ["★", "#7CB342"], ["!?", 
 
 export function playView() {
   const nw = S.game ? `<b class="nwbig">${shortVnd(S.game.netWorth, lang())}</b>` : `<span class="muted" style="font-weight:800">${t("pl.nwNone")}</span>`;
-  return `<h2 class="title">${t("pl.title")}</h2><p class="muted" style="font-weight:700">${t("pl.sub")}</p>
+  return `<section class="homesp"><div class="hs-stage" id="hsStage" role="button" tabindex="0" onclick="A.goTown()" onkeydown="if(event.key==='Enter')A.goTown()" aria-label="${esc(t("pl.homeAria"))}"></div>
+    <div class="hs-cap"><div class="hs-k">${t("gx.home")}</div><h2 class="title">${t("pl.homeT")}</h2><button class="btn sun hs-go" onclick="A.goTown()">${icon("rocket", { size: 20, tint: 0.35 })} ${t("pl.goTown")}</button></div></section>
+  <p class="muted onsky" style="font-weight:700">${t("pl.sub")}</p>
   <div class="card nwcard"><div class="muted" style="font-size:12px;font-weight:900;letter-spacing:.5px;display:flex;align-items:center;gap:6px">${icon("wallet", { size: 18, color: IC.wallet })} ${t("pl.nw").toUpperCase()}</div>${nw}</div>
-  <div class="hello" style="margin-bottom:14px">${lion(56)}<div class="bubble">${t("pl.mapSoon")}</div></div>
-  <div class="sub">${t("pl.modes")}</div>
+  <div class="sub onsky">${t("pl.modes")}</div>
   ${DOMAINS.map((d) => { const m = MODES[d.id]; return `<div class="card modecard soonc"><div class="exic" style="background:${d.color}">${icon(d.ic, { size: 28, color: "#fff", tint: 0.35 })}</div><div style="flex:1;min-width:0"><div class="pill">${tx(d.title)}</div><h3 style="margin-top:6px">${tx(m.name)}</h3><div class="muted" style="font-size:13px;font-weight:700">${tx(m.role)}</div><span class="soonpill">${t("c.soon")} · ${m.day}</span></div></div>`; }).join("")}
-  <div class="sub museum-h">${icon("bank", { size: 18 })} ${t("pl.crisis")}</div><p class="muted" style="font-size:13px;font-weight:700;margin-top:-4px">${t("pl.crisisSub")}</p>
+  <div class="sub museum-h onsky">${icon("bank", { size: 18 })} ${t("pl.crisis")}</div><p class="muted onsky" style="font-size:13px;font-weight:700;margin-top:-4px">${t("pl.crisisSub")}</p>
   <div class="rooms">${ROOMS.map((r) => `<article class="card room">${realImage({ query: r.imageQuery, file: r.imageFile || undefined }, illus(icon(r.ic, { size: 44, color: "#fff", tint: 0.35 }), r.c), { ratio: "4/3", cls: "roomimg" })}<div class="roomyr" style="background:${r.c}">${r.year}</div><div class="exbody"><div class="muted" style="font-size:12.5px;font-weight:800">${tx(r.sub)}</div><span class="soonpill">${t("c.soon")} · 22/10</span></div></article>`).join("")}</div>
   <div class="card" style="background:var(--sunbg);border-color:var(--sunline)"><h3>${t("pl.rating")}</h3><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">${RATING.map(([s, c]) => `<span class="badge mini" style="background:${c}">${s}</span>`).join("")}</div></div>`;
 }
+
+/* ---------- home planet in space → dive → town (design doc 13.1b-6) ---------- */
+let hs: HomeSpace | null = null, hsFailed = false;
+const hsHost = document.createElement("div");
+hsHost.className = "hs-host";
+/** Called by the shell after the Play tab's HTML is in the page. */
+export function afterPlayRender() {
+  const stage = document.getElementById("hsStage");
+  if (!stage || hsFailed) return;
+  if (!hs) {
+    try {
+      hs = new HomeSpace(hsHost, () => !hsHost.isConnected || document.hidden || !!document.querySelector(".phone.ov"), PO());
+      hsHost.appendChild(hs.canvas);
+      new ResizeObserver(() => hs?.resize()).observe(hsHost);
+    } catch { hsFailed = true; stage.classList.add("nogl"); return; }
+  }
+  stage.appendChild(hsHost);
+  hs.set(document.body.classList.contains("night"), PO(), !noMotion(), Math.min(16, 2 + lessonsDone() * 2 + (S.game ? 2 : 0)));
+  hs.resize();
+  hs.start();
+}
+function openTown() {
+  openO(`<div class="town"><div class="town-scene">${townScene(400, 260, false)}</div><div id="wxTown" class="town-wx">${wxOverlay()}</div>
+    <button class="town-back" onclick="A.closeO()" aria-label="${t("pl.backSpace")}">${icon("back", { size: 22 })}</button>
+    <div class="town-card"><div class="hello">${lion(64, "happy")}<div class="bubble">${t("pl.townSoon")}</div></div>
+    <button class="btn ghost" onclick="A.closeO()">${t("pl.backSpace")}</button></div></div>`, { cls: "townov" });
+}
+function goTown() {
+  if (hs && !hsFailed) hs.dive(openTown); else openTown();
+}
+reg({ goTown });

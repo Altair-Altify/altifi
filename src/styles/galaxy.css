@@ -16,12 +16,14 @@ body.night .gx{--glass:rgba(30,24,62,.66);--glassline:rgba(255,255,255,.09);--gx
 /* ---- labels that follow objects ---- */
 .gxl{position:absolute;left:0;top:0;pointer-events:auto;will-change:transform;transition:opacity .25s,visibility .25s;font-family:inherit;color:var(--gxink)}
 .gxl.off{opacity:0;visibility:hidden;pointer-events:none}
-.gxl.pl{border:none;display:flex;flex-direction:column;align-items:center;gap:1px;max-width:112px;padding:2px 7px 3px;border-radius:10px;background:var(--glass);box-shadow:0 2px 10px rgba(40,30,90,.14);font-size:10.5px;font-weight:800;line-height:1.2;text-align:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.gxl.pl .gx-t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.gxl.pl.st-soon{background:color-mix(in srgb,var(--glass) 55%,transparent);box-shadow:none;opacity:.9}
+.gxl.pl{border:none;display:flex;align-items:center;gap:4px;max-width:128px;padding:2px 8px 2px 2px;border-radius:999px;background:var(--glass);box-shadow:0 2px 8px rgba(40,30,90,.14);font-size:10.5px;font-weight:800;line-height:1.2;white-space:nowrap;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.gxl.pl .gx-t{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.gxl.pl .gx-code{border-radius:999px;padding:1px 6px}
+.gxl.pl.st-soon{background:color-mix(in srgb,var(--glass) 60%,transparent);box-shadow:none}
 .gxl.pl.st-soon .gx-code{background:none;color:color-mix(in srgb,var(--dc) 75%,var(--gxink));outline:1.5px dashed currentColor;outline-offset:-1.5px}
-.gxl.pl.st-new .gx-t{opacity:.82}
-.gxl.pl.st-done,.gxl.pl.st-deep{box-shadow:0 0 0 2px color-mix(in srgb,var(--dc) 55%,transparent),0 2px 12px rgba(40,30,90,.18)}
+.gxl.pl.st-new .gx-t{opacity:.85}
+.gxl.pl.st-suggested{box-shadow:0 0 0 2px #FFC93C,0 2px 8px rgba(40,30,90,.14)}
+.gxl.pl.st-done,.gxl.pl.st-deep{box-shadow:0 0 0 2px color-mix(in srgb,var(--dc) 55%,transparent),0 2px 8px rgba(40,30,90,.16)}
 .gx-code{display:inline-block;background:var(--dc,#5B5BD6);color:#fff;font-weight:900;font-size:10px;letter-spacing:.3px;border-radius:6px;padding:1px 5px;line-height:1.35}
 .gx-tag{font-size:9.5px;font-weight:900;border-radius:6px;padding:1px 5px;text-transform:uppercase;letter-spacing:.3px}
 .gx-tag.soon{color:var(--gxink);opacity:.75}
@@ -29,14 +31,11 @@ body.night .gx{--glass:rgba(30,24,62,.66);--glassline:rgba(255,255,255,.09);--gx
 .gx-tag.prog{background:var(--dc);color:#fff}
 .gx-stars{display:inline-flex;gap:0;line-height:0}
 
-.gxl.sys{border:none;display:flex;align-items:center;gap:6px;padding:4px 9px 4px 4px;border-radius:14px;background:var(--glass);box-shadow:0 4px 16px rgba(40,30,90,.16);text-align:left;min-width:112px;max-width:150px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.gx-sysic{width:26px;height:26px;border-radius:9px;background:var(--dc);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 3px 0 color-mix(in srgb,var(--dc) 60%,#000)}
-.gx-systx{display:flex;flex-direction:column;min-width:0;flex:1}
-.gx-systx b{font-size:11.5px;font-weight:900;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gx-systx small{font-size:9.5px;font-weight:800;opacity:.75;line-height:1.2;white-space:nowrap}
-.gx-pct{display:block;height:4px;border-radius:3px;background:color-mix(in srgb,var(--gxink) 14%,transparent);margin:3px 0 1px;overflow:hidden}
-.gx-pct i{display:block;height:100%;background:var(--dc);border-radius:3px}
-.gx-sysn{display:none}
+.gxl.sys{border:none;display:flex;align-items:center;gap:5px;padding:4px 9px 4px 7px;border-radius:999px;background:var(--glass);box-shadow:0 3px 10px rgba(40,30,90,.16);font-size:11.5px;white-space:nowrap;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);min-height:28px}
+.gxl.sys b{font-weight:900}
+.gxl.sys small{font-size:10.5px;font-weight:900;color:color-mix(in srgb,var(--dc) 60%,var(--gxink))}
+.gxl.sys i{font-style:normal;color:#E0A800;font-size:12px}
+.gxl.sys.done{box-shadow:0 0 0 2px #FFD45A,0 0 16px rgba(255,201,60,.55)}
 
 .gxl.altair{display:flex;flex-direction:column;align-items:center}
 .gx-lion{width:50px;height:50px;border-radius:50%;border:3px solid #FFE08A;background:radial-gradient(circle at 50% 40%,#FFF7DA,#FFD56A);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 0 0 6px rgba(255,201,60,.25),0 0 26px rgba(255,201,60,.7)}
@@ -44,8 +43,6 @@ body.night .gx{--glass:rgba(30,24,62,.66);--glassline:rgba(255,255,255,.09);--gx
 body.night .gxl-name{color:#FFD66B;text-shadow:0 0 8px rgba(255,201,60,.6)}
 
 .gxl.home{border:none;display:flex;align-items:center;gap:4px;padding:3px 9px 3px 6px;border-radius:999px;background:var(--glass);font-size:11px;font-weight:900;box-shadow:0 2px 10px rgba(40,30,90,.14)}
-.gxl.con{font-size:11px;font-weight:900;color:#B07A00;letter-spacing:.3px;white-space:nowrap;text-shadow:0 1px 0 rgba(255,255,255,.7);pointer-events:none}
-body.night .gxl.con{color:#FFE08A;text-shadow:0 0 8px color-mix(in srgb,var(--dc) 80%,transparent)}
 .gxl.comet{width:48px;height:48px;border-radius:50%;border:2px dashed rgba(120,200,255,.9);background:rgba(160,225,255,.12);display:flex;align-items:flex-end;justify-content:center;padding:0;animation:gxping 1.8s ease-in-out infinite}
 .gxl.comet span{transform:translateY(20px);background:#3D9BE0;color:#fff;font-size:10px;font-weight:900;border-radius:8px;padding:1px 6px;white-space:nowrap}
 @keyframes gxping{50%{box-shadow:0 0 0 8px rgba(120,200,255,.18)}}
@@ -77,21 +74,23 @@ body.night .gx-crumbs button.on{color:#C9C7FF}
 .gx-ctrl button{width:42px;height:42px;border-radius:50%;font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
 .gx-ctrl button:active,.gx-listbtn:active{transform:scale(.94)}
 
-/* ---- floating Continue card (drag down to hide) ---- */
+/* ---- floating Continue / placement card: one low row; swipe down or "Skip" → pill (13.1b-5) ---- */
 .gx-cont{position:absolute;left:10px;right:76px;bottom:10px;z-index:4;transition:transform .32s cubic-bezier(.2,.8,.3,1),opacity .25s;touch-action:pan-x}
-.gx-cont .contcard{margin:0;padding:10px 12px 12px;border-radius:22px;box-shadow:var(--sh-3)}
-.gx-cont .cc-ic{width:44px;height:44px;border-radius:14px}
-.gx-cont .cc-title{font-size:15px}
-.gx-cont .cc-prog{margin:8px 0 0;height:7px}
-.gx-cont .cc-pct{display:none}
-.gx-cont .btn{margin-top:10px;padding:11px}
-.gx-cont .contcard.place .cc-kicker{font-size:16px}
-.gx-cont .contcard.place .cc-ic{display:none}
-.gx-grab{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;border:none;background:none;padding:0 0 4px;min-height:22px;color:var(--pri);font-weight:900;font-size:12px}
-.gx-grab i{width:42px;height:5px;border-radius:3px;background:color-mix(in srgb,var(--gxink) 35%,transparent)}
-.gx-cont.collapsed{transform:translateY(calc(100% - 30px))}
-.gx-cont.collapsed .gx-grab{background:var(--glass);border-radius:14px 14px 0 0;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.gx-cont.collapsed .gx-grab i{display:none}
+.gx-grab{display:flex;align-items:center;justify-content:center;width:100%;border:none;background:none;padding:0 0 3px;min-height:16px}
+.gx-grab i{width:38px;height:4px;border-radius:3px;background:color-mix(in srgb,var(--gxink) 35%,transparent)}
+.gxc{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:20px;padding:9px 9px 9px 10px;box-shadow:var(--sh-3);color:var(--ink)}
+.gxc-ic{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:none}
+.gxc-body{flex:1;min-width:0}
+.gxc-k{font-size:10.5px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gxc-t{font-size:14px;font-weight:900;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gxc-prog{height:5px;border-radius:3px;background:var(--track);margin-top:5px;overflow:hidden}
+.gxc-prog i{display:block;height:100%;background:var(--dc);border-radius:3px}
+.gxc-go{width:44px;height:44px;border-radius:50%;border:none;background:var(--good);box-shadow:0 3px 0 var(--good-d);display:flex;align-items:center;justify-content:center;flex:none}
+.gxc.place .gxc-go{background:var(--sun);box-shadow:0 3px 0 var(--sun-d)}
+.gxc.place .gxc-go .ic path,.gxc.place .gxc-go svg *{fill:#4A3300;stroke:#4A3300}
+.gxc-skip{border:none;background:none;padding:0 2px;font:inherit;color:var(--pri);text-decoration:underline;cursor:pointer;text-transform:none}
+.gx-cont.collapsed{right:auto}
+.gx-pill{display:flex;align-items:center;gap:6px;border:1px solid var(--glassline);background:var(--glass);color:var(--gxink);border-radius:999px;padding:0 14px;min-height:36px;font-weight:900;font-size:12.5px;box-shadow:0 3px 12px rgba(40,30,90,.18);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .gx[data-level="3"] .gx-cont{transform:translateY(130%);opacity:0;pointer-events:none}
 
 /* ---- planet card (level 3) ---- */
@@ -156,3 +155,44 @@ body.night .gx-unlock{background:color-mix(in srgb,#FFC93C 12%,var(--card))}
 
 body.potato .gx *,body.potato .gx{transition:none!important;animation:none!important}
 .gx[data-level="3"] .gx-listbtn span{display:none}
+
+/* ===== Light galaxy background on Explore · Me · Settings · Play (13.1b-6) ===== */
+.skybg{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;display:none}
+body.sky .skybg{display:block}
+body.imgbg .skybg{display:none}
+.skybg canvas{position:absolute;left:-15%;top:-15%;width:130%;height:130%;animation:skydrift 200s ease-in-out infinite alternate}
+@keyframes skydrift{from{transform:rotate(-3deg)}to{transform:rotate(3deg) scale(1.04) translate(1.5%,-1.5%)}}
+body.potato .skybg canvas{animation:none}
+/* frosted-glass cards over the sky; text keeps ≥ 4.5:1 contrast in both themes */
+body.sky .screen{--onsky:#4A4672}
+body.sky.night .screen{--onsky:#CFCBEF}
+body.sky:not(.imgbg) .screen .card,body.sky:not(.imgbg) .screen .setrow,body.sky:not(.imgbg) .screen .tile2,body.sky:not(.imgbg) .screen .mestat,body.sky:not(.imgbg) .screen .tile,body.sky:not(.imgbg) .screen .themecard,body.sky:not(.imgbg) .screen .setlist,body.sky:not(.imgbg) .screen .lvlbar{background:rgba(255,255,255,.76);border-color:rgba(255,255,255,.7);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%)}
+body.sky.night:not(.imgbg) .screen .card,body.sky.night:not(.imgbg) .screen .setrow,body.sky.night:not(.imgbg) .screen .tile2,body.sky.night:not(.imgbg) .screen .mestat,body.sky.night:not(.imgbg) .screen .tile,body.sky.night:not(.imgbg) .screen .themecard,body.sky.night:not(.imgbg) .screen .setlist,body.sky.night:not(.imgbg) .screen .lvlbar{background:rgba(28,24,56,.74);border-color:rgba(255,255,255,.09)}
+body.sky:not(.imgbg) .screen > .muted,body.sky:not(.imgbg) .screen > p,body.sky:not(.imgbg) .screen > .sub,body.sky:not(.imgbg) .screen .onsky,body.sky:not(.imgbg) .meid .pbio .muted,body.sky:not(.imgbg) .meid .pbio,body.sky:not(.imgbg) .lhead .muted{color:var(--onsky)}
+
+/* ===== Play: the home planet in space ===== */
+.homesp{position:relative;margin:-16px -16px 6px;height:min(58vh,440px);display:flex;flex-direction:column;justify-content:flex-end}
+.hs-stage{position:absolute;inset:0 0 96px;cursor:pointer;outline-offset:-4px}
+.hs-host,.hs-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hs-stage.nogl{background:radial-gradient(circle at 50% 50%,#7CCB8A 0 22%,#5AA9E6 23% 30%,transparent 31%)}
+.hs-cap{position:relative;text-align:center;padding:0 16px 8px}
+.hs-k{font-size:11px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:#B07A00}
+body.night .hs-k{color:#FFD66B}
+.hs-cap .title{margin:2px 0 10px}
+.hs-go{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:auto;padding:12px 22px}
+
+/* ===== the town (placeholder until 20/10): sunny pastel, never space; the only place with weather ===== */
+.overlay.townov{background:linear-gradient(180deg,#BFE6FF 0%,#DDF2FF 45%,#FFF1D6 100%)}
+.town{position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.town-scene{position:absolute;left:0;right:0;bottom:150px}
+.town-scene svg{display:block;width:100%;height:auto}
+.town-wx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.town-back{position:absolute;left:12px;top:12px;width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.85);color:#1E1B3A;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-1);z-index:2}
+.town-card{position:relative;z-index:3;margin:0 14px 18px;background:rgba(255,255,255,.88);border-radius:24px;padding:14px;box-shadow:var(--sh-2);color:#1E1B3A;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.town-card .bubble{color:#1E1B3A;background:#fff;border-color:#E3E3F2}
+.town-card .btn{margin-top:12px}
+.town-card .btn.ghost{background:#fff;color:#5B5BD6;border-color:#E3E3F2;box-shadow:0 4px 0 #E3E3F2}
+.town::after{content:"";position:absolute;left:0;right:0;bottom:0;height:152px;background:#9ED58A}
+
+/* "My photo" theme wins over the galaxy sky (the 3D dust stays on top of the photo) */
+body.imgbg .gx{background:linear-gradient(rgba(24,18,60,.28),rgba(24,18,60,.28)),var(--bgimg) center/cover no-repeat}

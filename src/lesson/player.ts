@@ -318,7 +318,7 @@ export function lessonRender(fx?: string) {
   const wave = (fx === "wave" || fx === "shake") && !PO() ? " " + fx : "";
   openO(`<div class="ohead"><button class="x" onclick="A.quitLesson()" aria-label="${t("lp.quit")}">${icon("close", { size: 26 })}</button><div class="prog"><i style="width:${pct}%"></i></div>${heartsHTML(L.broke)}${S.set.intel ? `<button class="infobtn" onclick="A.openAssistant()" aria-label="Tips">${icon("info", { size: 22, tint: 0 })}</button>` : ""}</div>
     <div class="obody${wave}" id="lbody"><div class="budrow"><div id="bud" class="bud" data-size="56">${lion(56, bud.mood)}</div>${talkEl}</div>
-    <div class="ltag">${tag}</div>${body}</div>${foot}<div id="lmodal"></div>`, { noWx: true });
+    <div class="ltag">${tag}</div>${body}</div>${foot}<div id="lmodal"></div>`);
   paintTalk(false);
   if (st.t === "video") mountVideo(st.video, () => { L!.videoDone[L!.s] = true; const b = $("#vcont") as HTMLButtonElement | null; if (b) { b.disabled = false; b.textContent = t("c.continue"); b.nextElementSibling?.remove(); } }, !!L.videoDone[L.s]);
   L.broke = 0;
@@ -476,7 +476,7 @@ function lessonDone() {
   L = null;
   setOvRerender(null);
   resultPopup({
-    title, sub: `${tx(les.title)}${wasDeep ? " · " + t("lp.deepTag") : ""}`, pct, noWx: true,
+    title, sub: `${tx(les.title)}${wasDeep ? " · " + t("lp.deepTag") : ""}`, pct,
     stats: [[`${Math.round(pct * n)}/${n}`, t("res.correct")], [fmtTime(secs), t("res.time")], [`+${xp}`, "XP"]],
     buttons,
   });
@@ -491,7 +491,7 @@ function placementDone(pct: number, xp: number) {
   L = null;
   setOvRerender(null);
   resultPopup({
-    title: t("pt.done"), sub: t("pt.level", { l: t("as.lvl." + lvl) }), pct: Math.max(pct, 0.7), noWx: true,
+    title: t("pt.done"), sub: t("pt.level", { l: t("as.lvl." + lvl) }), pct: Math.max(pct, 0.7),
     stats: [[`${Math.round(pct * 8)}/8`, t("res.correct")], [t("as.lvl." + lvl).split(" ")[0], t("pt.lvlShort")], [`+${xp}`, "XP"]],
     extra: pick ? `<p class="muted" style="font-weight:800;margin:0 0 12px">${t("pt.suggest", { title: tx(pick.title) })}</p>` : "",
     buttons: [...(pick ? [[`${t("c.start")} · ${tx(pick.title)}`, `A.startLesson('${pick.id}')`, "good"] as [string, string, string]] : []), [t("c.backHome"), "A.backHome()", "ghost"]],

@@ -128,14 +128,6 @@ body.night .pnode .nlabel{background:rgba(31,33,40,.85);color:var(--ink)}
 .reveal{opacity:0;transform:translateY(12px);transition:opacity .3s,transform .3s}
 .reveal.in{opacity:1;transform:none}
 
-/* ---- money pattern behind the content (very faint; under the weather; off with "my picture") ---- */
-.bgpat{position:absolute;inset:-180px 0 0 -180px;z-index:0;pointer-events:none;background-image:var(--pat);background-size:180px 180px;opacity:.06;animation:patdrift 140s linear infinite}
-body.night .bgpat{background-image:var(--pat-n);opacity:.045}
-body.imgbg .bgpat{display:none}
-@keyframes patdrift{to{transform:translate(180px,180px)}}
-.overlay > .bgpat{inset:-180px 0 0 -180px}
-.wx-slot{z-index:0}
-
 /* ---- real photos (RealImage) ---- */
 .rimg{position:relative;margin:0 0 12px;border-radius:20px;overflow:hidden;background:var(--soft);box-shadow:var(--sh-1);width:100%}
 .rimg > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s}
@@ -157,9 +149,8 @@ body.imgbg .bgpat{display:none}
 /* ---- reduce motion: system setting OR Potato Mode ---- */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
-  .bgpat{animation:none}
-}
-body.potato .bgpat,body.potato .hero-scene .drift,body.potato .lion-tail,body.potato .lion-wave,body.potato .pnode .pbtn,body.potato .screen.enter *{animation:none!important}
+  }
+body.potato .hero-scene .drift,body.potato .lion-tail,body.potato .lion-wave,body.potato .pnode .pbtn,body.potato .screen.enter *{animation:none!important}
 
 /* ---- Me page (design doc 10c.5) ---- */
 .mehead{margin:-16px -16px 0;position:relative}

@@ -481,6 +481,22 @@ Mỗi case: năm, nơi, tiêu đề, ảnh/emoji, tóm tắt kiến thức cần
 **Tiếp cận:** nút **"Danh sách"** chuyển sang dạng danh sách bài theo mảng (cho máy yếu, trình đọc màn hình, và người cần tìm nhanh).
 **Kỹ thuật 💡:** dùng **Three.js** cho cả ngân hà lẫn game (13.3) → một engine, một phong cách low-poly. Hành tinh tạo bằng icosphere có nhiễu (procedural) + màu theo mảng, không cần asset. Dữ liệu: mỗi bài có `domain`, `prereq: string[]` (được trỏ sang mảng khác), `planet: { shape, palette, feature }`. Vị trí hành tinh tính tự động theo nhánh xoắn + chỉnh tay được.
 
+#### 13.1b Nhóm duyệt sau phiên 19/10 ✅ (thắng các dòng trên của 13.1 khi mâu thuẫn)
+**Giữ:** màu 6 mảng (Cá nhân `#F7867A` · Doanh nghiệp `#F5A524` · Vĩ mô `#8B6CF0` · Đầu tư `#1BB0C2` · Công `#3D7BF5` · Quốc tế `#2FAE73`); 6 dải sáng thêm (P2→P1, P5→P1, B2→B1, B4→B1, I1→P3, G2→G1); 3 bài cũ hiện tiêu đề câu hỏi mới ngay từ bây giờ.
+
+**Sửa:**
+1. **Chòm sao:** mỗi mảng luôn có chòm sao mờ trên nền trời, **mỗi bài xong sáng một ngôi sao**. Chòm sao chỉ **hoàn chỉnh** (đường nối sáng + hiệu ứng + huy hiệu mảng) khi xong **mọi bài của mảng, tính cả bài "Sắp có"**.
+2. **Tầng ngân hà:** 6 hệ trải **đều dọc các nhánh xoắn** để dải ngân hà phủ gần kín màn hình điện thoại (dọc). Nhãn mảng = **viên thuốc nhỏ gọn** (chấm màu + tên + %), **không đè lên nhau**, **không bị thẻ dưới đáy che**.
+3. **Tầng hệ hành tinh:** hành tinh **to gấp ~2 lần**; nhãn bài = **viên thuốc nhỏ dưới hành tinh** (mã + tên ngắn); chi tiết (trạng thái, sao, ngày) chỉ ở tầng 3. Không để nhãn của hệ khác lẹm sau breadcrumb.
+4. **Bụi sao:** chỉ nằm **dọc các nhánh xoắn**, hạt nhỏ hơn, **mờ dần ra ngoài**, có ánh sáng nhẹ; không rải lốm đốm khắp màn hình.
+5. **Thẻ "Làm bài test xếp lớp":** thẻ **thấp ở đáy**, vuốt xuống thu thành **viên thuốc**; bấm "Bỏ qua" cũng thu gọn luôn.
+6. **Nền theo tab:**
+   - **Học:** cảnh Three.js đầy đủ (như trên).
+   - **Khám phá · Tôi · Cài đặt:** **bản ngân hà nhẹ** (CSS/canvas 2D, cùng bảng màu Light/Night, trôi rất chậm, **đứng yên** khi Potato Mode hoặc giảm chuyển động) — **không** chạy Three.js. Thẻ chuyển sang **kính mờ**; chữ phải đạt tương phản (≥ 4.5:1 cho chữ thường) ở cả Light và Night.
+   - **Chơi:** trang chính là **hành tinh nhà trong không gian**; bấm vào → camera bay xuống thị trấn. Thị trấn (phiên sau) giữ **nắng pastel**, không phải vũ trụ.
+   - **Màn làm bài học:** giữ **nền trơn**.
+   - **Hiệu ứng thời tiết** chỉ dùng **trong thị trấn**; **bỏ họa tiết tiền** ở nền; theme **"Ảnh của tôi"** vẫn ưu tiên hơn nền ngân hà.
+
 ---
 
 ### 13.2 KHÓA HỌC THIẾT KẾ LẠI ✅ (nội dung 💡 — nhóm duyệt & chỉnh)

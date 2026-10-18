@@ -2,7 +2,7 @@
  * 3 layers of stars at different depths (parallax comes from the real 3D distance), nebulae tinted by area colour,
  * star dust along the spiral arms, and the occasional shooting star. Light theme = pastel dawn, Night = deep violet. */
 import * as THREE from "three";
-import { ARMS, armAngle } from "./layout";
+import { ARMS, armAngle, GZ } from "./layout";
 import { seeded } from "./planet";
 
 /* ---- canvas textures (generated once) ---- */
@@ -38,19 +38,20 @@ function streakTex() {
 }
 
 /* ---- point clouds: round soft points, optional twinkle ---- */
-const pointsVS = `attribute float size; attribute float phase; attribute vec3 color; uniform float uPR; uniform float uTime; uniform float uTw; uniform float uAtt; varying vec3 vC; varying float vA;
-void main(){ vec4 mv = modelViewMatrix * vec4(position,1.); vC = color; vA = 1. - uTw * 0.45 * (0.5 + 0.5 * sin(uTime * (1.2 + phase) + phase * 6.28));
-  float s = size * uPR; if (uAtt > 0.) s *= clamp(uAtt / -mv.z, 0.35, 3.); gl_PointSize = max(s, 1.); gl_Position = projectionMatrix * mv; }`;
+const pointsVS = `attribute float size; attribute float phase; attribute float alpha; attribute vec3 color; uniform float uPR; uniform float uTime; uniform float uTw; uniform float uAtt; uniform float uMax; varying vec3 vC; varying float vA;
+void main(){ vec4 mv = modelViewMatrix * vec4(position,1.); vC = color; vA = alpha * (1. - uTw * 0.45 * (0.5 + 0.5 * sin(uTime * (1.2 + phase) + phase * 6.28)));
+  float s = size * uPR; if (uAtt > 0.) s *= clamp(uAtt / -mv.z, 0.4, uMax); gl_PointSize = max(s, 1.); gl_Position = projectionMatrix * mv; }`;
 const pointsFS = `uniform float uOp; varying vec3 vC; varying float vA; void main(){ float d = length(gl_PointCoord - .5); float a = smoothstep(.5, .0, d); a = a * a; gl_FragColor = vec4(vC, a * vA * uOp); }`;
-export function pointsMat(night: boolean, opacity: number, att: number) {
+export function pointsMat(night: boolean, opacity: number, att: number, max = 1.4) {
   return new THREE.ShaderMaterial({
-    uniforms: { uPR: { value: 1 }, uTime: { value: 0 }, uTw: { value: 1 }, uOp: { value: opacity }, uAtt: { value: att } },
+    uniforms: { uPR: { value: 1 }, uTime: { value: 0 }, uTw: { value: 1 }, uOp: { value: opacity }, uAtt: { value: att }, uMax: { value: max } },
     vertexShader: pointsVS, fragmentShader: pointsFS, transparent: true, depthWrite: false,
     blending: night ? THREE.AdditiveBlending : THREE.NormalBlending,
   });
 }
-function cloud(pos: number[], col: number[], size: number[], phase: number[], mat: THREE.ShaderMaterial) {
+function cloud(pos: number[], col: number[], size: number[], phase: number[], mat: THREE.ShaderMaterial, alpha?: number[]) {
   const g = new THREE.BufferGeometry();
+  g.setAttribute("alpha", new THREE.Float32BufferAttribute(alpha || size.map(() => 1), 1));
   g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
   g.setAttribute("size", new THREE.Float32BufferAttribute(size, 1));
@@ -80,33 +81,43 @@ function starShells(night: boolean, potato: boolean) {
   return { group, mats };
 }
 
-/** Dust and young stars along the spiral arms + the bright bulge round Altair. */
+/** Star dust only along the spiral arms (13.1b-4): small grains that fade toward the rim, a soft glow haze,
+ * and a gentle bulge round Altair. Positions are stretched by GZ like the rest of the galaxy. */
 function armDust(night: boolean, potato: boolean, sysColors: { angle: number; color: string }[]) {
-  const rnd = seeded(17), pos: number[] = [], col: number[] = [], size: number[] = [], ph: number[] = [];
-  const gauss = () => (rnd() + rnd() + rnd() - 1.5) / 1.5;
-  const brand = new THREE.Color(night ? "#8E8CF5" : "#7B78E8"), gold = new THREE.Color("#FFD97A"), white = new THREE.Color("#FFFFFF");
-  const N = potato ? 3000 : 11000;
+  const rnd = seeded(17), gauss = () => (rnd() + rnd() + rnd() - 1.5) / 1.5;
+  const brand = new THREE.Color(night ? "#9B98FF" : "#6C68E0"), gold = new THREE.Color("#FFD97A"), white = new THREE.Color("#FFFFFF");
+  const tintAt = (a: number) => { let best = sysColors[0], bd = 1e9; sysColors.forEach((s) => { const d = Math.abs(Math.atan2(Math.sin(a - s.angle), Math.cos(a - s.angle))); if (d < bd) { bd = d; best = s; } }); return new THREE.Color(best.color); };
+  const grain = { pos: [] as number[], col: [] as number[], size: [] as number[], ph: [] as number[], al: [] as number[] };
+  const haze = { pos: [] as number[], col: [] as number[], size: [] as number[], ph: [] as number[], al: [] as number[] };
+  const N = potato ? 2600 : 9000, R = 98;
   for (let i = 0; i < N; i++) {
-    const bulge = i < N * 0.16;
-    let x: number, z: number, y: number, c: THREE.Color;
+    const bulge = i < N * 0.12;
+    let x: number, z: number, y: number, c: THREE.Color, fade: number;
     if (bulge) {
-      const r = Math.abs(gauss()) * 11, a = rnd() * Math.PI * 2; x = Math.cos(a) * r; z = Math.sin(a) * r; y = gauss() * 2.2 * (1 - r / 14);
-      c = gold.clone().lerp(white, rnd() * 0.6);
+      const r = Math.abs(gauss()) * 9, a = rnd() * Math.PI * 2; x = Math.cos(a) * r; z = Math.sin(a) * r; y = gauss() * 1.4;
+      c = gold.clone().lerp(white, 0.3 + rnd() * 0.5); fade = 1 - r / 14;
     } else {
-      const arm = i % ARMS, r = 7 + Math.pow(rnd(), 0.85) * 92, a = armAngle(arm, r) + gauss() * 0.12;
-      const spread = 1.2 + r * 0.06;
-      x = Math.cos(a) * r + gauss() * spread; z = Math.sin(a) * r + gauss() * spread; y = gauss() * 1.2 * (1.1 - r / 110);
-      // tint with the colour of the nearest system on the arm
-      let best = sysColors[0], bd = 1e9;
-      sysColors.forEach((s) => { const d = Math.abs(Math.atan2(Math.sin(a - s.angle), Math.cos(a - s.angle))); if (d < bd) { bd = d; best = s; } });
-      c = brand.clone().lerp(new THREE.Color(best.color), 0.25 + rnd() * 0.4);
-      if (rnd() < 0.12) c.lerp(white, 0.7);
+      const arm = i % ARMS, r = 6 + Math.pow(rnd(), 0.9) * (R - 6), a = armAngle(arm, r);
+      const w = 0.8 + r * 0.035; // arm half-width grows a little outward
+      const off = gauss() * w, along = gauss() * 0.04;
+      x = Math.cos(a + along) * r - Math.sin(a) * off; z = Math.sin(a + along) * r + Math.cos(a) * off; y = gauss() * 0.6;
+      c = brand.clone().lerp(tintAt(a), 0.3 + rnd() * 0.35); if (rnd() < 0.1) c.lerp(white, 0.75);
+      fade = Math.pow(1 - r / (R + 4), 1.3) * (1 - Math.min(1, Math.abs(off) / (w * 2.2)) * 0.6);
     }
-    if (!night) c.multiplyScalar(0.92);
-    pos.push(x, y, z); col.push(c.r, c.g, c.b); size.push((bulge ? 2.6 : 2.0) + rnd() * 3); ph.push(rnd());
+    grain.pos.push(x, y, z * GZ); grain.col.push(c.r, c.g, c.b); grain.size.push(1.1 + rnd() * 1.5); grain.ph.push(rnd()); grain.al.push(Math.max(0.05, fade) * (0.55 + rnd() * 0.45));
   }
-  const m = pointsMat(night, night ? 0.9 : 0.7, 260);
-  return { obj: cloud(pos, col, size, ph, m), mat: m };
+  const H = potato ? 0 : 420; // soft glow along the arms
+  for (let i = 0; i < H; i++) {
+    const arm = i % ARMS, r = 5 + Math.pow(rnd(), 0.8) * 88, a = armAngle(arm, r), off = gauss() * (1 + r * 0.03);
+    const c = night ? brand.clone().lerp(tintAt(a), 0.5) : white.clone().lerp(tintAt(a), 0.35);
+    haze.pos.push(Math.cos(a) * r - Math.sin(a) * off, -0.5, (Math.sin(a) * r + Math.cos(a) * off) * GZ);
+    haze.col.push(c.r, c.g, c.b); haze.size.push(70 + rnd() * 70); haze.ph.push(rnd()); haze.al.push(Math.pow(1 - r / 96, 1.2));
+  }
+  const gm = pointsMat(night, 1, 240, 1.3), hm = pointsMat(night, night ? 0.13 : 0.24, 240, 2.2);
+  const g = new THREE.Group();
+  g.add(cloud(grain.pos, grain.col, grain.size, grain.ph, gm, grain.al));
+  if (H) g.add(cloud(haze.pos, haze.col, haze.size, haze.ph, hm, haze.al));
+  return { obj: g, mats: H ? [gm, hm] : [gm] };
 }
 
 export function buildSky(night: boolean, potato: boolean, systems: { center: THREE.Vector3; color: string }[]): Sky {
@@ -121,21 +132,20 @@ export function buildSky(night: boolean, potato: boolean, systems: { center: THR
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: nebulaTex(ti), color, transparent: true, opacity: op, depthWrite: false, blending: night ? THREE.AdditiveBlending : THREE.NormalBlending }));
     s.position.copy(pos); s.scale.set(scale, scale, 1); s.material.rotation = rnd() * 6.28; group.add(s); return s;
   };
-  neb(new THREE.Vector3(0, -4, 0), "#5B5BD6", 120, night ? 0.5 : 0.32, 0);
+  neb(new THREE.Vector3(0, -4, 0), "#5B5BD6", 110, night ? 0.45 : 0.28, 0);
   neb(new THREE.Vector3(0, -2, 0), "#FFC93C", 34, night ? 0.4 : 0.35, 1);
   systems.forEach((s, i) => {
-    neb(s.center.clone().add(new THREE.Vector3((rnd() - 0.5) * 8, -3, (rnd() - 0.5) * 8)), s.color, 46 + rnd() * 14, night ? 0.38 : 0.3, (i + 1) % 3);
-    neb(s.center.clone().multiplyScalar(1.12).add(new THREE.Vector3(0, -5, 0)), "#5B5BD6", 40, night ? 0.25 : 0.16, (i + 2) % 3);
+    neb(s.center.clone().add(new THREE.Vector3((rnd() - 0.5) * 6, -3, (rnd() - 0.5) * 6)), s.color, 40 + rnd() * 10, night ? 0.32 : 0.24, (i + 1) % 3);
   });
   // shooting stars
   const stex = streakTex();
   const shooters: { m: THREE.Mesh; t0: number; dur: number; from: THREE.Vector3; dir: THREE.Vector3 }[] = [];
   let next = 3;
-  const mats = [...shells.mats, dust.mat];
+  const mats = [...shells.mats, ...dust.mats];
   return {
     group, mats,
     update(t, motion, cam) {
-      mats.forEach((m) => { m.uniforms.uTime.value = t; m.uniforms.uTw.value = motion ? 1 : 0; });
+      mats.forEach((m) => { m.uniforms.uTime.value = t; m.uniforms.uTw.value = motion && m.uniforms.uAtt.value === 0 ? 1 : 0; });
       if (!motion) { shooters.forEach((s) => (s.m.visible = false)); return; }
       if (t > next) { // spawn near what the camera looks at, scaled to the zoom level
         next = t + 4 + Math.random() * 6;

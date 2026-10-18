@@ -78,10 +78,30 @@ function contCard(l: Lesson, kicker: string, pct: number, sub: string, go: strin
     <button class="btn good" onclick="${go}">${icon("playTri", { size: 18, color: "#fff", tint: 1 })} ${t("hm.cont")}</button></div>`;
 }
 
+/** Galaxy version of the Continue card (13.1b-5): one low row at the bottom; swipe down / "Skip" tucks it into a pill. */
+function miniCard() {
+  const ip = S.inprog && findLesson(S.inprog.id);
+  const row = (color: string, ic: string, kicker: string, title: string, go: string, goLabel: string, pct: number | null, extra = "") => `<div class="gxc" style="--dc:${color}">
+    <div class="gxc-ic" style="background:${color}">${icon(ic, { size: 22, color: "#fff", tint: 0.35 })}</div>
+    <div class="gxc-body"><div class="gxc-k">${kicker}${extra}</div><div class="gxc-t">${esc(title)}</div>${pct === null ? "" : `<div class="gxc-prog"><i style="width:${pct}%"></i></div>`}</div>
+    <button class="gxc-go" onclick="${go}" aria-label="${esc(goLabel)}">${icon("playTri", { size: 18, color: "#fff", tint: 1 })}</button></div>`;
+  if (ip && S.inprog) {
+    const n = findNode(ip.id)!, d = domainOf(n.domain);
+    return row(d.color, n.ic, `${t("hm.continue")} · ${t("hm.step", { n: S.inprog.s + 1, m: S.inprog.n })}`, tx(n.hook), `A.startLesson('${ip.id}',${S.inprog.deep},${S.inprog.s})`, t("hm.cont"), Math.round((S.inprog.s / Math.max(1, S.inprog.n)) * 100));
+  }
+  if (!Object.keys(S.lessons).length && !S.placement)
+    return row("#5B5BD6", "target", "8 × ? · 3′", t("hm.placeT"), "A.pushThen(this,'startLesson','placement')", t("hm.placeBtn"), null, ` · <button class="gxc-skip" onclick="A.gxCont(true)">${t("gx.skip")}</button>`).replace('class="gxc"', 'class="gxc place"').replace("8 × ? · 3′", t("gx.placeMeta"));
+  const sug = suggested();
+  if (!sug) return `<div class="gxc"><div class="gxc-body"><div class="gxc-t">${t("hm.allDone")}</div></div></div>`;
+  const n = findNode(sug.id)!, d = domainOf(n.domain);
+  return row(d.color, n.ic, `${t("hm.next")} · ${n.code}`, tx(n.hook), `A.gxPlanet('${sug.id}')`, t("hm.cont"), null);
+}
+const pillText = () => (S.inprog ? t("hm.continue") : !Object.keys(S.lessons).length && !S.placement ? t("hm.placeT") : t("hm.next"));
+
 /* ============================== the galaxy ============================== */
 let G: Galaxy | null = null;
 let glFailed = false;
-const ui = { first: true, collapsed: false, deep: false, labels: [] as HTMLElement[], sug: "" };
+const ui = { first: true, deep: false, labels: [] as HTMLElement[], sug: "", top: 56, bottom: 90 };
 const root = document.createElement("div");
 root.className = "gx";
 root.innerHTML = `<div class="gx-labels"></div><div class="gx-hud"></div><div class="gx-ctrl"></div><div class="gx-cont"></div><div class="gx-card" role="dialog" aria-live="polite"></div><div class="gx-fx" aria-hidden="true"></div>`;
@@ -91,7 +111,7 @@ function model(): GxModel {
   return {
     nodes: NODES.map((n) => ({ id: n.id, domain: n.domain, state: nodeState(n), planet: n.planet })),
     links: NODES.flatMap((n) => n.prereq.map((p) => ({ from: p, to: n.id, lit: !!S.lessons[p] }))),
-    complete: DOMAINS.filter((d) => domainDone(S, d.id)).map((d) => d.id),
+    cons: DOMAINS.map((d) => ({ id: d.id, lit: d.nodes.map((n) => !!S.lessons[n.id]), complete: domainDone(S, d.id) })),
     homeLights: Math.min(16, 2 + lessonsDone() * 2 + (S.game ? 2 : 0)),
     comet: cometsWaiting() > 0,
     night: night(), potato: PO(), motion: !noMotion(),
@@ -102,7 +122,7 @@ function hud() {
   const lv = G?.level || 1, dom = G?.focusDom ? domainOf(G.focusDom) : null, node = G?.focusNode ? findNode(G.focusNode) : null;
   const crumb = `<nav class="gx-crumbs" aria-label="${t("gx.title")}">
     <button onclick="A.gxGalaxy()" class="${lv === 1 ? "on" : ""}" aria-label="Altair">${icon("sparkle", { size: 15, color: "#E0A800", tint: 0.5 })}${dom ? "" : "<span>Altair</span>"}</button>
-    ${dom ? `<i>›</i><button onclick="A.gxSys('${dom.id}')" class="${lv === 2 ? "on" : ""}" style="--dc:${dom.color}"><span class="gx-dot"></span><span>${esc(tx(dom.tag && tx(dom.tag).length <= 14 ? dom.tag : dom.title))}</span></button>` : ""}
+    ${dom ? `<i>›</i><button onclick="A.gxSys('${dom.id}')" class="${lv === 2 ? "on" : ""}" style="--dc:${dom.color}"><span class="gx-dot"></span><span>${esc(tx(dom.short))}</span></button>` : ""}
     ${node ? `<i>›</i><span class="gx-crumbcode">${node.code}</span>` : ""}</nav>`;
   const say = S.set.inter && !PO() && lv === 1 ? `<button class="gx-say" onclick="A.openCustom()" aria-label="${t("gx.lionAria", { name: esc(S.m.name) })}">${lion(34)}<span class="bubble talk" id="homeTalk"></span></button>` : "";
   return `${crumb}${say}<div class="gx-hudr"><div class="gx-goal" title="${t("hm.today")}">${ring(S.today.xp, S.goal, 26)}<b>${S.today.xp}</b><small>/${S.goal}</small></div>
@@ -117,16 +137,13 @@ function labels() {
   ui.sug = sug;
   let h = `<div class="gxl altair" data-k="altair"><button class="gx-lion mascotbtn" onclick="A.gxPick('altair')" aria-label="${t("gx.lionAria", { name: esc(S.m.name) })}">${lion(46)}</button><span class="gxl-name">Altair</span></div>`;
   h += `<button class="gxl home" data-k="home" onclick="A.gxPick('home')" aria-label="${t("gx.homeAria")}">${icon("house", { size: 14, color: "#2E9B6A", tint: 0.4 })}<span>${t("gx.home")}</span></button>`;
-  DOMAINS.forEach((d) => {
-    const p = explored(d);
-    h += `<button class="gxl sys" data-k="sys:${d.id}" style="--dc:${d.color}" onclick="A.gxPick('sys:${d.id}')" aria-label="${esc(tx(d.title))} — ${t("gx.explored", { p })}">
-      <span class="gx-sysic">${icon(d.ic, { size: 15, color: "#fff", tint: 0.35 })}</span><span class="gx-systx"><b>${esc(tx(d.title))}</b><span class="gx-pct"><i style="width:${Math.max(p, 3)}%"></i></span><small>${t("gx.explored", { p })} · ${t("gx.nLessons", { n: d.nodes.length })}</small></span></button>`;
-    if (domainDone(S, d.id)) h += `<div class="gxl con" data-k="con:${d.id}" style="--dc:${d.color}">✦ ${t("gx.con", { d: esc(tx(d.tag || d.title)) })}</div>`;
+  DOMAINS.forEach((d) => { // small pill per area: colour dot · short name · % explored (✦ when the constellation is complete)
+    const p = explored(d), done = domainDone(S, d.id);
+    h += `<button class="gxl sys${done ? " done" : ""}" data-k="sys:${d.id}" style="--dc:${d.color}" onclick="A.gxPick('sys:${d.id}')" aria-label="${esc(tx(d.title))} — ${t("gx.explored", { p })}${done ? " — " + t("gx.con", { d: esc(tx(d.short)) }) : ""}"><span class="gx-dot"></span><b>${esc(tx(d.short))}</b><small>${p}%</small>${done ? "<i>✦</i>" : ""}</button>`;
   });
-  NODES.forEach((n) => {
+  NODES.forEach((n) => { // small pill under each planet: code · short title (details live in the level-3 card)
     const st = nodeState(n), d = domainOf(n.domain);
-    const tag = st === "soon" ? `<span class="gx-tag soon">${t("gx.st.soon")}</span>` : st === "suggested" ? `<span class="gx-tag sug">${t("gx.st.suggested")}</span>` : st === "progress" ? `<span class="gx-tag prog">${t("gx.st.progress")}</span>` : stars(n.id, 11);
-    h += `<button class="gxl pl st-${st}" data-k="pl:${n.id}" data-d="${n.domain}" style="--dc:${d.color}" onclick="A.gxPick('pl:${n.id}')" aria-label="${esc(`${n.code} — ${tx(n.hook)} — ${stLabel(st)}`)}"><span class="gx-code">${n.code}</span><span class="gx-t">${esc(tx(n.title))}</span>${tag}</button>`;
+    h += `<button class="gxl pl st-${st}" data-k="pl:${n.id}" data-d="${n.domain}" style="--dc:${d.color}" onclick="A.gxPick('pl:${n.id}')" aria-label="${esc(`${n.code} — ${tx(n.hook)} — ${stLabel(st)}`)}"><span class="gx-code">${n.code}</span><span class="gx-t">${esc(tx(n.title))}</span></button>`;
   });
   if (cometsWaiting() > 0) h += `<button class="gxl comet" data-k="comet" onclick="A.gxPick('comet')" aria-label="${t("gx.comet")}"><span>+20 XP</span></button>`;
   if (sug) h += `<div class="gxl minilion" data-k="minilion" aria-hidden="true">${lion(26)}</div>`;
@@ -174,11 +191,17 @@ function refreshUI() {
   ui.labels = [...lab.querySelectorAll<HTMLElement>(".gxl")];
   ui.labels.forEach((el) => { el.dataset.w = String(el.offsetWidth); el.dataset.h = String(el.offsetHeight); });
   const c = part("cont");
-  c.innerHTML = `<button class="gx-grab" onclick="A.gxCont()" aria-label="${ui.collapsed ? t("gx.show") : t("gx.hide")}" aria-expanded="${!ui.collapsed}"><i></i>${ui.collapsed ? `<span>${icon("playTri", { size: 12, color: "var(--pri)", tint: 1 })} ${S.inprog ? t("hm.continue") : t("hm.next")}</span>` : ""}</button>${continueCard(true)}`;
-  c.classList.toggle("collapsed", ui.collapsed);
+  const mini = S.galaxy.mini;
+  c.innerHTML = mini
+    ? `<button class="gx-pill" onclick="A.gxCont(false)" aria-label="${t("gx.show")}" aria-expanded="false">${icon("playTri", { size: 12, color: "var(--pri)", tint: 1 })} ${pillText()}</button>`
+    : `<button class="gx-grab" onclick="A.gxCont(true)" aria-label="${t("gx.hide")}" aria-expanded="true"><i></i></button>${miniCard()}`;
+  c.classList.toggle("collapsed", mini);
   const cd = part("card");
   if (G.level === 3 && G.focusNode) { if (cd.dataset.id !== G.focusNode + S.set.lang + ui.deep + JSON.stringify(S.lessons[G.focusNode] || 0)) { cd.innerHTML = card(G.focusNode); cd.dataset.id = G.focusNode + S.set.lang + ui.deep + JSON.stringify(S.lessons[G.focusNode] || 0); } }
   root.dataset.level = String(G.level);
+  ui.top = part("hud").querySelector<HTMLElement>(".gx-crumbs")!.offsetHeight + 16;
+  ui.bottom = c.offsetHeight + 16;
+  G.setInsets(ui.top, ui.bottom);
   place();
 }
 
@@ -195,7 +218,6 @@ function place() {
     if (k === "altair") { show = lv === 1; dy = -10; }
     else if (k === "home") show = lv < 3;
     else if (k.startsWith("sys:")) { show = lv === 1; dy = 16; }
-    else if (k.startsWith("con:")) show = lv === 1;
     else if (k.startsWith("pl:")) show = lv === 2 && el.dataset.d === G.focusDom;
     else if (k === "comet") show = lv < 3;
     else if (k === "minilion") { show = lv >= 2 && !!ui.sug && findNode(ui.sug)?.domain === G.focusDom; key = "pl:" + ui.sug; }
@@ -206,7 +228,7 @@ function place() {
     else if (k === "home") y += p.ppu * 1.3 + 4;
     else if (k === "minilion") { const a = noMotion() ? 0.8 : tm * 1.4, R = p.ppu * 1.9; x += Math.cos(a) * R; y += Math.sin(a) * R * 0.45 - p.ppu * 0.6; el.style.zIndex = Math.sin(a) > 0 ? "3" : "1"; }
     else y += dy;
-    const off = !p.on || x < -60 || x > W + 60 || y < -8 || y > H + 20;
+    const off = !p.on || x < -60 || x > W + 60 || y < -40 || y > H + 20;
     el.classList.toggle("off", off);
     if (off) continue;
     const mid = k === "altair" || k === "minilion" || k === "comet";
@@ -216,16 +238,27 @@ function place() {
   }
   // de-clutter: fixed anchors stay, the others slide down below whatever they overlap
   const placed = boxes.filter((b) => b.fixed && b.el.dataset.k === "altair");
+  const hitOf = (b: Box) => placed.find((o) => Math.abs(o.x - b.x) * 2 < o.w + b.w + 4 && b.top < o.top + o.h + 3 && b.top + b.h + 3 > o.top);
   boxes.filter((b) => !b.fixed).sort((a, b) => a.top - b.top).forEach((b) => {
+    if (hitOf(b) && b.el.dataset.k!.startsWith("sys:")) { // area pill: try just above its star before sliding down
+      const below = b.top; b.top = below - 32 - b.h;
+      if (hitOf(b)) b.top = below;
+    }
     for (let n = 0; n < 6; n++) {
-      const hit = placed.find((o) => Math.abs(o.x - b.x) * 2 < o.w + b.w + 4 && b.top < o.top + o.h + 3 && b.top + b.h + 3 > o.top);
+      const hit = hitOf(b);
       if (!hit) break;
       b.top = hit.top + hit.h + 3;
     }
     b.y = b.top;
     placed.push(b);
   });
-  for (const b of boxes) if (!b.mid) b.x = Math.min(Math.max(b.x, b.w / 2 + 4), W - b.w / 2 - 4); // keep names on screen
+  for (const b of boxes) {
+    if (b.mid) continue;
+    b.x = Math.min(Math.max(b.x, b.w / 2 + 4), W - b.w / 2 - 4); // keep names on screen
+    const k = b.el.dataset.k!, lo = ui.top, hi = H - ui.bottom - b.h;
+    if (k.startsWith("sys:")) b.y = Math.min(Math.max(b.y, lo), hi); // area pills never hide behind the HUD or the bottom card
+    else b.el.classList.toggle("off", b.y < lo || b.y > hi);
+  }
   for (const b of boxes) b.el.style.transform = `translate3d(${b.x.toFixed(1)}px,${b.y.toFixed(1)}px,0) ${b.mid ? "translate(-50%,-50%)" : "translateX(-50%)"}`;
 }
 
@@ -273,14 +306,14 @@ function mount() {
 function bindContSwipe() {
   let y0 = 0, on = false;
   const c = part("cont");
-  c.addEventListener("pointerdown", (e) => { if ((e.target as HTMLElement).closest("button:not(.gx-grab)")) return; y0 = e.clientY; on = true; });
+  c.addEventListener("pointerdown", (e) => { if ((e.target as HTMLElement).closest("button:not(.gx-grab):not(.gx-pill)")) return; y0 = e.clientY; on = true; });
   window.addEventListener("pointerup", (e) => {
     if (!on) return; on = false;
     const dy = e.clientY - y0;
-    if (dy > 36 && !ui.collapsed) toggleCont(); else if (dy < -36 && ui.collapsed) toggleCont();
+    if (dy > 30 && !S.galaxy.mini) toggleCont(true); else if (dy < -30 && S.galaxy.mini) toggleCont(false);
   });
 }
-function toggleCont() { ui.collapsed = !ui.collapsed; refreshUI(); }
+function toggleCont(mini?: boolean) { S.galaxy.mini = mini ?? !S.galaxy.mini; save(); refreshUI(); }
 
 /* ---------- actions ---------- */
 function pick(key: string) {

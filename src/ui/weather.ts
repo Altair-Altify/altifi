@@ -1,4 +1,4 @@
-/* ---------- Country weather in the background (from altifi-base.html) ---------- */
+/* ---------- Country weather (from altifi-base.html) — shown only inside the town since 13.1b-6 ---------- */
 import { $, rand } from "../core/util";
 import { S } from "../core/state";
 import { t, lang } from "../i18n/i18n";
@@ -32,4 +32,4 @@ function buildWx(kind: string) {
 }
 export function wxHTML() { return wxCache[wxNow] || (wxCache[wxNow] = buildWx(wxNow)); }
 export function wxOverlay() { return S.set.wx ? wxHTML() : ""; }
-export function updateWeather() { const m = $("#wxMain"); if (m) m.innerHTML = wxOverlay(); }
+export function updateWeather() { const m = $("#wxTown"); if (m) m.innerHTML = wxOverlay(); }

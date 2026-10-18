@@ -4,13 +4,12 @@ import "./styles/lesson.css";
 import "./styles/app.css";
 import "./styles/ui2.css";
 import "./styles/galaxy.css";
-import { installPattern } from "./ui/pattern";
 import "./core/actions";
 import { S } from "./core/state";
 import { onLangChange } from "./i18n/i18n";
 import { setBuddySource } from "./mascot/lion";
 import { render, applyTheme, rerenderAll } from "./ui/shell";
-import { pickWx, updateWeather } from "./ui/weather";
+import { pickWx } from "./ui/weather";
 import { minitoast } from "./ui/fx";
 import { t } from "./i18n/i18n";
 import { clearChats, closeAssistant, assistantOpen, openAssistant } from "./assistant/assistant";
@@ -35,9 +34,7 @@ reg({ afterReset: () => { clearChats(); closeAssistant(); applyTheme(); } });
 window.addEventListener("error", (e) => { try { minitoast("⚠️ " + (e.message || t("c.error"))); } catch { /* */ } });
 window.addEventListener("unhandledrejection", () => { try { minitoast("⚠️ " + t("c.error")); } catch { /* */ } });
 
-installPattern();
 pickWx();
-updateWeather();
 applyTheme();
 render(true);
 

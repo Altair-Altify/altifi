@@ -29,11 +29,12 @@ src/ui/                 shell (thanh trên, điều hướng, overlay, pop-up k�
 src/lesson/             types.ts (định dạng dữ liệu bài học) · player.ts (engine 16 dạng bài) · video.ts (trình phát video hoạt họa)
 src/assistant/          assistant.ts (nút Alti Lion góc phải + chat theo ngữ cảnh) · kb.ts (kho câu trả lời 3 cấp × 2 ngôn ngữ) · context.ts
 src/content/            domains.ts (6 mảng · 20 bài = 20 hành tinh, mục 13.2d) · lessons/*.ts (mỗi bài một file)
-src/galaxy/             Dải ngân hà Altair (Three.js, mục 13.1): layout.ts (vị trí hệ/hành tinh) · planet.ts (hành tinh low-poly procedural) · sky.ts (sao, tinh vân, bụi xoắn ốc) · scene.ts (camera 3 tầng zoom, cử chỉ)
+src/galaxy/             Dải ngân hà Altair (Three.js, mục 13.1): layout.ts (vị trí hệ/hành tinh) · planet.ts (hành tinh low-poly procedural) · sky.ts (sao, tinh vân, bụi xoắn ốc) · scene.ts (camera 3 tầng zoom, cử chỉ) · home.ts (hành tinh nhà ở tab Chơi)
 src/styles/             base.css (từ altifi-base.html) · lesson.css (từ prototype) · app.css · ui2.css (nâng cấp giao diện 10c)
 src/ui/icons.ts         bộ icon SVG dùng chung: icon(name, {size, color, label}) — xem tất cả ở /dev/icons.html khi chạy dev
 src/ui/scenes.ts        mảnh minh họa SVG (cây, nhà, cửa hàng, tòa kính, tòa thị chính, cảng) + Alti Lion toàn thân ở mascot/lion.ts
 src/ui/realimage.ts     ảnh thật từ Wikimedia Commons (lấy lúc chạy trong trình duyệt người dùng)
+src/ui/skybg.ts         nền ngân hà nhẹ (canvas 2D) cho Khám phá · Tôi · Cài đặt · Chơi
 reference/              3 file HTML gốc (base, prototype, alti-lion) để đối chiếu
 assets/CREDITS.md       nguồn & giấy phép ảnh/asset
 ```
