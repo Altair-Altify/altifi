@@ -6,6 +6,8 @@ import type { CourseNode, DomainId, Lesson } from "../lesson/types";
 import budget from "./lessons/p-budget";
 import inflation from "./lessons/p-inflation";
 import bnpl from "./lessons/p-bnpl";
+import scam from "./lessons/p-scam";
+import salary from "./lessons/p-salary";
 import centralbank from "./lessons/m-centralbank";
 import minflation from "./lessons/m-inflation";
 import mnews from "./lessons/m-news";
@@ -36,10 +38,10 @@ export const DOMAINS: Domain[] = [
     { id: "p-inflation", code: "P3", ic: "drop", lesson: inflation, day: "21/10", prereq: [],
       title: T("Sức mua & lãi kép", "Purchasing power & compounding"), hook: T("Vì sao 100 nghìn của mình đang teo dần?", "Why is my 100k slowly shrinking?"),
       unlock: T("Sổ tiết kiệm ở ngân hàng", "A savings book at the bank"), planet: { shape: "ice", palette: ["#8FB8F0", "#BFD9FA", "#E6F2FF", "#FFFFFF"], feature: "shrink" } },
-    { id: "p-scam", code: "P4", ic: "bolt", day: "24/10", prereq: ["p-inflation"],
+    { id: "p-scam", code: "P4", ic: "bolt", lesson: scam, day: "24/10", prereq: ["p-inflation"],
       title: T("Nhận diện lừa đảo", "Spotting scams"), hook: T("Làm sao biết mình sắp bị lừa?", "How do I know I'm about to be scammed?"),
       unlock: T("Sự kiện lừa đảo bất ngờ trong game", "Surprise scam events in the game"), planet: { shape: "rocky", palette: ["#5C4A6E", "#7D6590", "#A58BB5", "#D9C6E3"], feature: "flags" } },
-    { id: "p-salary", code: "P5", ic: "banknote", day: "24/10", prereq: ["p-budget"],
+    { id: "p-salary", code: "P5", ic: "banknote", lesson: salary, day: "24/10", prereq: ["p-budget"],
       title: T("Lương, thuế & bảo hiểm", "Pay, tax & insurance"), hook: T("Lương 10 triệu, cầm về được bao nhiêu?", "A 10-million salary — how much do I take home?"),
       unlock: T("Việc làm có lương & bảo hiểm", "Paid jobs & insurance"), planet: { shape: "rocky", palette: ["#E8956B", "#F3B98A", "#F8D9A8", "#FFF0D2"], feature: "strata" } },
   ]),
