@@ -73,6 +73,7 @@ export const BUILDINGS: BuildingSpec[] = [
   { id: "office", zone: "personal", name: T2("Công ty đầu tiên", "Your first job"), ic: "banknote", x: -27, road: 23.5, w: 6, d: 5, h: 5.4, wall: "#E6F0FF", roof: "#5A6B8C", trim: "#3D7BF5", roofKind: "flat", deco: ["floors"], lesson: "p-salary" },
   { id: "clinic", zone: "personal", name: T2("Phòng khám & Bảo hiểm", "Clinic & Insurance"), ic: "umbrella", x: -43, road: 23.5, w: 6, d: 4.6, h: 3.6, wall: "#FFFFFF", roof: "#E5484D", trim: "#F2A3A6", roofKind: "flat", deco: ["cross"], lesson: "p-salary" },
   { id: "bank", zone: "personal", name: T2("Ngân hàng", "Bank"), ic: "bank", x: -16, road: 4, w: 7, d: 5, h: 4.2, wall: "#EDEBFF", roof: "#5B5BD6", trim: "#FFC93C", roofKind: "flat", deco: ["columns"], lesson: "p-inflation" },
+  { id: "dealer", zone: "personal", name: T2("Nhà & xe", "Homes & rides"), ic: "house", x: -8.6, road: 4, w: 4.8, d: 4.2, h: 3.3, wall: "#EEF5FF", roof: "#3D7BF5", trim: "#9DB8E8", deco: ["awning"] },
   { id: "market", zone: "personal", name: T2("Chợ", "Market"), ic: "basket", x: -28, road: 4, w: 6, d: 4.4, h: 3.2, wall: "#FFE9C7", roof: "#2FAE73", trim: "#F5A524", deco: ["awning"], lesson: "p-budget" },
   // ⑥ History museum — door to the Crisis mode
   { id: "museum", zone: "museum", name: T2("Bảo tàng Khủng hoảng", "Crisis Museum"), ic: "trophy", x: -43, road: 4, w: 7, d: 6, h: 4.6, wall: "#F3E9DC", roof: "#8A5A44", trim: "#C9B8A3", roofKind: "none", deco: ["columns", "pediment", "banners"], lesson: "x-1997" },

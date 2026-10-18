@@ -10,9 +10,30 @@
 - **(20/10) Bóng đổ = "bóng tròn mềm" màu tím xanh vẽ sẵn dưới mỗi vật, không dùng shadow map** — rẻ cho điện thoại yếu, đúng ý "bóng mềm tím xanh, không đen" của 13.3, và shadow map không khớp với shader thế giới cong.
 - **(20/10) Tiền khởi đầu trong game = 2.000.000₫ "tiền lì xì tiết kiệm"** (`ensureGame()` trong `src/ui/town.ts`); save cũ có `netWorth` > 0 thì giữ số đó — cần một con số để HUD net worth có ý nghĩa ngay từ lần đầu vào thị trấn; teen 14–17 chưa có lương. Cân bằng lại khi làm chế độ Cá nhân (21/10).
 - **(20/10) Camera cố định hướng (không xoay), cao ~44°, nhìn hơi về phía trước nhân vật; FOV tự tăng trên màn hình dọc** — giống cách camera kiểu Animal Crossing; màn điện thoại hẹp cần FOV rộng hơn để thấy đủ phố.
+- **(21/10) Chế độ Cá nhân bắt đầu ở tuổi 22, lương 10tr gộp / 8,95tr thực nhận (trừ 10,5% bảo hiểm bắt buộc, chưa tới mức chịu thuế TNCN)** — 6.3 và 13.4 mô tả "nhân vật đi làm có lương"; teen nhập vai chính mình tương lai. ⚠️ Nhóm kiểm lại mức đóng BH và luật thuế TNCN mới.
+- **(21/10) Không khóa cứng tính năng trong chế độ Cá nhân, chỉ hiện thẻ "Nên học … Học ngay"** — 3.2 "không ép thứ tự" và 6.1 gợi ý "không khóa cứng"; bài P2/P4/P5 chưa có nội dung nên khóa cứng sẽ chặn cả vòng chơi.
+- **(21/10) Trả góp xe được vay tới 100% giá (0 đồng trả trước), nhà tối đa 70%, cần điểm tín dụng ≥ 600** — thử chạy 6 tháng thấy người chơi không thể gom 10% trả trước xe máy trước tháng 4, nên case cố định/thả nổi không xảy ra; "trả góp 0 đồng" có thật ở VN.
+- **(21/10) Lãi suất mô phỏng: NHTW 4% → 5% (tháng 5) → 6% (tháng 7); vay thả nổi = NHTW + 6,5%; cố định 12,5%; tiết kiệm = NHTW + 1,6%; thẻ tín dụng 30%/năm; lạm phát 3,5%/năm** — gần đúng diễn biến 2022 để bài M2 có hậu quả thật. ⚠️ Cần kiểm chứng/ghi nguồn trước khi nộp.
+- **(21/10) Bảng giá nhà/xe** (phòng trọ 2,5tr/tháng, căn hộ thuê 5,5tr, xe máy 35tr, căn hộ 1,6 tỷ, ô tô nhỏ 550tr…) và **7 bạn NPC có quỹ đạo tài sản theo lối sống** (người liều mất 65% ở tháng 5 khi quỹ sụp…) — số "gần thật", chỉnh khi cân bằng game (13.4 cho phép).
+- **(21/10) Mỗi tháng có 30% khả năng gặp sự cố (ốm 4tr / hỏng điện thoại 3tr) từ tháng 3** — để quỹ khẩn cấp và bảo hiểm có ý nghĩa (6.3 "sự kiện bất ngờ").
+- **(21/10) 5 case tháng do Claude soạn nháp** — ⚠️ quy định cuộc thi: nhóm phải đọc, sửa lời, kiểm số liệu (Madoff ~65 tỷ USD, 150 năm tù; Madrian & Shea 37% → 86%; Fed 2022–23; NHNN tăng lãi 2 lần cuối 2022) trước khi nộp.
 - **(20/10) Cửa có thể vào = nút hành động góc phải dưới hiện khi đứng gần (≤ 1,9 m); trong nhà/quầy hiện khung thoại kem + nút "Học ngay" nếu chưa học bài mở khóa nơi đó** — 13.3 yêu cầu nút hành động có nhãn; gắn mỗi nơi với cột "Game" của 13.2d để học xong có lý do vào game (13.2b-7).
 
-## Phiên 5 — 20/10: Thị trấn low-poly (mục 13.3) — đang làm
+## Phiên 5 (tiếp) — 21/10: Chế độ Cá nhân + nhà & xe — bước 1 ✅ (đã push)
+- **Tab Chơi → "Cuộc sống của tôi" → Chơi ngay** (bay xuống thị trấn, Alti Lion giới thiệu, bấm Bắt đầu). Bạn là chính mình 22 tuổi, lương 10tr gộp / **8,95tr thực nhận**; trang phục đổi sang nhân viên. HUD: tháng · việc tiếp theo · tâm trạng; nút **biểu đồ** = "điện thoại" (tài sản ròng chi tiết + xếp hạng).
+- **Vòng lặp tháng** (`src/game/life.ts` logic thuần, `src/ui/life.ts` màn hình):
+  - **Công ty**: 1 quyết định/tháng từ `src/content/cases.ts` (5 case theo 6.5: Lương đầu tiên — Madrian & Shea · Quỹ "không bao giờ lỗ" — Madoff · "Sản phẩm tiết kiệm" tại quầy — VN 2022 **ẩn danh** · Trả góp xe cố định/thả nổi — 2022 · Mua trước trả sau 0%). Chấm kiểu cờ vua (!!…??), "Góc nhìn từng bên", "Chuyện gì đã thực sự xảy ra". Hết case → tháng bình thường.
+  - **Chợ**: chọn mức chi tiêu (Tiết kiệm / Cân bằng / Thoải mái: nhu cầu + mong muốn, ảnh hưởng tâm trạng; giá tăng theo lạm phát 3,5%/năm).
+  - **Ngân hàng**: gửi/rút, **tự động tiết kiệm** 0–30%, khoản vay (lãi hiện tại, trả/tháng), trả nợ thẻ, **điểm tín dụng** 300–850 (giải thích: không phải tiền tiết kiệm), lãi suất NHTW.
+  - **Phòng khám**: bảo hiểm 180k/tháng (trả 80% viện phí).
+  - **Nhà & xe** (tòa mới cạnh ngân hàng): phòng trọ / căn hộ thuê; xe đạp, xe máy (mua tiền mặt hoặc trả góp cố định/thả nổi); căn hộ, nhà phố, biệt thự, ô tô, xe thể thao **khóa theo giai đoạn nghề** (13.4-4). Alti Lion **cảnh báo** khi món mới tốn > 30% lương/tháng (13.4-2). Xe mua về **đỗ trong vườn nhà**.
+  - **Nhà → Kết thúc tháng**: báo cáo từng dòng (lương, tự động tiết kiệm, nhu cầu, mong muốn, thuê nhà, điện nước/xe, bảo hiểm, trả góp, lãi tiết kiệm, **xe mất giá**, sự cố ngẫu nhiên ốm/hỏng điện thoại, quỹ lừa đảo sụp, trái phiếu đóng băng, rút quỹ khẩn cấp, thiếu tiền → quẹt thẻ 30%/năm + trừ điểm tín dụng), tài sản ròng ±, **hạng / 8** so với 7 bạn NPC, lời khuyên của Alti Lion theo chuyện vừa xảy ra.
+- **Thị trường mô phỏng**: lãi suất NHTW 4% (tháng 1–4) → 5% (5–6) → 6% (từ 7) như NHNN cuối 2022; vay thả nổi = NHTW + 6,5%; cố định 12,5%; tiết kiệm = NHTW + 1,6%. Tháng tăng lãi có tin nóng + lời nhắc bẫy "vay thả nổi khi lãi suất tăng".
+- **Tài sản ròng** = tiền mặt + tiết kiệm + giá trị thị trường đồ đang có + quỹ/trái phiếu (giá trên giấy, đến khi sụp) − nợ. `S.game.history` nhận 1 điểm mỗi tháng → biểu đồ ở trang Tôi.
+- Không khóa cứng (3.2): nơi nào chưa học bài liên quan hiện thẻ "Nên học: P1/P3/P5 … Học ngay".
+- Đã sửa lỗi: khung thoại do hệ thống mở (không qua nút hành động) mà bấm Esc/E thì thoát luôn thị trấn.
+
+## Phiên 5 — 20/10: Thị trấn low-poly (mục 13.3) ✅
 
 ### Bước 2 — 7 khu, NPC, ngày–đêm, bản đồ, tủ đồ ✅ (đã push)
 - **Bản đồ ~96 × 70 m, 7 khu** (`BUILDINGS`/`ZONES` trong `src/game/world.ts`, mỗi nơi gắn bài mở khóa theo cột "Game" 13.2d): Khu dân cư (nhà có vườn rào, công ty đầu tiên, phòng khám & bảo hiểm, ngân hàng, chợ) · Bảo tàng Khủng hoảng (băng rôn 1929/1973/2008) · Phố kinh doanh (quán trà sữa có ly khổng lồ trên mái, 2 lô đất trống "bán", kho nhà cung cấp) · Khu tài chính (sàn giao dịch có **bảng giá chạy** — chỉ số mô phỏng "VNX", tiệm vàng & ngoại tệ, tòa quỹ kính) · **NHTW & Tòa tin tức** (khu thứ 7) · Trung tâm hành chính (tòa thị chính mái vòm + cờ, Bộ Tài chính, trường học) · Cảng biển (bãi cát, cầu tàu, tàu hàng, cần cẩu, container, phao, sóng biển).

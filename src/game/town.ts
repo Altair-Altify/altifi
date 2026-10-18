@@ -9,6 +9,7 @@ import { U, mat } from "./kit";
 import { buildWorld, POND, type World, type Door, type Zone } from "./world";
 import { makeAvatar, type Avatar, type Look, type Stage } from "./avatar";
 import { makeNpcs, graph, type Npc } from "./npc";
+import { makeRide } from "./rides";
 
 export type Target = { kind: "door"; door: Door; x: number; z: number } | { kind: "npc"; npc: Npc; x: number; z: number };
 export interface TownHooks {
@@ -99,6 +100,19 @@ export class Town {
     this.scene.add(this.player.group);
   }
   get map() { return this.world; }
+  /** Park what you ride in your garden (13.4); its collider moves with it. */
+  private ride: THREE.Group | null = null; private rideId = ""; private rideC: { x: number; z: number; r: number }[] = [];
+  setRide(id: string) {
+    if (id === this.rideId) return;
+    this.rideId = id;
+    if (this.ride) { this.scene.remove(this.ride); this.ride.traverse((o) => (o as THREE.Mesh).geometry?.dispose()); this.ride = null; }
+    this.world.circles = this.world.circles.filter((c) => !this.rideC.includes(c)); this.rideC = [];
+    const g = makeRide(id); if (!g) return;
+    const home = this.world.buildings.find((b) => b.id === "home")!, x = home.x + home.w / 2 + 1.55, z = home.z! + 0.9;
+    g.position.set(x, 0, z); g.rotation.y = 0.12; this.scene.add(g); this.ride = g;
+    this.rideC = id.startsWith("car") ? [{ x, z, r: 1 }, { x, z: z - 1.2, r: 0.9 }, { x, z: z + 1.2, r: 0.9 }] : [{ x, z, r: 0.6 }];
+    this.world.circles.push(...this.rideC);
+  }
   get zone() { return this.zoneNow; }
   setHour(h: number | null) { this.hourOverride = h; this.applySky(true); }
 

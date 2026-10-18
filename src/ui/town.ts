@@ -15,10 +15,11 @@ import { setCtx } from "../assistant/context";
 import { DOMAINS } from "../content/domains";
 import { Town, type Target } from "../game/town";
 import { defaultLook, SKINS, HAIRS, TOPS, BOTTOMS, type Look, type Stage } from "../game/avatar";
-import type { Zone, ZoneId, World } from "../game/world";
+import type { Zone, ZoneId, World, BuildingSpec } from "../game/world";
+import { netWorth, type Life } from "../game/life";
 
 /* ---- game state (design doc 13.4: net worth is what counts) ---- */
-export interface TownSave { cash: number; history: number[]; stage: Stage; look: Look }
+export interface TownSave { cash: number; history: number[]; stage: Stage; look: Look; life?: Life; netWorth: number }
 /** First visit: start with 2,000,000₫ of saved lucky money (decision logged in PROGRESS.md). */
 export function ensureGame(): TownSave {
   const g = (S.game ||= { netWorth: 0 }) as any;
@@ -26,7 +27,7 @@ export function ensureGame(): TownSave {
   if (!Array.isArray(g.history)) g.history = [g.cash];
   if (!g.stage) g.stage = "student";
   if (!g.look || typeof g.look !== "object") g.look = defaultLook();
-  g.netWorth = g.cash; // houses, cars and loans join the sum on 21/10 (13.4)
+  g.netWorth = g.life ? netWorth(g.life) : g.cash; // the Personal mode adds savings, what you own and what you owe (13.4)
   save();
   return g as TownSave;
 }
@@ -36,6 +37,9 @@ const nodeOf = (id?: string) => (id ? DOMAINS.flatMap((d) => d.nodes).find((n) =
 const ZONE_DAY: Record<ZoneId, string> = { personal: "21/10", corporate: "22/10", macro: "22/10", museum: "23/10", markets: "24–26/10", public: "24–26/10", intl: "24–26/10" };
 
 let town: Town | null = null, failed = false, near: Target | null = null;
+/** The Personal mode (src/ui/life.ts) plugs in here: it handles doors while a life is running and adds HUD bits. */
+export const townHooks: { door?: (b: BuildingSpec) => boolean; hud?: () => void; arrive?: () => void } = {};
+export const getTown = () => town;
 const host = document.createElement("div");
 host.className = "tw-gl";
 const shown = () => host.isConnected && !!$("#overlay")?.classList.contains("townov") && !document.hidden;
@@ -44,8 +48,10 @@ function hud() {
   const g = ensureGame();
   return `<div class="tw-top">
       <button class="tw-btn" onclick="A.exitTown()" aria-label="${esc(t("tw.exit"))}">${icon("back", { size: 22 })}</button>
-      <div class="tw-nw" title="${esc(t("top.netWorth"))}">${icon("wallet", { size: 20, color: IC.wallet })}<span class="tw-nwk">${t("top.netWorth")}</span><b data-ck="twnw" data-to="${g.cash}" data-fmt="vnd">${shortVnd(g.cash, lang())}</b></div>
+      <div class="tw-nw" title="${esc(t("top.netWorth"))}">${icon("wallet", { size: 20, color: IC.wallet })}<span class="tw-nwk">${t("top.netWorth")}</span><b data-ck="twnw" data-to="${g.netWorth}" data-fmt="vnd">${shortVnd(g.netWorth, lang())}</b></div>
     </div>
+    <div class="tw-life" id="twLife" hidden></div>
+    <button class="tw-phone" id="twPhone" hidden onclick="A.lifePhone()" aria-label="${esc(t("lf.phone"))}">${icon("chart", { size: 24, color: "#5B4636" })}</button>
     <button class="tw-map" id="twMap" onclick="A.townMap()" aria-label="${esc(t("tw.map"))}"><canvas width="184" height="144"></canvas></button>
     <div class="tw-zone" id="twZone" aria-live="polite"></div>`;
 }
@@ -85,6 +91,8 @@ export function openTown() {
   town.start();
   bindJoystick();
   setTimeout(() => $("#twHint")?.classList.add("off"), 4200);
+  townHooks.hud?.();
+  townHooks.arrive?.();
 }
 
 /* ---- district banner (shown when you walk into another district) ---- */
@@ -115,7 +123,7 @@ function onNear(tg: Target | null) {
   else b.innerHTML = `${icon("chat", { size: 22, color: "#fff", tint: 0.3 })}<span>${esc(t("tw.talk", { name: tg.npc.p.name }))}</span>`;
 }
 let typeTimer: ReturnType<typeof setInterval> | undefined, talkingTo: Target | null = null;
-function say(name: string, text: string, buttons: [string, string][] = [], color = "#F5A524") {
+export function say(name: string, text: string, buttons: [string, string][] = [], color = "#F5A524") {
   const box = $("#twTalk");
   if (!box || !town) return;
   town.frozen = true; town.input.set(0, 0);
@@ -128,7 +136,7 @@ function say(name: string, text: string, buttons: [string, string][] = [], color
   let i = 0; // letters appear one by one (13.3 "Giao diện trong game")
   typeTimer = setInterval(() => { i += 2; p.textContent = text.slice(0, i); if (i >= text.length) clearInterval(typeTimer); }, 22);
 }
-function townTalkClose() {
+export function townTalkClose() {
   clearInterval(typeTimer);
   const box = $("#twTalk"); if (box) box.hidden = true;
   if (talkingTo?.kind === "npc") talkingTo.npc.talking = false;
@@ -142,6 +150,7 @@ function townAct() {
   talkingTo = tg;
   if (tg.kind === "npc") { tg.npc.talking = true; say(`${tg.npc.p.name} · ${tx(tg.npc.p.style)}`, tx(tg.npc.p.line), [], "#B39DFF"); return; }
   const b = tg.door.b, n = nodeOf(b.lesson), place = tx(b.name), zc = town.map.zones.find((z) => z.id === b.zone)?.color;
+  if (townHooks.door?.(b)) return;
   if (b.id === "home") { say(place, t("tw.home", { n: lessonsDone() }), [[t("tw.wardrobe"), "A.townWardrobe()"]], zc); return; }
   if (b.id === "museum") { say(place, t("tw.museum"), [], zc); return; }
   if (n) {
@@ -153,10 +162,19 @@ function townAct() {
   }
   say(place, t("tw.soon"), [], zc);
 }
-function townLearn(id: string) { leaveTown(); (window as any).A.startLesson(id); }
+export function townLearn(id: string) { leaveTown(); (window as any).A.startLesson(id); }
+
+/* ---- bottom sheet used by the wardrobe and the Personal mode ---- */
+export function townSheet(html: string, lift = true) {
+  townTalkClose();
+  const sh = $("#twSheet"); if (!sh || !town) return;
+  town.frozen = true; town.input.set(0, 0); $("#twAct")!.hidden = true; if (lift) town.lift = 1;
+  sh.innerHTML = html; sh.hidden = false; sh.scrollTop = 0;
+}
+export function townSheetClose() { const sh = $("#twSheet"); if (sh) sh.hidden = true; if (town) { town.frozen = false; town.lift = 0; } onNear(near); townHooks.hud?.(); }
 
 /* ---- wardrobe at home: skin, hair colour & style, top, trousers (the outfit style follows your career stage) ---- */
-function townWardrobe() {
+export function townWardrobe() {
   townTalkClose();
   const sh = $("#twSheet"); if (!sh || !town) return;
   town.frozen = true; town.input.set(0, 0); $("#twAct")!.hidden = true; town.lift = 1; town.heading = 0; // camera raises you above the sheet, you face the camera
@@ -178,7 +196,7 @@ function townLook(key: keyof Look, v: string | number) {
   town?.setLook(g.look, g.stage);
   townWardrobe();
 }
-function townWardrobeClose() { const sh = $("#twSheet"); if (sh) sh.hidden = true; if (town) { town.frozen = false; town.lift = 0; } onNear(near); }
+const townWardrobeClose = townSheetClose;
 
 /* ---- minimap (top-left) + full map (tap it or press M) ---- */
 let mapStatic: HTMLCanvasElement | null = null, mapT = 0;
@@ -273,10 +291,10 @@ function bindJoystick() {
     const k = e.key.toLowerCase();
     if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) { keys.add(k); applyKeys(); e.preventDefault(); $("#twHint")?.classList.add("off"); }
     if (k === "shift" && town) town.run = true;
-    const sheet = !$("#twSheet")?.hidden, big = !$("#twBig")?.hidden;
+    const sheet = !$("#twSheet")?.hidden, big = !$("#twBig")?.hidden, talk = !$("#twTalk")?.hidden;
     if (k === "m") townMap();
-    if (k === "e" || k === " " || k === "enter") { e.preventDefault(); if (big) townMap(); else if (sheet) townWardrobeClose(); else if (talkingTo) townTalkClose(); else townAct(); }
-    if (k === "escape") { if (big) townMap(); else if (sheet) townWardrobeClose(); else if (talkingTo) townTalkClose(); else exitTown(); }
+    if (k === "e" || k === " " || k === "enter") { e.preventDefault(); if (big) townMap(); else if (sheet) townWardrobeClose(); else if (talk) townTalkClose(); else townAct(); }
+    if (k === "escape") { if (big) townMap(); else if (sheet) townWardrobeClose(); else if (talk) townTalkClose(); else exitTown(); }
   });
   window.addEventListener("keyup", (e) => {
     const k = e.key.toLowerCase();
@@ -296,6 +314,10 @@ function leaveTown() {
 }
 function exitTown() { leaveTown(); closeO(); }
 /** Re-draw the HUD numbers (net worth changes). */
-export function refreshTownHud() { const r = $("#twRoot"); if (r) runCounts(r, fmtCount); }
+export function refreshTownHud() {
+  const b = document.querySelector<HTMLElement>(".tw-nw b");
+  if (b && S.game) { b.dataset.to = String(S.game.netWorth); runCounts($("#twRoot")!, fmtCount); }
+  townHooks.hud?.();
+}
 
 reg({ exitTown, townAct, townTalkClose, townLearn, townWardrobe, townLook, townWardrobeClose, townMap });
