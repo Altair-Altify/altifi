@@ -30,6 +30,11 @@
 - **(21/10) 5 case tháng do Claude soạn nháp** — ⚠️ quy định cuộc thi: nhóm phải đọc, sửa lời, kiểm số liệu (Madoff ~65 tỷ USD, 150 năm tù; Madrian & Shea 37% → 86%; Fed 2022–23; NHNN tăng lãi 2 lần cuối 2022) trước khi nộp.
 - **(20/10) Cửa có thể vào = nút hành động góc phải dưới hiện khi đứng gần (≤ 1,9 m); trong nhà/quầy hiện khung thoại kem + nút "Học ngay" nếu chưa học bài mở khóa nơi đó** — 13.3 yêu cầu nút hành động có nhãn; gắn mỗi nơi với cột "Game" của 13.2d để học xong có lý do vào game (13.2b-7).
 
+## Phiên 5 (tiếp) — 24–26/10: bài G1, G2 ✅ (đã push) → mảng Tài chính công đủ 2/2 bài
+- **G1 "Tiền thuế của mình đi đâu?"** (`g-tax`): **đoán** thuế GTGT trong ly trà sữa 35k (~3.200₫, giả định 10%) → phân loại thu/chi ngân sách → **chia ngân sách thành phố 100 tỷ** (dạng hũ, 4 hũ) → đầu tư công vs chi một lần → **chuyện thật** cao tốc Bắc – Nam (không nêu số) → **bẫy** "teen không đóng thuế" → trùm cuối (sửa trường hay quảng trường) → Dùng ngay. Đào sâu: thuế lũy thoái của GTGT (tính).
+- **G2 "Chính phủ vay nợ: tốt hay xấu?"** (`g-debt`): **đoán** nước A vay xây cảng vs nước B vay phát tiền → nối bội chi / nợ công / trái phiếu / nợ/GDP → tính → **chuyện thật** Hy Lạp 2007–2011 (nợ 103% → 172% GDP, cứu trợ 110 tỷ euro) → **bẫy** "nợ công lúc nào cũng xấu" → trùm cuối (vay làm đường sắt tốc độ cao) → Dùng ngay. Đào sâu: r so với g (tính).
+- Engine: dạng `jars` có thêm `unit` (G1 dùng "tỷ₫"); 4 hũ tự co lại vừa màn 375px.
+
 ## Phiên 5 (tiếp) — 24–26/10: bài I1, I2 ✅ (đã push) → mảng Đầu tư đủ 2/2 bài
 - **I1 "Chứng khoán: đầu tư hay đánh bạc?"** (`i-stocks`): **đoán** VN-Index 2022 (1.500 → ~900) → biểu đồ 3 đường (dồn vào X / dồn vào Y / quỹ chỉ số — minh họa) → phân loại đầu tư vs đánh bạc → **tính** đòn bẩy: vay mua, giá −40% → mất 80% vốn → **bẫy** FOMO "đang lên thì lên tiếp" → trùm cuối (50tr nhàn rỗi 10 năm) → Dùng ngay (danh mục ảo). Ghi rõ: không phải lời khuyên đầu tư; dưới 18 tuổi cần người giám hộ. Đào sâu: beta (tính), quỹ chỉ số phí thấp.
 - **I2 "Vàng, đất, tiền ảo: vì sao giá lên xuống điên cuồng?"** (`i-bubbles`): tulip 1637 → **đoán** Nasdaq 2000–02 (−78%) → 5 giai đoạn bong bóng → giá trị thật vs kỳ vọng giá → **chuyện thật** Bitcoin 2020–22 (−77%) + vàng trú ẩn → **bẫy** "giá cao = đáng giá" (tiền thuê so với giá mua) → trùm cuối (vay mua đất 'sốt') → Dùng ngay. Đào sâu: hãng bay khóa giá nhiên liệu (tính).
@@ -299,7 +304,7 @@ Nhóm đo trên altifi.vercel.app ở khung 375×812 và gửi đúng diff sửa
 ## ▶️ Việc đầu tiên của phiên sau (cập nhật 18/10 tối, giờ VN)
 **Trạng thái:** mọi việc trong lịch 13.6 tới **23/10 đã xong và đã deploy** (thị trấn 7 khu, chế độ Cá nhân, chế độ Doanh nghiệp, khủng hoảng 1929 hai vai, bài P1–P3, B1, B3, B4, M1–M3). Đang làm dòng **24–26/10**.
 1. `git pull`, đọc mục "Quyết định Claude Code tự đưa ra" ở đầu file + các mục Phiên 5. `npm install && npm run dev`, `node scripts/playthrough.cjs vi` (đã gồm 10 bài; bước `predict` báo WRONG là đúng thiết kế).
-2. Làm tiếp các bài còn thiếu theo thứ tự 13.6: ~~P4, P5, B2, B5, M4, I1, I2~~ (xong), **G1, G2, X1, X2** (khung 6 nhịp 13.2c — xem `src/content/lessons/p-bnpl.ts` làm mẫu; nhớ thêm `lesson:` vào node trong `src/content/domains.ts` và thêm id vào `scripts/playthrough.cjs`). Tiến độ từng bài ghi ở các mục Phiên 5/6 phía trên.
+2. Làm tiếp các bài còn thiếu theo thứ tự 13.6: ~~P4, P5, B2, B5, M4, I1, I2, G1, G2~~ (xong), **X1, X2** (khung 6 nhịp 13.2c — xem `src/content/lessons/p-bnpl.ts` làm mẫu; nhớ thêm `lesson:` vào node trong `src/content/domains.ts` và thêm id vào `scripts/playthrough.cjs`). Tiến độ từng bài ghi ở các mục Phiên 5/6 phía trên.
 3. Sau đó: Khám phá 3 bài (mục 4), sửa lỗi, thử trên điện thoại thật (nhóm).
 4. Kiểm tra nhanh trước khi push: build, playthrough, và Playwright 375×812 (5 tab, mở bài học, vào thị trấn, kéo joystick, thoát). Script tham khảo đã dùng: mở tab Chơi → `A.goTown()`; trong dev có `window.__town` để dịch chuyển nhân vật.
 5. Tổng kết tuần: nếu từ 18:00 thứ Năm 22/10 (giờ VN) chưa có bản tổng kết ở đầu file thì viết.

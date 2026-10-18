@@ -99,3 +99,9 @@
 #dgPay.good{border-color:var(--line)}#dgPay .dbar i{background:#F5A524}
 body.potato #dialNeedle{transition:none}
 .q .qsub{display:block;margin-top:8px;font-size:14px;font-weight:700;line-height:1.55;color:var(--muted)}
+/* four jars on a phone: let them shrink, stack the +/− buttons */
+.jar{min-width:0}
+.jars:has(.jar:nth-child(4)){gap:6px}
+.jars:has(.jar:nth-child(4)) .jstep{flex-direction:column;align-items:center;gap:4px}
+.jars:has(.jar:nth-child(4)) .jstep button{width:44px;height:34px}
+.jars:has(.jar:nth-child(4)) .jarlab{font-size:12px}

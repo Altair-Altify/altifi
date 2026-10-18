@@ -14,6 +14,8 @@ import mnews from "./lessons/m-news";
 import mpolicy from "./lessons/m-policy";
 import istocks from "./lessons/i-stocks";
 import ibubbles from "./lessons/i-bubbles";
+import gtax from "./lessons/g-tax";
+import gdebt from "./lessons/g-debt";
 import breakeven from "./lessons/c-breakeven";
 import cash from "./lessons/c-cash";
 import funding from "./lessons/c-funding";
@@ -90,10 +92,10 @@ export const DOMAINS: Domain[] = [
       unlock: T("Tiệm vàng & quầy ngoại tệ", "Gold shop & currency desk"), planet: { shape: "rocky", palette: ["#3C7F86", "#5FA5A8", "#9CCFC9", "#E2F3EE"], feature: "crystals" } },
   ]),
   area({ id: "public", short: T("Tài chính công", "Public"), ic: "bank", color: "#3D7BF5", title: T("Tài chính công", "Public Finance"), desc: T("Thuế, ngân sách nhà nước, nợ công", "Taxes, the state budget, public debt") }, [
-    { id: "g-tax", code: "G1", ic: "pie", day: "26/10", prereq: [],
+    { id: "g-tax", code: "G1", ic: "pie", lesson: gtax, day: "26/10", prereq: [],
       title: T("Thuế & ngân sách nhà nước", "Taxes & the state budget"), hook: T("Tiền thuế của mình đi đâu?", "Where do my taxes go?"),
       unlock: T("Công trình ở tòa thị chính", "Projects at the town hall"), planet: { shape: "rocky", palette: ["#3D7BF5", "#7AA7FA", "#F5B841", "#7ED3A1", "#F28C8C"], feature: "pie" } },
-    { id: "g-debt", code: "G2", ic: "doc", day: "26/10", prereq: ["g-tax"],
+    { id: "g-debt", code: "G2", ic: "doc", lesson: gdebt, day: "26/10", prereq: ["g-tax"],
       title: T("Thâm hụt & nợ công", "Deficits & public debt"), hook: T("Chính phủ vay nợ: tốt hay xấu?", "Government borrowing: good or bad?"),
       unlock: T("Vai Bộ trưởng Tài chính", "The Finance Minister role"), planet: { shape: "gas", palette: ["#5A86E0", "#86A9EE", "#B7CDF6", "#E3ECFC"], feature: "saturn", size: 1.15 } },
   ]),

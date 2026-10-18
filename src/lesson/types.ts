@@ -22,7 +22,7 @@ export type Step =
   | ({ t: "match"; q: TL; pairs: [TL, TL][] } & Graded)
   | ({ t: "order"; q: TL; items: [string, TL][] } & Graded)
   | ({ t: "slider"; q: TL; art?: string; min: number; max: number; step: number; start?: number; a: number; tol: number; unit?: Unit } & Graded)
-  | ({ t: "jars"; q: TL; total: number; step: number; jars: [TL, string, number][] } & Graded)
+  | ({ t: "jars"; q: TL; total: number; step: number; jars: [TL, string, number][]; unit?: Unit } & Graded)
   | ({ t: "spot"; q: TL; post: { user: string; av: string; parts: [TL, boolean][] } } & Graded)
   | ({ t: "tap"; q: TL; head: TL; items: [string, TL, string, boolean][] } & Graded)
   /* new for deeper content (design doc 3.3) */

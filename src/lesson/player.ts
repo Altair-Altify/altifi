@@ -270,9 +270,9 @@ export function lessonRender(fx?: string) {
     }
     case "jars": {
       const sum = s.vals.reduce((a: number, b: number) => a + b, 0), rem = st.total - sum;
-      body = `<div class="q">${tx(st.q)}</div><div class="remain">${t("lp.leftToSplit")}: <b style="color:${rem ? "var(--pri)" : "var(--okt)"}">${vnd(rem, lang())}</b></div><div class="jars">${st.jars.map(([l, col, tg], k) => {
+      body = `<div class="q">${tx(st.q)}</div><div class="remain">${t("lp.leftToSplit")}: <b style="color:${rem ? "var(--pri)" : "var(--okt)"}">${fmtUnit(rem, st.unit || "vnd")}</b></div><div class="jars">${st.jars.map(([l, col, tg], k) => {
         const v = s.vals[k], h = (v / st.total) * 100;
-        return `<div class="jar"><div class="jarval">${shortVnd(v, lang())}</div><div class="jarlid"></div><div class="jarbody"><i style="height:${h}%;background:${col}"></i><span class="pct">${Math.round(h)}%</span></div><div class="jarlab">${tx(l)}</div>${L!.checked ? `<div class="jart ${v === tg ? "ok" : "no"}">${t("lp.goal", { p: Math.round((tg / st.total) * 100) })}</div>` : `<div class="jstep"><button onclick="A.jarStep(${k},-1)" aria-label="−">−</button><button onclick="A.jarStep(${k},1)" aria-label="+">+</button></div>`}</div>`;
+        return `<div class="jar"><div class="jarval">${st.unit ? fmtUnit(v, st.unit) : shortVnd(v, lang())}</div><div class="jarlid"></div><div class="jarbody"><i style="height:${h}%;background:${col}"></i><span class="pct">${Math.round(h)}%</span></div><div class="jarlab">${tx(l)}</div>${L!.checked ? `<div class="jart ${v === tg ? "ok" : "no"}">${t("lp.goal", { p: Math.round((tg / st.total) * 100) })}</div>` : `<div class="jstep"><button onclick="A.jarStep(${k},-1)" aria-label="−">−</button><button onclick="A.jarStep(${k},1)" aria-label="+">+</button></div>`}</div>`;
       }).join("")}</div>`;
       ready = rem === 0;
       break;
