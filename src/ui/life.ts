@@ -12,7 +12,8 @@ import { icon } from "./icons";
 import { lion } from "../mascot/lion";
 import { minitoast, confetti } from "./fx";
 import { DOMAINS } from "../content/domains";
-import { CASES, GOOD, type Case, type Rating } from "../content/cases";
+import { CASES, BIZ_CASES, GOOD, type Case, type BizCase, type Rating } from "../content/cases";
+import { openBiz, bizValue, bizRate, bizPayment, breakEven, bizFloat, OPEN_COST, OWN_MIN, EQUIP, BIZ_FIXED, BIZ_FIXED_RATE, PRICES, type PL } from "../game/biz";
 import { PERSONAS } from "../game/npc";
 import {
   newLife, endMonth, netWorth, paper, ownedValue, debt, buy, sell, deposit, withdraw, payOffCard, payment, loanRate, monthlyCosts,
@@ -48,7 +49,8 @@ function hud() {
   if (!el || !ph) return;
   el.hidden = !L; ph.hidden = !L;
   if (!L) return;
-  const next = !L.worked ? t("lf.next.work") : !L.plan ? t("lf.next.market") : t("lf.next.home");
+  const owner = !!L.biz && !L.biz.closed;
+  const next = owner ? (!L.biz!.decided ? t("bz.next.shop") : !L.plan ? t("lf.next.market") : t("lf.next.home")) : !L.worked ? t("lf.next.work") : !L.plan ? t("lf.next.market") : t("lf.next.home");
   el.innerHTML = `<b>${t("lf.month", { m: L.month })}</b><span>${next}</span><i class="lf-mood" title="${esc(t("lf.mood"))}" style="--m:${L.mood}%">${icon("heart", { size: 14, color: L.mood < 30 ? "#EF4E4E" : "#F7867A" })}${Math.round(L.mood)}</i>`;
 }
 townHooks.hud = hud;
@@ -70,14 +72,19 @@ function lifeStart() {
 /** Play tab → "My Life": open the town (and offer to start if needed). */
 let pendingIntro = false;
 function playLife() { pendingIntro = !life(); (window as any).A.goTown(); }
-townHooks.arrive = () => { const tw = getTown(); if (tw && life()) tw.setRide(life()!.vehicle); if (pendingIntro) { pendingIntro = false; setTimeout(intro, noMotion() ? 0 : 1000); } };
+townHooks.arrive = () => {
+  const tw = getTown(); if (tw && life()) tw.setRide(life()!.vehicle);
+  if (pendingBiz) { pendingBiz = false; setTimeout(startBizScenario, noMotion() ? 0 : 1000); return; }
+  if (pendingIntro) { pendingIntro = false; setTimeout(intro, noMotion() ? 0 : 1000); }
+};
 
 /* ---- doors ---- */
 townHooks.door = (b) => {
   const L = life();
-  if (!L) { if (b.id === "office" || b.id === "dealer") { intro(); return true; } return false; }
+  if (!L) { if (b.id === "office" || b.id === "dealer") { intro(); return true; } if (b.id === "shop") { say(tx(b.name), t("bz.needLife"), [[t("lf.start"), "A.lifeStart()"]], "#F5A524"); return true; } return false; }
   switch (b.id) {
-    case "office": office(); return true;
+    case "shop": shop(); return true;
+    case "office": if (L.biz && !L.biz.closed) { say(t("lf.office"), t("bz.quit"), [], "#3D7BF5"); return true; } office(); return true;
     case "market": market(); return true;
     case "bank": bank(); return true;
     case "clinic": clinic(); return true;
@@ -219,10 +226,11 @@ function lifeSell(kind: "home" | "ride") { const L = life(); if (!L) return; sel
 /* ---- Home: end the month ---- */
 function home() {
   const L = life()!;
-  const todo = [[t("lf.td.work"), L.worked], [t("lf.td.market"), !!L.plan]] as [string, boolean][];
+  const owner = !!L.biz && !L.biz.closed;
+  const todo = [[owner ? t("bz.td.shop") : t("lf.td.work"), owner ? L.biz!.decided : L.worked], [t("lf.td.market"), !!L.plan]] as [string, boolean][];
   townSheet(`${head(t("lf.homeT"), t("lf.month", { m: L.month }))}
     <div class="lf-todo">${todo.map(([l, ok]) => `<span class="${ok ? "ok" : ""}">${icon(ok ? "check" : "clock", { size: 16 })} ${l}</span>`).join("")}</div>
-    ${!L.worked ? `<p class="lf-warn">${t("lf.warnNoWork")}</p>` : ""}${!L.plan ? `<p class="tw-note">${t("lf.defaultPlan")}</p>` : ""}
+    ${!owner && !L.worked ? `<p class="lf-warn">${t("lf.warnNoWork")}</p>` : ""}${!L.plan ? `<p class="tw-note">${t("lf.defaultPlan")}</p>` : ""}
     <div class="lf-btns"><button class="btn good" onclick="A.lifeEnd()">${t("lf.endMonth")}</button><button class="btn ghost" onclick="A.townWardrobe()">${t("tw.wardrobe")}</button></div>`);
 }
 function lifeEnd() {
@@ -235,6 +243,13 @@ function lifeEnd() {
   showReport(rep, policyRate(L.month) > prevRate || policyRate(rep.m) > policyRate(rep.m - 1));
 }
 function tipFor(L: Life, rep: Report, hike: boolean) {
+  if (rep.bankrupt) return t("bz.tip.bankrupt");
+  if (rep.pl) {
+    if (rep.pl.profit > 0 && rep.pl.netCash < 0) return t("bz.tip.cash");
+    if (rep.pl.profit < 0 && L.biz && L.biz.price <= 25_000) return t("bz.tip.cheap", { be: breakEven(L.biz) });
+    if (hike && L.biz?.loans.some((l) => l.kind === "float")) return t("lf.tip.float", { r: policyRate(rep.m).toFixed(1) });
+    if (rep.pl.profit < 0 && rep.m - (L.biz?.open || 0) < 2) return t("bz.tip.ramp");
+  }
   if (rep.lines.some((l) => l.k === "lf.r.short")) return t("lf.tip.short");
   if (hike && L.loans.some((l) => l.kind === "float")) return t("lf.tip.float", { r: policyRate(rep.m).toFixed(1) });
   if (rep.event === "sick" && !L.insured) return t("lf.tip.noIns");
@@ -255,6 +270,8 @@ function showReport(rep: Report, hike: boolean) {
   }).join("");
   townSheet(`${head(t("lf.reportT", { m: rep.m }))}
     ${hike ? `<p class="lf-warn">${t("lf.hike", { r: policyRate(rep.m).toFixed(1) })}</p>` : ""}
+    ${rep.pl ? plHTML(rep.pl) : ""}
+    ${rep.pl ? `<h4>${t("bz.personal")}</h4>` : ""}
     ${rows}
     <div class="lf-total"><span>${t("top.netWorth")}</span><b>${money(rep.nw)}</b><i class="${rep.dnw >= 0 ? "pos" : "neg"}">${sign(rep.dnw)}</i></div>
     <div class="lf-total"><span>${t("lf.rank")}</span><b>#${rep.rank} / ${PERSONAS.length + 1}</b></div>
@@ -262,6 +279,116 @@ function showReport(rep: Report, hike: boolean) {
     <div class="lf-tip">${lion(48, rep.dnw >= 0 ? "happy" : "sad")}<p>${tipFor(L, rep, hike)}</p></div>
     <div class="lf-btns"><button class="btn ghost" onclick="A.lifePhone('rank')">${t("lf.seeRank")}</button><button class="btn good" onclick="A.townSheetClose()">${t("lf.nextMonth")}</button></div>`);
 }
+
+/* ---- the milk-tea kiosk (Business mode) ---- */
+function plHTML(pl: PL) {
+  const r = (k: string, v: number, cls = "") => `<div class="lf-row ${cls}"><span>${t(k)}</span><b class="${v > 0 ? "pos" : v < 0 ? "neg" : ""}">${sign(v)}</b></div>`;
+  return `<h4>${t("bz.pl")}</h4>
+    <p class="tw-note">${t("bz.cups", { n: pl.cups.toLocaleString(lang() === "vi" ? "vi-VN" : "en-US") })}${pl.contractCups ? " · " + t("bz.cupsC", { n: pl.contractCups }) : ""}</p>
+    ${r("bz.revenue", pl.revenue)}${r("bz.variable", -pl.variable)}${r("bz.fixed", -pl.fixed)}${r("bz.dep", -pl.dep)}${r("bz.interest", -pl.interest)}${r("bz.ownerPay", -pl.ownerPay)}
+    <div class="lf-total"><span>${t("bz.profit")}</span><b class="${pl.profit >= 0 ? "pos" : "neg"}">${sign(pl.profit)}</b></div>
+    <h4>${t("bz.cf")}</h4>
+    ${r("bz.cashIn", pl.cashIn - pl.collected)}${pl.collected ? r("bz.collected", pl.collected) : ""}${r("bz.cashOut", -(pl.cashOut))}
+    <div class="lf-total"><span>${t("bz.netCash")}</span><b class="${pl.netCash >= 0 ? "pos" : "neg"}">${sign(pl.netCash)}</b><i>${t("bz.cashEnd", { v: short(pl.cashEnd) })}</i></div>
+    ${pl.overdraft ? `<p class="lf-warn">${t("bz.overdraft")}</p>` : ""}${pl.bankrupt ? `<p class="lf-warn">${t("bz.bankrupt")}</p>` : ""}`;
+}
+function shop() {
+  const L = life()!, b = L.biz;
+  if (!b || b.closed) { openShop(); return; }
+  const m = L.month, last = b.pls[b.pls.length - 1];
+  const debtRows = b.loans.map((l) => `<div class="lf-row"><span>${t("bz.loan." + l.kind)} · ${bizRate(l, m).toFixed(1)}%</span><b>${short(l.left)}</b><em>${t("lf.perMonth", { v: short(bizPayment(l, m)) })}</em></div>`).join("") || `<p class="tw-note">${t("lf.noLoans")}</p>`;
+  townSheet(`${head(t("bz.shopT"), t("lf.month", { m }))}
+    ${learnChip("c-breakeven")}
+    <div class="lf-row"><span>${t("bz.shopCash")}</span><b>${money(b.cash)}</b></div>
+    <div class="lf-score"><span>${t("bz.love")}</span><div class="lf-bar"><i style="width:${b.love}%"></i></div><b>${Math.round(b.love)}</b></div>
+    <h4>${t("bz.price")}</h4>
+    <div class="lf-plans">${PRICES.map((p) => `<button class="lf-plan${b.price === p ? " on" : ""}" onclick="A.bizPrice(${p})"><b>${short(p)} / ${t("bz.cup")}</b><span>${t("bz.margin", { v: short(p - b.varCost) })} · ${t("bz.be", { n: Math.ceil(BIZ_FIXED / Math.max(1, p - b.varCost)).toLocaleString(lang() === "vi" ? "vi-VN" : "en-US") })}</span></button>`).join("")}</div>
+    <p class="tw-note">${t("bz.priceNote")}</p>
+    ${b.decided ? `<p class="lf-noteok">${t("bz.decided")}</p>` : `<button class="btn good" onclick="A.bizCase()">${t("bz.decide")}</button>`}
+    ${b.contract ? `<p class="tw-note">${t("bz.contract", { n: b.contract.cups, until: b.contract.until })}</p>` : ""}
+    ${b.receivable.length ? `<p class="tw-note">${t("bz.recv", { v: short(b.receivable.reduce((s2, r2) => s2 + r2.amount, 0)) })}</p>` : ""}
+    <h4>${t("lf.loans")}</h4>${debtRows}
+    ${b.investor ? `<p class="tw-note">${t("bz.investorNote", { p: Math.round(b.investor * 100) })}</p>` : ""}
+    ${last ? plHTML(last) : ""}`);
+}
+function openShop() {
+  const L = life()!, own = L.cash + L.savings, can = own >= OWN_MIN, m = L.month;
+  const loan = OPEN_COST - OWN_MIN;
+  const pay = (rate: number) => short((loan * rate / 1200) / (1 - Math.pow(1 + rate / 1200, -36)));
+  townSheet(`${head(t("bz.openT"))}
+    ${learnChip("c-breakeven")}${learnChip("c-funding")}
+    <p class="lf-setup">${t("bz.openText", { c: short(OPEN_COST), e: short(EQUIP), own: short(OWN_MIN), f: short(BIZ_FIXED) })}</p>
+    <div class="lf-row"><span>${t("bz.youHave")}</span><b class="${can ? "pos" : "neg"}">${short(own)}</b></div>
+    ${can ? `<div class="lf-opts">
+      <button class="lf-opt" onclick="A.bizOpen('fixed')"><b>A</b><span>${t("bz.fundFixed", { v: short(loan), r: BIZ_FIXED_RATE.toFixed(1), p: pay(BIZ_FIXED_RATE) })}</span></button>
+      <button class="lf-opt" onclick="A.bizOpen('float')"><b>B</b><span>${t("bz.fundFloat", { v: short(loan), r: bizFloat(m).toFixed(1), p: pay(bizFloat(m)) })}</span></button>
+      <button class="lf-opt" onclick="A.bizOpen('investor')"><b>C</b><span>${t("bz.fundInv", { v: short(loan) })}</span></button></div>
+      <p class="tw-note">${t("bz.fundNote")}</p>` : `<p class="lf-warn">${t("bz.notEnough", { v: short(OWN_MIN) })}</p>`}`);
+}
+function bizOpen(how: "fixed" | "float" | "investor") {
+  const L = life(); if (!L || (L.biz && !L.biz.closed)) return;
+  if (L.cash < OWN_MIN) withdraw(L, OWN_MIN - L.cash);
+  if (L.cash < OWN_MIN) return;
+  L.cash -= OWN_MIN;
+  L.biz = openBiz(L.month, how);
+  const g = ensureGame(); g.stage = "owner"; getTown()?.setLook(g.look, g.stage); // apron + green cap
+  persist();
+  if (!noMotion()) confetti();
+  townTalkClose();
+  say(t("bz.shopT"), t(how === "investor" ? "bz.openedInv" : "bz.opened"), [[t("bz.goShop"), "A.bizShop()"]], "#F5A524");
+}
+function bizPrice(p: number) { const b = life()?.biz; if (!b) return; b.price = p; persist(); shop(); }
+const nextBizCase = (b: NonNullable<Life["biz"]>): BizCase | undefined => BIZ_CASES.find((c) => !b.cases.includes(c.id));
+function bizCase() {
+  const L = life()!, b = L.biz; if (!b) return;
+  const c = nextBizCase(b);
+  if (!c) { b.decided = true; persist(); say(t("bz.shopT"), t("bz.noCase"), [], "#F5A524"); return; }
+  townSheet(`${head(tx(c.title), t("lf.month", { m: L.month }))}
+    ${learnChip(c.lesson)}
+    <p class="lf-setup">${esc(tx(c.setup))}</p>
+    <div class="lf-opts">${c.opts.map((o, i) => `<button class="lf-opt" onclick="A.bizChoose(${i})"><b>${"ABC"[i]}</b><span>${esc(tx(o.t))}</span></button>`).join("")}</div>
+    <p class="tw-note">${t("bz.chooseNote")}</p>`);
+}
+function bizChoose(i: number) {
+  const L = life(); const b = L?.biz; if (!L || !b) return;
+  const c = nextBizCase(b); if (!c) return;
+  const o = c.opts[i], fx = o.fx, m = L.month;
+  if (fx.contract) b.contract = { cups: fx.contract.cups, price: fx.contract.price, until: m + fx.contract.months - 1 };
+  if (fx.cash) b.cash += fx.cash;
+  if (fx.love) b.love = clamp(b.love + fx.love, 0, 100);
+  if (fx.varCost) b.varCost = fx.varCost;
+  if (fx.price) b.price = fx.price;
+  if (fx.loan) b.loans.push({ id: "biz-" + c.id, what: "shop", left: fx.loan.amount, kind: fx.loan.kind, rate: fx.loan.kind === "fixed" ? BIZ_FIXED_RATE : 0, months: 24 });
+  if (fx.equip) b.equip += fx.equip;
+  const good = o.r === "!!" || o.r === "!"; // business stage: you need excellent moves (6.1)
+  if (good) b.good += 1;
+  b.cases.push(c.id); b.decided = true; L.worked = true;
+  persist();
+  if (o.r === "!!" && !noMotion()) confetti();
+  townSheet(`${head(tx(c.title))}
+    <div class="lf-rate"><span class="lf-badge" style="background:${RCOL[o.r]}">${o.r}</span><div><b>${t("lf.r." + o.r)}</b><p>${esc(tx(o.t))}</p></div></div>
+    <p class="lf-why">${esc(tx(o.why))}</p>
+    <h4>${t("lf.views")}</h4>
+    <div class="lf-views">${c.views.map(([w, s2]) => `<div><b>${esc(tx(w))}</b><span>${esc(tx(s2))}</span></div>`).join("")}</div>
+    <h4>${t("lf.story")}</h4><p class="lf-story">${esc(tx(c.story))}</p>
+    <p class="tw-note">${t("lf.aiNote")}</p>
+    <button class="btn good" onclick="A.bizShop()">${t("lf.cont")}</button>`);
+}
+/** Play tab → "My Business": a ready-made start — 3 years into work with 30M saved — in front of the shop. */
+let pendingBiz = false;
+function playBiz() { pendingBiz = true; (window as any).A.goTown(); }
+function startBizScenario() {
+  const g = ensureGame();
+  if (!life()) {
+    g.life = newLife(30_000_000); // scenario: 25 years old, 30M saved after 3 years of work
+    g.stage = "staff"; g.history = [netWorth(g.life)];
+    persist();
+  }
+  const tw = getTown(), d = tw?.map.doors.find((x) => x.id === "shop");
+  if (tw && d) tw.teleport(d.x, d.z + 0.6);
+  shop();
+}
+function bizShop() { townTalkClose(); shop(); }
 
 /* ---- phone: net worth breakdown + ranking (13.4-5: ranked by net worth, not by things) ---- */
 function lifePhone(tab: "nw" | "rank" = "nw") {
@@ -271,7 +398,8 @@ function lifePhone(tab: "nw" | "rank" = "nw") {
   let body = "";
   if (tab === "nw") {
     const own = L.owned.map((o) => `<div class="lf-row"><span>${t("lf.it." + o.id)}</span><b>${short(o.value)}</b></div>`).join("")
-      + (paper(L) ? `<div class="lf-row"><span>${t("lf.paper")}</span><b>${short(paper(L))}</b></div>` : "");
+      + (paper(L) ? `<div class="lf-row"><span>${t("lf.paper")}</span><b>${short(paper(L))}</b></div>` : "")
+      + (L.biz && !L.biz.closed ? `<div class="lf-row"><span>${t("bz.value", { p: Math.round((1 - L.biz.investor) * 100) })}</span><b>${short(bizValue(L.biz))}</b></div>` : "");
     body = `<div class="lf-row"><span>${t("lf.cash")}</span><b>${short(L.cash)}</b></div><div class="lf-row"><span>${t("lf.savings")}</span><b>${short(L.savings)}</b></div>${own}
       <div class="lf-row"><span>${t("lf.debts")}</span><b class="neg">${debt(L) ? "−" + short(debt(L)) : "0"}</b></div>
       <div class="lf-total"><span>${t("top.netWorth")}</span><b>${money(nw)}</b></div>
@@ -285,4 +413,4 @@ function lifePhone(tab: "nw" | "rank" = "nw") {
 }
 function lifeDealer() { confirmFor = ""; dealer(); }
 
-reg({ lifeStart, lifeChoose, lifePlan, lifeBank, lifeAuto, lifeCard, lifeIns, lifeBuy, lifeSell, lifeEnd, lifePhone, lifeDealer, playLife, townSheetClose, townWardrobe });
+reg({ bizOpen, bizPrice, bizCase, bizChoose, playBiz, bizShop, lifeStart, lifeChoose, lifePlan, lifeBank, lifeAuto, lifeCard, lifeIns, lifeBuy, lifeSell, lifeEnd, lifePhone, lifeDealer, playLife, townSheetClose, townWardrobe });

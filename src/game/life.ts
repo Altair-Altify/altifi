@@ -6,12 +6,13 @@
  * central bank that raises rates mid-year (like 2022), so a floating-rate loan really costs more (lesson M2).
  * ⚠️ All prices, rates and wages are simplified "near-real" game parameters — to be checked before submission. */
 import { PERSONAS } from "./npc";
+import { bizMonth, bizValue, bizDebt, type Biz, type PL } from "./biz";
 
 export type Plan = "lean" | "balanced" | "loose";
 export interface Loan { id: string; what: string; left: number; kind: "fixed" | "float" | "card"; rate: number; months: number }
 export interface Owned { id: string; value: number }
 export interface Line { k: string; v: number; vars?: Record<string, string | number> }
-export interface Report { m: number; lines: Line[]; nw: number; dnw: number; event?: string; raise?: boolean; burnout?: boolean; rank: number }
+export interface Report { m: number; lines: Line[]; nw: number; dnw: number; event?: string; raise?: boolean; burnout?: boolean; rank: number; pl?: PL; bankrupt?: boolean }
 export interface Life {
   month: number; // 1-based, the month you are living now
   cash: number; savings: number; mood: number; score: number;
@@ -27,6 +28,7 @@ export interface Life {
   bond?: { amount: number; at: number }; // a "savings product" that was really a corporate bond
   rivals: Record<string, number>;
   reports: Report[];
+  biz?: Biz; // your milk-tea kiosk (Business mode)
 }
 
 /* ---- market (simulated, 1 month per step) ---- */
@@ -78,7 +80,7 @@ export const ownedValue = (L: Life) => L.owned.reduce((s, o) => s + o.value, 0);
 export const debt = (L: Life) => L.loans.reduce((s, l) => s + l.left, 0);
 /** Money in the "never-lose" fund or the counter bond counts at face value — on paper — until it collapses. */
 export const paper = (L: Life) => (L.scam?.amount || 0) + (L.bond?.amount || 0);
-export const netWorth = (L: Life) => Math.round(L.cash + L.savings + ownedValue(L) + paper(L) - debt(L));
+export const netWorth = (L: Life) => Math.round(L.cash + L.savings + ownedValue(L) + paper(L) - debt(L) + (L.biz ? bizValue(L.biz) : 0));
 export const loanRate = (l: Loan, m: number) => (l.kind === "float" ? floatRate(m) : l.rate);
 /** Monthly instalment (annuity) at the current rate for the months left. Card debt: 5% minimum. */
 export function payment(l: Loan, m: number) {
@@ -151,11 +153,24 @@ function rivalStep(id: string, nw: number, m: number, rnd: () => number) {
 export function endMonth(L: Life, rnd: () => number = Math.random): Report {
   const m = L.month, lines: Line[] = [], before = netWorth(L);
   const plan = PLANS[L.plan || "balanced"], h = item(L.housing), v = item(L.vehicle), pk = priceK(m);
-  // income
-  let pay = L.salary;
+  // income: a salary, or — if you run the kiosk — what the shop can pay you this month
+  let pay = L.salary, pl: PL | undefined, bankrupt = false;
   const burnout = L.mood < 30;
-  if (!L.worked) { pay = Math.round(pay * 0.5); lines.push({ k: "lf.r.noWork", v: 0 }); } // skipped work: half pay
-  L.cash += pay; lines.push({ k: "lf.r.salary", v: pay });
+  const b = L.biz && !L.biz.closed ? L.biz : undefined;
+  if (b) {
+    const r = bizMonth(b, m, rnd); pl = r.pl; pay = r.pay;
+    L.cash += pay; lines.push({ k: "lf.r.ownerPay", v: pay });
+    if (pl.bankrupt) { // a household business: the owner is personally liable for what selling the kiosk doesn't cover
+      bankrupt = true;
+      const left = Math.max(0, bizDebt(b) - Math.round(b.equip * 0.4) - b.cash);
+      b.loans = []; b.cash = 0; b.equip = 0;
+      if (left > 0) L.loans.push({ id: "biz-debt", what: "shop", left, kind: "fixed", rate: 12, months: 36 });
+      lines.push({ k: "lf.r.bankrupt", v: 0, vars: { amt: left } });
+    }
+  } else {
+    if (!L.worked) { pay = Math.round(pay * 0.5); lines.push({ k: "lf.r.noWork", v: 0 }); } // skipped work: half pay
+    L.cash += pay; lines.push({ k: "lf.r.salary", v: pay });
+  }
   if (L.autoSave > 0) { const s = Math.round(pay * L.autoSave); L.cash -= s; L.savings += s; lines.push({ k: "lf.r.autoSave", v: -s, vars: { p: Math.round(L.autoSave * 100) } }); }
   // spending
   const needs = Math.round(plan.needs * pk), wants = Math.round(plan.wants * pk);
@@ -197,14 +212,15 @@ export function endMonth(L: Life, rnd: () => number = Math.random): Report {
   L.mood = Math.max(0, Math.min(100, L.mood - 6 + plan.mood + h.mood * 0.5 + v.mood * 0.5 + (event ? -4 : 0)));
   // a raise every 6 months if you made good decisions and didn't burn out
   let raise = false;
-  if (m % 6 === 0 && L.good >= Math.ceil(m / 2) && !burnout) { L.salary = Math.round(L.salary * 1.1 / 10000) * 10000; raise = true; }
+  if (!b && m % 6 === 0 && L.good >= Math.ceil(m / 2) && !burnout) { L.salary = Math.round(L.salary * 1.1 / 10000) * 10000; raise = true; }
   // classmates move too
   for (const p of PERSONAS) L.rivals[p.id] = Math.round(rivalStep(p.id, L.rivals[p.id], m, rnd));
   const nw = netWorth(L);
   const rank = 1 + PERSONAS.filter((p) => L.rivals[p.id] > nw).length;
-  const rep: Report = { m, lines, nw, dnw: nw - before, event, raise, burnout, rank };
+  const rep: Report = { m, lines, nw, dnw: nw - before, event, raise, burnout, rank, pl, bankrupt };
   L.reports.push(rep);
   if (L.reports.length > 24) L.reports.shift();
   L.month += 1; L.plan = null; L.worked = false;
+  if (L.biz) L.biz.decided = false;
   return rep;
 }

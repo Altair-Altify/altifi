@@ -126,8 +126,9 @@ let typeTimer: ReturnType<typeof setInterval> | undefined, talkingTo: Target | n
 export function say(name: string, text: string, buttons: [string, string][] = [], color = "#F5A524") {
   const box = $("#twTalk");
   if (!box || !town) return;
-  town.frozen = true; town.input.set(0, 0);
+  town.frozen = true; town.input.set(0, 0); town.lift = 0;
   $("#twAct")!.hidden = true;
+  const sh = $("#twSheet"); if (sh) sh.hidden = true; // a dialogue always replaces an open sheet
   box.hidden = false;
   box.innerHTML = `<div class="tw-name" style="background:${color}">${esc(name)}</div><p id="twText"></p><div class="tw-tbtns">${buttons.map(([l, f]) => `<button class="btn good" onclick="${f}">${l}</button>`).join("")}<button class="btn ghost" onclick="A.townTalkClose()">${t("tw.ok")}</button></div>`;
   const p = $("#twText")!;

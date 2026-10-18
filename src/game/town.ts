@@ -114,6 +114,8 @@ export class Town {
     this.world.circles.push(...this.rideC);
   }
   get zone() { return this.zoneNow; }
+  /** Put the player somewhere (e.g. in front of the shop when Business mode starts). */
+  teleport(x: number, z: number) { this.pos.set(x, z); this.heading = Math.PI; this.snapCamera(); }
   setHour(h: number | null) { this.hourOverride = h; this.applySky(true); }
 
   resize() {
