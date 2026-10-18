@@ -2,6 +2,32 @@
 
 > Đọc file này + `ALTIFI_DESIGN.md` ở đầu mỗi phiên. Cập nhật ở cuối mỗi phiên.
 
+## Phiên 4b — nền ngân hà nhẹ có chuyển động (Khám phá · Tôi · Cài đặt · Chơi) ✅
+
+**Vì sao:** nhóm xem lại thấy nền gần như đứng yên và quá mờ (chỉ còn màu tím nhạt). Vẫn giữ bản nhẹ: **1 canvas 2D, không Three.js** (`src/ui/skybg.ts`).
+
+### Đã xong
+- **Lớp tĩnh** (vẽ 1 lần theo theme/kích thước): nền trời (Light: tím lavender đậm hơn ở trên → hồng đào; Night: tím than), bụi nhánh xoắn mờ.
+- **Mỗi khung hình (≤ 30 fps):**
+  1. **Sao lấp lánh:** mỗi sao một nhịp và một pha riêng. Sao sáng nhất có tia 4 cánh; ở Light sao có quầng tím để nổi trên nền nhạt.
+  2. **3 lớp sao trôi ngang** với tốc độ khác nhau (xa 1,2 · giữa 2,6 · gần 4,8 px/s). **Khi cuộn trang**, lớp gần dịch nhiều hơn lớp xa (3% / 7% / 14% quãng cuộn).
+  3. **7 tinh vân** theo màu 6 mảng + tím thương hiệu, nằm ở mép và góc. Mỗi tinh vân "thở" (đậm nhạt + xoay/phóng rất nhẹ) theo chu kỳ riêng 20–30 giây.
+  4. **Sao băng** 10–20 giây một lần, vị trí và hướng ngẫu nhiên.
+  5. **3 hành tinh nhỏ ở xa** trôi ngang rất chậm (một hành tinh có vành).
+  6. **Mép và phía trên rõ, giữa nhạt:** sao thưa và mờ dần vào giữa; có **lớp màn mờ** sau cột chữ và sau khối tiêu đề trang (góc trên phải vẫn giữ màu).
+- **Hiệu năng:** giới hạn 30 fps. Vòng lặp **tự dừng** khi sang tab Học, khi mở bài học hay màn thị trấn, hoặc khi app chạy nền; chạy lại khi quay về. Bật **Potato Mode hoặc "giảm chuyển động"** → chỉ vẽ **1 khung tĩnh**, không trôi, không lấp lánh, cuộn trang cũng không dịch lớp sao. Bỏ animation CSS cũ.
+- **Tương phản:** chữ đặt thẳng trên nền trời đổi màu (Light `#2E2A57`, Night `#EEEBFF`). Đo trên ảnh chụp thật (lấy phần nền tối nhất sau phụ đề): Khám phá / Cài đặt / Tôi / Chơi đạt **≥ 5,2:1** ở Light và **≥ 6,9:1** ở Night.
+
+### Kiểm thử (Playwright, khung 375px)
+- Ảnh nền đổi giữa 2 lần chụp cách 2 giây (Light và Night). Đếm số khung vẽ: ~21–24 fps trong headless (≤ 30).
+- Ở tab Học: 0 khung vẽ trong 1,5 giây.
+- Potato và giảm chuyển động: ảnh nền không đổi, 0 khung vẽ.
+- Không lỗi console.
+
+### Lưu ý
+- Vẫn **chưa đo trên điện thoại thật** (pin, nhiệt). Nếu máy yếu bị nóng, có thể hạ xuống 20 fps (hằng số `33` ms trong `start()`).
+- Khi cuộn rất dài, sao lớp gần quay vòng theo chiều dọc. Vì vậy mật độ "dày ở mép, thưa ở giữa" chỉ đúng tuyệt đối ở đầu trang.
+
 ## Phiên 4 — chỉnh theo nhóm duyệt (mục 13.1b) ✅
 
 **Kết quả:** đã ghi quyết định vào `ALTIFI_DESIGN.md` **mục 13.1b**. `npm run build` không lỗi; `node scripts/playthrough.cjs vi` vẫn đúng hết (2 bước `predict` báo WRONG là đúng thiết kế, không chấm điểm). Đã kiểm thử bằng Playwright ở khung 375px: chòm sao hoàn chỉnh khi xong đủ 4 bài Vĩ mô (kể cả bài "Sắp có") → pill ✦ + huy hiệu `dom-macro`; Bỏ qua thẻ test → viên thuốc, chạm → mở lại; tab Chơi → bay xuống thị trấn (có thời tiết); màn bài học không còn họa tiết/thời tiết. Đã chụp tầng ngân hà, tầng hệ, Khám phá, Tôi ở Light và Night.

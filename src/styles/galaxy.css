@@ -160,12 +160,10 @@ body.potato .gx *,body.potato .gx{transition:none!important;animation:none!impor
 .skybg{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;display:none}
 body.sky .skybg{display:block}
 body.imgbg .skybg{display:none}
-.skybg canvas{position:absolute;left:-15%;top:-15%;width:130%;height:130%;animation:skydrift 200s ease-in-out infinite alternate}
-@keyframes skydrift{from{transform:rotate(-3deg)}to{transform:rotate(3deg) scale(1.04) translate(1.5%,-1.5%)}}
-body.potato .skybg canvas{animation:none}
+.skybg canvas{position:absolute;inset:0;width:100%;height:100%;display:block} /* animated in JS (src/ui/skybg.ts), ≤ 30 fps */
 /* frosted-glass cards over the sky; text keeps ≥ 4.5:1 contrast in both themes */
-body.sky .screen{--onsky:#4A4672}
-body.sky.night .screen{--onsky:#CFCBEF}
+body.sky .screen{--onsky:#2E2A57}
+body.sky.night .screen{--onsky:#EEEBFF}
 body.sky:not(.imgbg) .screen .card,body.sky:not(.imgbg) .screen .setrow,body.sky:not(.imgbg) .screen .tile2,body.sky:not(.imgbg) .screen .mestat,body.sky:not(.imgbg) .screen .tile,body.sky:not(.imgbg) .screen .themecard,body.sky:not(.imgbg) .screen .setlist,body.sky:not(.imgbg) .screen .lvlbar{background:rgba(255,255,255,.76);border-color:rgba(255,255,255,.7);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%)}
 body.sky.night:not(.imgbg) .screen .card,body.sky.night:not(.imgbg) .screen .setrow,body.sky.night:not(.imgbg) .screen .tile2,body.sky.night:not(.imgbg) .screen .mestat,body.sky.night:not(.imgbg) .screen .tile,body.sky.night:not(.imgbg) .screen .themecard,body.sky.night:not(.imgbg) .screen .setlist,body.sky.night:not(.imgbg) .screen .lvlbar{background:rgba(28,24,56,.74);border-color:rgba(255,255,255,.09)}
 body.sky:not(.imgbg) .screen > .muted,body.sky:not(.imgbg) .screen > p,body.sky:not(.imgbg) .screen > .sub,body.sky:not(.imgbg) .screen .onsky,body.sky:not(.imgbg) .meid .pbio .muted,body.sky:not(.imgbg) .meid .pbio,body.sky:not(.imgbg) .lhead .muted{color:var(--onsky)}
