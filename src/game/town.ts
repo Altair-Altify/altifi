@@ -6,7 +6,7 @@
  * The loop skips rendering while the town is hidden (overlay closed, app in background). */
 import * as THREE from "three";
 import { U, mat } from "./kit";
-import { buildWorld, type World, type Door, type Zone } from "./world";
+import { buildWorld, POND, type World, type Door, type Zone } from "./world";
 import { makeAvatar, type Avatar, type Look, type Stage } from "./avatar";
 import { makeNpcs, graph, type Npc } from "./npc";
 
@@ -58,6 +58,7 @@ export class Town {
   private bugs: { g: THREE.Group; c: THREE.Vector3; a: number; s: number }[] = [];
   private dust: { m: THREE.Mesh; v: THREE.Vector3; life: number }[] = []; private dustT = 0;
   private tick = { v: 1284.6, ch: 0.4, x: 0, t: 0 };
+  private fish: { m: THREE.Mesh; t: number; a: number; x: number; z: number } | null = null; private fishT = 4;
   /** movement input, x = east, y = south, length ≤ 1 (set by the joystick / keys) */
   readonly input = new THREE.Vector2();
   run = false;
@@ -229,6 +230,21 @@ export class Town {
       b.g.rotation.y = b.a + Math.PI / 2;
       const f = Math.sin(this.t * 22 + b.a) * 0.9;
       b.g.children[0].rotation.y = f; b.g.children[1].rotation.y = -f;
+    }
+    if (this.world.fall) this.world.fall.offset.y += dt * 1.6;
+    // a fish jumps out of the pond now and then
+    this.fishT -= dt;
+    if (this.fishT <= 0 && !this.fish) {
+      const m = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.5, 5), mat("#FF9F5A")); m.frustumCulled = false; this.scene.add(m);
+      const a = Math.random() * 6.28, r = Math.random() * (POND.r - 1.2);
+      this.fish = { m, t: 0, a: Math.random() * 6.28, x: POND.x + Math.cos(a) * r, z: POND.z + Math.sin(a) * r };
+    }
+    if (this.fish) {
+      const f = this.fish; f.t += dt / 0.9;
+      const k = Math.min(1, f.t);
+      f.m.position.set(f.x + Math.cos(f.a) * (k - 0.5) * 1.2, -0.1 + Math.sin(k * Math.PI) * 1.1, f.z + Math.sin(f.a) * (k - 0.5) * 1.2);
+      f.m.rotation.set(0, -f.a, Math.PI / 2 - (k - 0.5) * 2.4);
+      if (k >= 1) { this.scene.remove(f.m); f.m.geometry.dispose(); this.fish = null; this.fishT = 4 + Math.random() * 6; }
     }
     this.dustT -= dt;
     if (running && this.dustT <= 0) {

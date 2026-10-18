@@ -21,6 +21,7 @@
 - **Trời theo giờ thật** (sáng – trưa – hoàng hôn hồng cam – đêm xanh tím); ban đêm **cửa sổ và đèn đường sáng**, có vệt sáng dưới đèn. Thử giờ khác bằng `?hour=20` trên URL (dùng khi quay video).
 - **Minimap** góc trái trên (bạn = mũi tên đỏ, NPC = chấm tím), chạm (hoặc phím M) → **bản đồ lớn** có tên 7 khu. **Biển tên khu** hiện khi bước sang khu khác; Alti Lion đổi ngữ cảnh theo khu.
 - **Tủ đồ** ở nhà (Vào nhà → Thay đồ): màu da, màu tóc, kiểu tóc (ngắn/dài/búi), áo, quần; lưu vào `S.game.look`; trang phục vẫn tự đổi theo nghề.
+- **Ao có thác** sau Phố kinh doanh: gò đá 2 bậc, suối trên đỉnh đổ 2 ngọn thác nhỏ (quay về phía camera) xuống ao có lá sen, đá viền, **cá thỉnh thoảng nhảy lên**.
 - Bướm bay trên đồng cỏ, bụi dưới chân khi chạy; Khoai tây: ít cây/NPC hơn, không bướm; giảm chuyển động: NPC đứng yên, không gió.
 - Đi gần nơi có bài: đã học → "Đã mở: … (phần chơi có từ ngày …)"; chưa học, bài đã có nội dung → nút **Học ngay** mở bài; bài chưa có → "bài sắp có · ngày".
 

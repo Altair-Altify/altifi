@@ -38,6 +38,7 @@ export interface World {
   windows: THREE.MeshLambertMaterial; // glows at night
   water: THREE.Mesh;
   lampGlow: THREE.MeshBasicMaterial; // pools of light under street lamps, opacity follows the night
+  fall: THREE.Texture | null; // waterfall texture (scrolled by the town)
   ticker: { tex: THREE.CanvasTexture; ctx: CanvasRenderingContext2D } | null;
 }
 
@@ -49,6 +50,12 @@ export const ROADS: [number, number, number, number, number][] = [
 ];
 const PLAZA: [number, number] = [0, 4];
 const SEA_Z = -40; // north of this line: sand then the sea
+/** Pond under a small two-step rock hill: a spring on top falls in two little waterfalls facing the camera
+ * (13.3 "sông/suối có thác nhỏ"). */
+export const POND = { x: 18, z: 10.9, r: 3.2 };
+const HILL = { x0: 13, x1: 23, z0: 5.9, z1: 8.2, h1: 1.6, x2: 15.5, x3: 20.5, z2: 7.0, h2: 3.0 };
+const FALL_W = 1.5;
+const inWater = (x: number, z: number) => Math.hypot(x - POND.x, z - POND.z) < POND.r;
 
 export const ZONES: Zone[] = [
   { id: "personal", name: T2("Khu dân cư", "Neighbourhood"), x0: -36, z0: -6, x1: -4, z1: 30, color: "#F7867A" },
@@ -104,6 +111,7 @@ function prism(len: number, width: number, height: number) {
 }
 const rbox = (w: number, h: number, d: number, r = 0.12, seg = 1) => new RoundedBoxGeometry(w, h, d, seg, Math.min(r, w / 2 - 0.01, h / 2 - 0.01, d / 2 - 0.01));
 
+let fallTex: THREE.Texture | null = null;
 export function buildWorld(potato: boolean): World {
   const rnd = seeded(2024), B = new Builder(rnd), W = new Builder(rnd), group = new THREE.Group();
   const boxes: Box[] = [], circles: Circle[] = [], doors: Door[] = [], blobs: { x: number; z: number; rx: number; rz?: number }[] = [];
@@ -118,20 +126,28 @@ export function buildWorld(potato: boolean): World {
     for (let i = 0; i < pos.count; i += 3) {
       const cx = (pos.getX(i) + pos.getX(i + 1) + pos.getX(i + 2)) / 3, cz = (pos.getZ(i) + pos.getZ(i + 1) + pos.getZ(i + 2)) / 3;
       const f = fbm(cx * 0.09, 0.5, cz * 0.09), shore = SEA_Z + 4 + (fbm(cx * 0.2, 2, 0) - 0.5) * 2;
-      if (cz < SEA_Z + 0.5) c.copy(wet);
+      const pd = Math.hypot(cx - POND.x, cz - POND.z);
+      if (cz < SEA_Z + 0.5 || inWater(cx, cz)) c.copy(wet);
+      else if (pd < POND.r + 0.9) c.copy(sand).lerp(a, 0.35);
       else if (cz < shore) c.copy(sand);
       else { c.copy(a); if (f > 0.58) c.lerp(b3, Math.min(1, (f - 0.58) * 6)); else if (f < 0.4) c.lerp(b2, Math.min(1, (0.4 - f) * 6)); }
       c.multiplyScalar(0.97 + rnd() * 0.06);
       for (let v = i; v < i + 3; v++) { col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b; }
     }
     // the sea floor dips so the water surface sits above it
-    for (let i = 0; i < pos.count; i++) { const z = pos.getZ(i); if (z < SEA_Z) pos.setY(i, -Math.min(1.2, (SEA_Z - z) * 0.25)); }
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), z = pos.getZ(i);
+      if (z < SEA_Z) pos.setY(i, -Math.min(1.2, (SEA_Z - z) * 0.25));
+      else if (inWater(x, z)) pos.setY(i, -0.45); // pond & creek bed
+    }
     g.setAttribute("color", new THREE.BufferAttribute(col, 3));
     g.setAttribute("aSway", new THREE.BufferAttribute(new Float32Array(pos.count), 1));
     g.deleteAttribute("uv");
     B.addRaw(g);
   }
   boxes.push({ x0: -80, z0: -90, x1: 80, z1: SEA_Z - 0.3 }); // the sea
+  circles.push({ x: POND.x, z: POND.z, r: POND.r + 0.1 });
+  boxes.push({ x0: HILL.x0, z0: HILL.z0, x1: HILL.x1, z1: HILL.z1 });
 
   /* ---- terraced cliffs behind the south-west and south-east corners + along the west/east edges (decor, 2 levels) ---- */
   const cliff = (x0: number, z0: number, x1: number, z1: number, h: number) => {
@@ -341,6 +357,7 @@ export function buildWorld(potato: boolean): World {
       const k = (i * len) / n, x = x0 + ux * k - uz * (w / 2 + 0.5), z = z0 + uz * k + ux * (w / 2 + 0.5);
       if (Math.hypot(x - PLAZA[0], z - PLAZA[1]) < 7.5 || x > 46 || x < -46) continue;
       if (BUILDINGS.some((b) => Math.abs(x - b.x) < b.w / 2 + 1.2 && z > b.z! - b.d / 2 - 0.5 && z < b.road + 3)) continue;
+      if (boxes.some((b) => x > b.x0 - 0.5 && x < b.x1 + 0.5 && z > b.z0 - 0.5 && z < b.z1 + 0.5) || Math.hypot(x - POND.x, z - POND.z) < POND.r + 1) continue;
       lamps.push([x, z]);
     }
   }
@@ -435,6 +452,36 @@ export function buildWorld(potato: boolean): World {
   wm.onBeforeCompile = (sh, r) => { prev(sh, r); sh.vertexShader = sh.vertexShader.replace("#include <begin_vertex>", "#include <begin_vertex>\n{ vec4 wp0 = modelMatrix * vec4(position, 1.); transformed.y += sin(wp0.x * 0.55 + uTime * 1.3) * 0.07 + cos(wp0.z * 0.7 + uTime * 0.9) * 0.06; }"); };
   wm.customProgramCacheKey = () => "sea";
   const water = new THREE.Mesh(wg, wm); water.frustumCulled = false;
+  // pond (same wavy water) + rock hill with a spring on top, two waterfalls with a scrolling texture, foam
+  {
+    const H = HILL;
+    B.add(rbox(H.x1 - H.x0, H.h1, H.z1 - H.z0, 0.35, 2), P.cliff, { p: [(H.x0 + H.x1) / 2, H.h1 / 2 - 0.05, (H.z0 + H.z1) / 2] }, 0, 0.06);
+    B.add(rbox(H.x1 - H.x0 + 0.2, 0.3, H.z1 - H.z0 + 0.2, 0.12), P.cliffTop, { p: [(H.x0 + H.x1) / 2, H.h1 + 0.08, (H.z0 + H.z1) / 2] }, 0, 0.05);
+    B.add(rbox(H.x3 - H.x2, H.h2, H.z2 - H.z0, 0.35, 2), P.cliff, { p: [(H.x2 + H.x3) / 2, H.h2 / 2 - 0.05, (H.z0 + H.z2) / 2] }, 0, 0.06);
+    B.add(rbox(H.x3 - H.x2 + 0.2, 0.3, H.z2 - H.z0 + 0.2, 0.12), P.cliffTop, { p: [(H.x2 + H.x3) / 2, H.h2 + 0.08, (H.z0 + H.z2) / 2] }, 0, 0.05);
+    for (const [x, y, z, s2] of [[13.8, H.h1 + 0.3, 7.4, 0.8], [22.2, H.h1 + 0.3, 6.8, 0.7], [16.2, H.h2 + 0.3, 6.2, 0.6]] as number[][]) {
+      B.add(new THREE.IcosahedronGeometry(0.7 * s2, 1), P.leaf2, { p: [x, y, z], s: [1.2, 0.8, 1] }, 0.4);
+    }
+    const pg = new THREE.CircleGeometry(POND.r + 0.15, 28); pg.rotateX(-Math.PI / 2); pg.translate(POND.x, -0.08, POND.z);
+    const s1 = new THREE.PlaneGeometry(FALL_W, H.z1 - H.z2 + 0.1, 1, 2); s1.rotateX(-Math.PI / 2); s1.translate(POND.x, H.h1 + 0.25, (H.z1 + H.z2) / 2);
+    const s2 = new THREE.PlaneGeometry(FALL_W * 0.9, H.z2 - H.z0 - 0.3, 1, 2); s2.rotateX(-Math.PI / 2); s2.translate(POND.x, H.h2 + 0.25, (H.z0 + H.z2) / 2 + 0.15);
+    for (const g of [pg, s1, s2]) { const m = new THREE.Mesh(g, wm); m.frustumCulled = false; group.add(m); }
+    const fc = document.createElement("canvas"); fc.width = 32; fc.height = 64;
+    const fx = fc.getContext("2d")!; fx.fillStyle = "#8FDCF5"; fx.fillRect(0, 0, 32, 64);
+    for (let i = 0; i < 14; i++) { fx.fillStyle = `rgba(255,255,255,${0.35 + (i % 3) * 0.2})`; fx.fillRect((i * 7) % 30, (i * 13) % 64, 2 + (i % 2), 10 + (i % 4) * 4); }
+    const ft = new THREE.CanvasTexture(fc); ft.wrapS = ft.wrapT = THREE.RepeatWrapping; ft.repeat.set(1.5, 1); ft.colorSpace = THREE.SRGBColorSpace;
+    fallTex = ft;
+    const fm = bend(new THREE.MeshBasicMaterial({ map: ft, transparent: true, opacity: 0.93 }));
+    for (const [fz, y0, y1, fw] of [[H.z1, -0.1, H.h1 + 0.25, FALL_W], [H.z2, H.h1 + 0.2, H.h2 + 0.25, FALL_W * 0.9]]) {
+      const g = new THREE.PlaneGeometry(fw, y1 - y0, 1, 3); g.translate(POND.x, (y0 + y1) / 2, fz + 0.07);
+      const m = new THREE.Mesh(g, fm); m.frustumCulled = false; group.add(m);
+      for (let i = 0; i < 5; i++) B.add(new THREE.IcosahedronGeometry(0.2 + (i % 2) * 0.1, 0), "#FFFFFF", { p: [POND.x - 0.6 + i * 0.3, y0 + 0.14, fz + 0.35 + (i % 3) * 0.15] }, 0.4, 0.02);
+    }
+    for (let i = 0; i < 18; i++) { const a = (i / 18) * Math.PI * 2; if (Math.sin(a) < -0.55) continue; B.add(new THREE.IcosahedronGeometry(0.32 + ((i * 7) % 3) * 0.08, 0), P.stone, { p: [POND.x + Math.cos(a) * (POND.r + 0.25), 0.05, POND.z + Math.sin(a) * (POND.r + 0.25)], s: [1, 0.6, 1] }); }
+    for (let i = 0; i < 3; i++) B.add(new THREE.CylinderGeometry(0.45, 0.45, 0.04, 8), "#6CC15A", { p: [POND.x - 1.6 + i * 1.5, -0.02, POND.z + 0.8 + (i % 2) * 0.9] }); // lily pads
+    blobs.push({ x: (H.x0 + H.x1) / 2, z: H.z1 + 0.3, rx: (H.x1 - H.x0) / 2 + 0.6, rz: 1.6 });
+  }
+
 
   /* ---- assemble ---- */
   group.add(B.build(sceneryMat()));
@@ -451,5 +498,5 @@ export function buildWorld(potato: boolean): World {
   const addN = (x: number, z: number) => { if (Math.hypot(x - PLAZA[0], z - PLAZA[1]) < 6) { for (const [dx, dz] of [[6.8, 0], [-6.8, 0], [0, 6.8], [0, -6.8]]) addN(PLAZA[0] + dx, PLAZA[1] + dz); return; } if (inside(x, z) && !nodes.some(([a, b]) => Math.hypot(a - x, b - z) < 3)) nodes.push([x, z]); };
   for (const [x0, z0, x1, z1] of ROADS) { addN(x0, z0); addN(x1, z1); addN((x0 + x1) / 2, (z0 + z1) / 2); }
   for (const xs of [-36, 0, 32]) for (const zs of [-31, -18, 4, 23.5]) addN(xs, zs);
-  return { group, boxes, circles, doors, bounds, spawn: [home.x, home.z! + home.d / 2 + 1.6], nodes, roads: allPaths, buildings: BUILDINGS, zones: ZONES, seaZ: SEA_Z, windows, water, ticker, lampGlow };
+  return { group, boxes, circles, doors, bounds, spawn: [home.x, home.z! + home.d / 2 + 1.6], nodes, roads: allPaths, buildings: BUILDINGS, zones: ZONES, seaZ: SEA_Z, windows, water, ticker, lampGlow, fall: fallTex };
 }
