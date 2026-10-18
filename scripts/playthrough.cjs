@@ -15,7 +15,7 @@ const LANG = process.argv[2] || 'vi';
   await p.goto((process.env.BASE_URL || 'http://localhost:5173/'), { waitUntil: 'networkidle' });
   await p.evaluate(() => localStorage.clear()); await p.reload({ waitUntil: 'networkidle' });
   const results = [];
-  for (const [id, deep] of [['p-budget', false], ['p-budget', true], ['p-bnpl', false], ['p-bnpl', true], ['p-inflation', false], ['p-inflation', true], ['c-breakeven', false], ['c-breakeven', true]]) {
+  for (const [id, deep] of [['p-budget', false], ['p-budget', true], ['p-bnpl', false], ['p-bnpl', true], ['p-inflation', false], ['p-inflation', true], ['c-breakeven', false], ['c-breakeven', true], ['m-centralbank', false], ['m-centralbank', true]]) {
     await p.evaluate(([id, deep]) => A.startLesson(id, deep), [id, deep]);
     await p.waitForTimeout(300);
     let guard = 0;
@@ -51,7 +51,7 @@ const LANG = process.argv[2] || 'vi';
             case 'statement': if (st.o) A.lsSet('sel', L.st.order.indexOf(st.a)); break;
             case 'match': st.pairs.forEach((_, k) => { A.matchTap('l', k); A.matchTap('r', k); }); return;
             case 'order': st.items.forEach((_, k) => A.orderPick(k)); break;
-            case 'slider': L.st.v = st.a; break;
+            case 'slider': case 'dial': L.st.v = st.a; break;
             case 'jars': L.st.vals = st.jars.map(j => j[2]); break;
             case 'spot': L.st.sel = st.post.parts.map((x, k) => x[1] ? k : -1).filter(k => k >= 0); break;
             case 'tap': L.st.sel = st.items.map((x, k) => x[3] ? k : -1).filter(k => k >= 0); break;

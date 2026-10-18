@@ -76,3 +76,25 @@
 .ritem.notflag{opacity:.55;text-decoration:line-through}
 .split{display:flex;border-radius:14px;overflow:hidden;font-size:13px;font-weight:900;color:#fff;line-height:1.3}
 .split i{font-style:normal;padding:18px 4px}
+/* the Governor's dial (M2) */
+.dialw{display:flex;align-items:center;gap:12px;justify-content:center;margin:6px 0 2px}
+.dial{width:150px;height:105px;flex:none}
+.dial-arc{fill:none;stroke:var(--line);stroke-width:10;stroke-linecap:round}
+.dial-ticks line{stroke:var(--muted);stroke-width:1.5}
+.dial-needle{stroke:#E5484D;stroke-width:4;stroke-linecap:round}
+#dialNeedle{transform-origin:60px 62px;transition:transform .15s}
+.dial-hub{fill:var(--ink)}
+.dial-val{display:flex;flex-direction:column}
+.dial-val span{font-size:12px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.dial-val b{font-size:34px;font-weight:900;font-variant-numeric:tabular-nums}
+.dgauges{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.dg{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 8px;padding:10px 12px;border-radius:14px;background:var(--card);border:2px solid var(--line)}
+.dg span{font-weight:800;font-size:13px}
+.dg b{font-size:18px;font-weight:900;font-variant-numeric:tabular-nums}
+.dg em{grid-column:1/-1;font-style:normal;font-size:11.5px;font-weight:800;color:var(--muted)}
+.dbar{grid-column:1/-1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.dbar i{display:block;height:100%;background:var(--pri)}
+.dg.good{border-color:var(--good)}.dg.good .dbar i{background:var(--good)}
+.dg.bad{border-color:#EF4E4E}.dg.bad .dbar i{background:#EF4E4E}
+#dgPay.good{border-color:var(--line)}#dgPay .dbar i{background:#F5A524}
+body.potato #dialNeedle{transition:none}

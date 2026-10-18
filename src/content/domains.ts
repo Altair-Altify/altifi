@@ -6,6 +6,7 @@ import type { CourseNode, DomainId, Lesson } from "../lesson/types";
 import budget from "./lessons/p-budget";
 import inflation from "./lessons/p-inflation";
 import bnpl from "./lessons/p-bnpl";
+import centralbank from "./lessons/m-centralbank";
 import breakeven from "./lessons/c-breakeven";
 import placement from "./placement";
 
@@ -59,7 +60,7 @@ export const DOMAINS: Domain[] = [
     { id: "m-inflation", code: "M1", ic: "chart", day: "23/10", prereq: ["p-inflation"],
       title: T("Nguồn gốc lạm phát", "Where inflation comes from"), hook: T("Lạm phát đến từ đâu?", "Where does inflation come from?"),
       unlock: T("Chỉ số giá trên bảng tin thị trấn", "A price index on the town board"), planet: { shape: "gas", palette: ["#B79CFF", "#E0B8FF", "#FFC2D9", "#9D7BF0"], feature: "swell", size: 1.3 } },
-    { id: "m-centralbank", code: "M2", ic: "bank", day: "22/10", prereq: ["p-bnpl", "c-funding"],
+    { id: "m-centralbank", code: "M2", ic: "bank", lesson: centralbank, day: "22/10", prereq: ["p-bnpl", "c-funding"],
       title: T("NHTW & lãi suất", "Central bank & interest rates"), hook: T("Ngân hàng trung ương — người cầm vòi nước", "The central bank — who holds the tap?"),
       unlock: T("Lãi suất trong game do NHTW mô phỏng", "In-game rates set by a simulated central bank"), planet: { shape: "ocean", palette: ["#4C55C7", "#6F7BE6", "#9FD3B0", "#F1F6E8"], feature: "dial", size: 1.15 } },
     { id: "m-news", code: "M3", ic: "doc", day: "23/10", prereq: ["i-stocks"],

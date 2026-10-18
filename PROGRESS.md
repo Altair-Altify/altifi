@@ -16,6 +16,7 @@
 - **(21/10) Lãi suất mô phỏng: NHTW 4% → 5% (tháng 5) → 6% (tháng 7); vay thả nổi = NHTW + 6,5%; cố định 12,5%; tiết kiệm = NHTW + 1,6%; thẻ tín dụng 30%/năm; lạm phát 3,5%/năm** — gần đúng diễn biến 2022 để bài M2 có hậu quả thật. ⚠️ Cần kiểm chứng/ghi nguồn trước khi nộp.
 - **(21/10) Bảng giá nhà/xe** (phòng trọ 2,5tr/tháng, căn hộ thuê 5,5tr, xe máy 35tr, căn hộ 1,6 tỷ, ô tô nhỏ 550tr…) và **7 bạn NPC có quỹ đạo tài sản theo lối sống** (người liều mất 65% ở tháng 5 khi quỹ sụp…) — số "gần thật", chỉnh khi cân bằng game (13.4 cho phép).
 - **(21/10) Mỗi tháng có 30% khả năng gặp sự cố (ốm 4tr / hỏng điện thoại 3tr) từ tháng 3** — để quỹ khẩn cấp và bảo hiểm có ý nghĩa (6.3 "sự kiện bất ngờ").
+- **(22/10) Thêm dạng bài `dial` cho M2 thay vì ghép bằng thanh trượt có sẵn** — 13.2d ghi rõ "Xoay núm lãi suất: thấy lạm phát, thất nghiệp và khoản trả góp của chính bạn thay đổi" và M2 trùng vòng demo; mô hình: lạm phát = 7 − 0,8·(r − 4), thất nghiệp = 2,4 + 0,6·(r − 4), vay nhà 1 tỷ/20 năm lãi = r + 4%.
 - **(22/10) Chế độ Doanh nghiệp gắn vào cùng "cuộc sống" (không phải màn chơi riêng): mở quán khi có ≥ 10tr vốn tự có; tab Chơi có lối tắt kịch bản "đã để dành 30tr"** — 13.4 "giai đoạn" và 13.2d ② "một câu chuyện xuyên suốt", vẫn quay video nhanh được.
 - **(22/10) Thông số quầy: vốn 50tr, định phí 16tr/tháng, biến phí 15k/ly, nhu cầu 1.750/1.300/900 ly ở giá 25/35/45k, nhà đầu tư 40tr = 45%, vay KD cố định 11% / thả nổi NHTW + 5%, thấu chi 20%, phá sản khi thấu chi > 30tr** — số "gần thật" cho quầy nhỏ; ⚠️ nhóm hỏi 1 chủ quán thật để chỉnh.
 - **(22/10) 4 case kinh doanh do Claude soạn nháp** (`BIZ_CASES` trong `src/content/cases.ts`) — ⚠️ nhóm duyệt lời & số liệu (dầu 1973 tăng ~4 lần…).
@@ -23,6 +24,10 @@
 - **(21/10) Phí trễ hạn BNPL 60.000₫/kỳ, lãi thẻ 30%/năm trong P2 là số minh họa** (ghi rõ "giả định" trong bài) — mỗi ví/ngân hàng mỗi khác; ⚠️ nhóm kiểm một sản phẩm thật để dẫn nguồn.
 - **(21/10) 5 case tháng do Claude soạn nháp** — ⚠️ quy định cuộc thi: nhóm phải đọc, sửa lời, kiểm số liệu (Madoff ~65 tỷ USD, 150 năm tù; Madrian & Shea 37% → 86%; Fed 2022–23; NHNN tăng lãi 2 lần cuối 2022) trước khi nộp.
 - **(20/10) Cửa có thể vào = nút hành động góc phải dưới hiện khi đứng gần (≤ 1,9 m); trong nhà/quầy hiện khung thoại kem + nút "Học ngay" nếu chưa học bài mở khóa nơi đó** — 13.3 yêu cầu nút hành động có nhãn; gắn mỗi nơi với cột "Game" của 13.2d để học xong có lý do vào game (13.2b-7).
+
+## Phiên 5 (tiếp) — 22/10: bài M2 + dạng bài mới "núm Thống đốc" ✅ (đã push)
+- **Dạng bài thứ 17 `dial`** (`src/lesson/player.ts`, kiểu `DialModel` trong `types.ts`): núm lãi suất (SVG + thanh trượt, kéo là cập nhật ngay) và 3 ô: **lạm phát năm sau**, **thất nghiệp** (xanh/đỏ theo mục tiêu) và **khoản trả góp thả nổi của nhà bạn**. Mô hình tuyến tính đơn giản, ghi rõ trên màn hình là mô hình minh họa. Đúng khi cả hai mục tiêu đạt.
+- **M2 "Ngân hàng trung ương — người cầm vòi nước"** (`m-centralbank`, bài mới, mảng Vĩ mô): móc câu Fed 2022 → **đoán** khoản trả nhà 1 tỷ khi lãi 8% → 10% (9,65tr; bẫy 13% khảo sát) → sắp xếp **cơ chế truyền dẫn** → **núm Thống đốc** (lạm phát 7% → ≤ 4,5%, thất nghiệp ≤ 5%) → **chuyện thật** biểu đồ lãi Fed vs lạm phát Mỹ 2022–23 + NHNN 4% → 5% → 6% → **bẫy** vay thả nổi → ai vui/ai lo khi tăng lãi → **trùm cuối** giải thích vì sao NHTW "cố tình" làm vay đắt → **Dùng ngay** + mở khóa. Đào sâu: quy tắc Taylor (tính), độ trễ chính sách.
 
 ## Phiên 5 (tiếp) — 22/10: Chế độ Doanh nghiệp — bước 1 ✅ (đã push)
 - **Tab Chơi → "Doanh nghiệp của tôi" → Chơi ngay**: kịch bản sẵn "25 tuổi, đã để dành 30tr" (nếu chưa có cuộc sống), bay xuống, đứng trước **Quán trà sữa của bạn**, mở bảng **Mở quầy trà sữa đầu tiên**. Ai đang chơi "Cuộc sống của tôi" thì đi tới quán khi đủ 10tr vốn tự có.

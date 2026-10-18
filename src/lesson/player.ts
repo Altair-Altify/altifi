@@ -7,7 +7,7 @@ import { S, save, PO, MAX_HEARTS, addXP } from "../core/state";
 import { reg } from "../core/actions";
 import { t, tx, lang, type TL } from "../i18n/i18n";
 import { lion } from "../mascot/lion";
-import type { Lesson, Step, Unit, ChartDef, Sheet } from "./types";
+import type { Lesson, Step, Unit, ChartDef, Sheet, DialModel } from "./types";
 import { videoHTML, mountVideo, stopVideo } from "./video";
 import { icon, IC } from "../ui/icons";
 import { realImage } from "../ui/realimage";
@@ -96,6 +96,7 @@ function initStep() {
     case "match": s.left = shuffle(st.pairs.map((_, k) => k)); s.rightO = shuffle(st.pairs.map((_, k) => k)); s.done = []; s.miss = 0; s.sl = null; s.sr = null; s.bad = null; break;
     case "order": s.pool = shuffle(st.items.map((_, k) => k)); s.picked = []; break;
     case "slider": case "predict": s.v = st.start ?? st.min; break;
+    case "dial": s.v = st.dial.start; break;
     case "jars": s.vals = st.jars.map(() => 0); break;
     case "spot": case "tap": s.sel = []; break;
     case "calc": s.vals = st.parts.map(() => ""); break;
@@ -158,6 +159,30 @@ function optList(st: { o: TL[]; a: number }) {
     if (L!.checked) { if (k === st.a) c += " right"; else if (s.sel === pos) c += " wrong"; }
     return `<button class="${c}" onclick="A.lsSet('sel',${pos})">${tx(st.o[k])}</button>`;
   }).join("");
+}
+
+/* ---------- the Governor's dial (M2) ---------- */
+function dialOut(d: DialModel, r: number) {
+  const pi = Math.max(0, d.pi0 - d.kPi * (r - d.r0)), u = Math.max(0, d.u0 + d.kU * (r - d.r0));
+  const lr = (r + d.spread) / 1200, pay = (d.loan * lr) / (1 - Math.pow(1 + lr, -d.months));
+  return { pi, u, pay, ok: pi <= d.goalPi + 1e-9 && u <= d.goalU + 1e-9 };
+}
+const dialAngle = (d: DialModel, r: number) => -120 + ((r - d.min) / (d.max - d.min)) * 240;
+function dialHTML(d: DialModel, r: number, checked: boolean, a: number) {
+  const o = dialOut(d, r), f1 = (x: number) => fmtNum(x, lang(), 1);
+  const ticks = Array.from({ length: 9 }, (_, i) => { const ang = ((-120 + i * 30) * Math.PI) / 180; return `<line x1="${60 + Math.sin(ang) * 40}" y1="${62 - Math.cos(ang) * 40}" x2="${60 + Math.sin(ang) * 46}" y2="${62 - Math.cos(ang) * 46}" />`; }).join("");
+  const g = (id: string, label: string, val: string, pct: number, good: boolean, goal: string) => `<div class="dg${good ? " good" : " bad"}" id="${id}"><span>${label}</span><b>${val}</b><div class="dbar"><i style="width:${clamp(pct, 0, 100)}%"></i></div><em>${goal}</em></div>`;
+  return `<div class="dialw"><svg class="dial" viewBox="0 0 120 84" aria-hidden="true"><path d="M 20.3 85 A 46 46 0 1 1 99.7 85" class="dial-arc"/><g class="dial-ticks">${ticks}</g>
+      <g id="dialNeedle" style="transform:rotate(${dialAngle(d, r)}deg)"><line x1="60" y1="62" x2="60" y2="24" class="dial-needle"/></g><circle cx="60" cy="62" r="7" class="dial-hub"/></svg>
+    <div class="dial-val"><span>${t("dl.rate")}</span><b id="dialVal">${fmtNum(r, lang(), 2)}%</b></div></div>
+    <input type="range" class="range" min="${d.min}" max="${d.max}" step="${d.step}" value="${r}" oninput="A.lsDial(this.value)" ${checked ? "disabled" : ""} aria-label="${esc(t("dl.rate"))}">
+    <div class="rlab"><span>${f1(d.min)}%</span><span>${f1(d.max)}%</span></div>
+    <div class="dgauges" id="dialG">
+      ${g("dgPi", t("dl.pi"), f1(o.pi) + "%", (o.pi / 10) * 100, o.pi <= d.goalPi, t("dl.goalMax", { v: f1(d.goalPi) + "%" }))}
+      ${g("dgU", t("dl.u"), f1(o.u) + "%", (o.u / 10) * 100, o.u <= d.goalU, t("dl.goalMax", { v: f1(d.goalU) + "%" }))}
+      ${g("dgPay", t("dl.pay"), shortVnd(o.pay, lang()) + t("dl.perMonth"), ((o.pay - dialOut(d, d.min).pay) / Math.max(1, dialOut(d, d.max).pay - dialOut(d, d.min).pay)) * 100, true, t("dl.payNote", { v: shortVnd(d.loan, lang()) }))}
+    </div>
+    ${checked ? `<div class="card center" style="margin-top:8px;font-weight:800">${t("dl.answer", { a: fmtNum(a, lang(), 2) })}</div>` : ""}`;
 }
 
 /* ---------- render ---------- */
@@ -285,6 +310,10 @@ export function lessonRender(fx?: string) {
       body = `<div class="q">${tx(st.q)}</div>${st.sheets.map((sh) => sheetHTML(sh, !st.o)).join("")}` + (st.o ? optList({ o: st.o, a: st.a! }) : "");
       ready = st.o ? s.sel !== null : s.sel.length > 0;
       break;
+    case "dial":
+      body = `<div class="q">${tx(st.q)}</div>${dialHTML(st.dial, s.v, L.checked, st.a)}`;
+      ready = true;
+      break;
     case "explain": {
       body = `<div class="q">${tx(st.q)}</div><textarea id="exin" maxlength="300" placeholder="${t("lp.typeHere")}" oninput="A.lsExplain(this.value)" ${L.checked ? "disabled" : ""}>${esc(s.text)}</textarea><div class="count"><span id="excnt">${s.text.length}</span>/300</div><p class="muted" style="font-size:12px;font-weight:800">🤖 ${t("lp.keywordNote")}</p>`;
       if (L.checked) {
@@ -372,6 +401,7 @@ function checkStep() {
       break;
     case "order": r = s.picked.every((k: number, p: number) => k === p); break;
     case "slider": r = Math.abs(s.v - st.a) <= st.tol; break;
+    case "dial": r = dialOut(st.dial, s.v).ok; break;
     case "jars": r = st.jars.every((j, k) => s.vals[k] === j[2]); break;
     case "spot": case "tap": {
       const list = st.t === "spot" ? st.post.parts.map((p) => p[1]) : st.items.map((p) => p[3]);
@@ -515,6 +545,15 @@ reg({
   abortLesson() { stopVideo(); stopTalk(); L = null; closeO(); },
   lsSet(k: string, v: any) { if (!L || L.checked) return; L.st[k] = v; lessonRender("pick"); },
   lsSlide(v: string) { if (!L || L.checked) return; L.st.v = +v; const st = cur() as any; const el = $("#sv"); if (el) el.textContent = fmtUnit(L.st.v, st.unit || "vnd"); },
+  lsDial(v: string) {
+    if (!L || L.checked) return;
+    const st = cur(); if (st.t !== "dial") return;
+    L.st.v = +v;
+    const n = $("#dialNeedle"), val = $("#dialVal"), g = $("#dialG");
+    if (n) n.style.transform = `rotate(${dialAngle(st.dial, L.st.v)}deg)`;
+    if (val) val.textContent = fmtNum(L.st.v, lang(), 2) + "%";
+    if (g) { const tmp = document.createElement("div"); tmp.innerHTML = dialHTML(st.dial, L.st.v, false, st.a); const ng = tmp.querySelector("#dialG"); if (ng) g.innerHTML = ng.innerHTML; }
+  },
   lsPredict() { if (!L) return; L.checked = true; lessonRender("wave"); emote("wow", 1800); },
   lsCalc(k: number, v: string) {
     if (!L || L.checked) return;

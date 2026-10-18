@@ -30,7 +30,13 @@ export type Step =
   | ({ t: "calc"; q: TL; art?: string; parts: CalcPart[] } & Graded)
   | ({ t: "statement"; q: TL; sheets: Sheet[]; o?: TL[]; a?: number } & Graded) // with o/a: multiple choice, without: tap the rows marked flag
   | ({ t: "explain"; q: TL; keys: ExplainKey[]; need: number; model: TL } & Graded)
-  | { t: "predict"; q: TL; art?: string; min: number; max: number; step: number; start?: number; actual: number; unit?: Unit; reveal: TL };
+  | { t: "predict"; q: TL; art?: string; min: number; max: number; step: number; start?: number; actual: number; unit?: Unit; reveal: TL }
+  /* the Governor's dial (M2): turn the policy rate, watch inflation, unemployment and your own loan payment move */
+  | ({ t: "dial"; q: TL; dial: DialModel; a: number } & Graded);
+
+/** Simple linear economy for the dial: next year's inflation = pi0 − kPi·(r − r0); unemployment = u0 + kU·(r − r0);
+ * your floating loan (amount, months) costs r + spread. Correct when inflation ≤ goalPi and unemployment ≤ goalU. */
+export interface DialModel { min: number; max: number; step: number; start: number; r0: number; pi0: number; kPi: number; u0: number; kU: number; goalPi: number; goalU: number; loan: number; months: number; spread: number }
 
 export type Unit = "vnd" | "pct" | "num" | "yr" | "cups" | "mvnd";
 
