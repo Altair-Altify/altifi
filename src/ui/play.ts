@@ -1,5 +1,5 @@
 /* ---------- Play tab (design doc section 6) — replaces the base demo's "Crisis Game" tab ----------
- * Day 18: navigation + mode overview. World map (19/10), Personal (20/10), Business (21/10), Crisis Museum (22/10). */
+ * Day 18: navigation + mode overview. Low-poly town (20/10), Personal (21/10), Business (22/10), one crisis (23/10) — design doc 13.6. */
 import { shortVnd } from "../core/util";
 import { S } from "../core/state";
 import { t, tx, lang } from "../i18n/i18n";
@@ -19,11 +19,12 @@ const ROOMS = [
 ];
 
 const MODES: Record<string, { name: { vi: string; en: string }; role: { vi: string; en: string }; day: string }> = {
-  personal: { name: { vi: "Cuộc sống của tôi", en: "My Life" }, role: { vi: "Đi làm, lập ngân sách, tiết kiệm, tín dụng, bảo hiểm", en: "Work, budget, save, credit, insurance" }, day: "20/10" },
-  corporate: { name: { vi: "Doanh nghiệp của tôi", en: "My Business" }, role: { vi: "Mở & điều hành doanh nghiệp, mở chi nhánh trên bản đồ", en: "Start & run a business, open branches on the map" }, day: "21/10" },
-  markets: { name: { vi: "Nhà đầu tư", en: "The Investor" }, role: { vi: "Quản lý danh mục trong thị trường mô phỏng", en: "Manage a portfolio in a simulated market" }, day: "22/10" },
-  public: { name: { vi: "Bộ trưởng Tài chính", en: "Finance Minister" }, role: { vi: "Chia ngân sách, chỉnh thuế khi kinh tế nóng/lạnh", en: "Split the budget, set taxes as the economy heats or cools" }, day: "22/10" },
-  intl: { name: { vi: "Xuất nhập khẩu", en: "Import–Export" }, role: { vi: "Sống sót qua biến động tỷ giá", en: "Survive exchange-rate swings" }, day: "22/10" },
+  personal: { name: { vi: "Cuộc sống của tôi", en: "My Life" }, role: { vi: "Đi làm, lập ngân sách, tiết kiệm, tín dụng, bảo hiểm", en: "Work, budget, save, credit, insurance" }, day: "21/10" },
+  corporate: { name: { vi: "Doanh nghiệp của tôi", en: "My Business" }, role: { vi: "Mở & điều hành doanh nghiệp, mở chi nhánh trên bản đồ", en: "Start & run a business, open branches on the map" }, day: "22/10" },
+  macro: { name: { vi: "Thống đốc NHTW", en: "Central Bank Governor" }, role: { vi: "Xoay núm lãi suất khi lạm phát tăng mà vẫn giữ việc làm", en: "Turn the interest-rate dial to tame inflation without killing jobs" }, day: "23/10" },
+  markets: { name: { vi: "Nhà đầu tư", en: "The Investor" }, role: { vi: "Quản lý danh mục trong thị trường mô phỏng", en: "Manage a portfolio in a simulated market" }, day: "24–26/10" },
+  public: { name: { vi: "Bộ trưởng Tài chính", en: "Finance Minister" }, role: { vi: "Chia ngân sách, chỉnh thuế khi kinh tế nóng/lạnh", en: "Split the budget, set taxes as the economy heats or cools" }, day: "24–26/10" },
+  intl: { name: { vi: "Xuất nhập khẩu", en: "Import–Export" }, role: { vi: "Sống sót qua biến động tỷ giá", en: "Survive exchange-rate swings" }, day: "24–26/10" },
 };
 const RATING = [["!!", "#1BADA6"], ["!", "#2BB673"], ["★", "#7CB342"], ["!?", "#8E9BFF"], ["?!", "#F2A33A"], ["??", "#EF4E4E"]];
 

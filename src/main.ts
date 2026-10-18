@@ -3,6 +3,7 @@ import "./styles/base.css";
 import "./styles/lesson.css";
 import "./styles/app.css";
 import "./styles/ui2.css";
+import "./styles/galaxy.css";
 import { installPattern } from "./ui/pattern";
 import "./core/actions";
 import { S } from "./core/state";

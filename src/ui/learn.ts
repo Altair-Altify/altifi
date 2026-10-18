@@ -1,22 +1,23 @@
-/* ---------- Learn tab (design doc 10c.2 & 10c.3) ----------
- * Hero: little illustrated town + full-body Alti Lion (talks & emotes as in the base demo), today's goal ring,
- * streak, and a big "Continue" card (placement test for new users).
- * Path: a winding road through 5 illustrated regions — one per area of finance, styled like its district on the game map.
- * Milestones: a reward chest after 3 lessons, a badge at the end of each region.
- * No forced order (3.2): every written lesson is open; "START" only marks a suggestion. */
+/* ---------- Learn tab = the Altair galaxy (design doc 13.1, replaces the winding road of 10c.3) ----------
+ * The 3D scene lives in src/galaxy; this file is the HTML layer on top of it: labels that follow systems and planets,
+ * the slim HUD (breadcrumb, today's goal, List button), zoom buttons + "Back to Altair", the planet card at level 3
+ * with the "Land" button (Alti Lion's rocket → lesson), the floating Continue card, reward comets, and the
+ * accessible List view (also the fallback when WebGL is missing).
+ * No forced order (3.2): every written lesson can be opened; the beacon only marks a suggestion. */
 import { esc } from "../core/util";
-import { S, PO, defaultM, save, addXP, noMotion } from "../core/state";
-import { reg } from "../core/actions";
+import { S, PO, defaultM, save, addXP, noMotion, lessonsDone } from "../core/state";
+import { reg, A } from "../core/actions";
 import { t, tx } from "../i18n/i18n";
-import { lion, lionFull } from "../mascot/lion";
-import { DOMAINS, isReal, findLesson, ALL_LESSONS, type Domain } from "../content/domains";
+import { lion } from "../mascot/lion";
+import { DOMAINS, NODES, isReal, findLesson, findNode, domainOf, ALL_LESSONS, type Domain } from "../content/domains";
 import { checkBadges, domainDone } from "../content/badges";
 import { sheet, closeSheet, minitoast, confetti } from "./fx";
 import { setCtx } from "../assistant/context";
 import { reviewCard } from "../lesson/player";
 import { icon, IC } from "./icons";
-import { townScene, tree, bush, house, shop, tower, ticker, hall, ship, crane, water, flowers } from "./scenes";
-import type { Lesson, LessonStub } from "../lesson/types";
+import { Galaxy, type GxModel, type Level } from "../galaxy/scene";
+import type { PState } from "../galaxy/planet";
+import type { CourseNode, DomainId, Lesson } from "../lesson/types";
 
 export function homeFirst(isStatic: boolean) {
   if (JSON.stringify(S.m) === JSON.stringify(defaultM())) return t("home.firstDefault", { name: S.m.name });
@@ -27,193 +28,358 @@ export function homeFirst(isStatic: boolean) {
 const suggested = () => ALL_LESSONS.find((l) => !S.lessons[l.id]);
 const night = () => document.body.classList.contains("night");
 
-/* ---------- hero ---------- */
-function ring(val: number, goal: number) {
-  const r = 27, C = 2 * Math.PI * r, k = Math.min(1, val / goal);
-  return `<svg class="goalring" width="72" height="72" viewBox="0 0 72 72" role="img" aria-label="${val}/${goal} XP">
-    <circle cx="36" cy="36" r="${r}" fill="none" stroke="var(--track)" stroke-width="8"/>
-    <circle class="gr-arc" cx="36" cy="36" r="${r}" fill="none" stroke="${k >= 1 ? "var(--good)" : "var(--sun)"}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" style="--off:${(C * (1 - k)).toFixed(1)};--c:${C.toFixed(1)}" transform="rotate(-90 36 36)"/>
-    <foreignObject x="14" y="14" width="44" height="44"><div class="gr-ic">${icon(k >= 1 ? "check" : "target", { size: 24, color: k >= 1 ? "var(--good)" : "#E0A800" })}</div></foreignObject></svg>`;
+export function nodeState(n: CourseNode): PState {
+  if (!isReal(n)) return "soon";
+  const rec = S.lessons[n.id];
+  if (rec?.deep) return "deep";
+  if (rec) return "done";
+  if (S.inprog?.id === n.id) return "progress";
+  if (suggested()?.id === n.id) return "suggested";
+  return "new";
+}
+const explored = (d: Domain) => Math.round((d.nodes.filter((n) => S.lessons[n.id]).length / d.nodes.length) * 100);
+const cometsWaiting = () => Math.floor(lessonsDone() / 2) - S.chests.filter((c) => c.startsWith("comet-")).length;
+const suggestedDomain = (): DomainId => (suggested()?.domain as DomainId) || "macro";
+
+/* ---------- small pieces ---------- */
+function ring(val: number, goal: number, size = 72) {
+  const r = size * 0.375, C = 2 * Math.PI * r, k = Math.min(1, val / goal), sw = size / 9, c = size / 2;
+  return `<svg class="goalring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${val}/${goal} XP">
+    <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--track)" stroke-width="${sw}"/>
+    <circle class="gr-arc" cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${k >= 1 ? "var(--good)" : "var(--sun)"}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" style="--off:${(C * (1 - k)).toFixed(1)};--c:${C.toFixed(1)}" transform="rotate(-90 ${c} ${c})"/></svg>`;
+}
+const stLabel = (st: PState) => t("gx.st." + st);
+function stars(id: string, size = 13) {
+  const rec = S.lessons[id];
+  return rec ? `<span class="gx-stars" aria-hidden="true">${[0, 1, 2].map((k) => icon("star", { size, color: k < rec.stars ? IC.star : "var(--lockd)", tint: k < rec.stars ? 1 : 0.3 })).join("")}</span>` : "";
 }
 
-function continueCard() {
+/** "Continue" card: lesson left half-way → resume; new user → placement test; otherwise the suggested next planet. */
+function continueCard(galaxy: boolean) {
   const ip = S.inprog && findLesson(S.inprog.id);
   if (ip && S.inprog) {
-    const pct = Math.round((S.inprog.s / Math.max(1, S.inprog.n)) * 100), d = DOMAINS.find((x) => x.id === ip.domain)!;
-    return contCard(d, ip, t("hm.continue"), pct, `${t("hm.step", { n: S.inprog.s + 1, m: S.inprog.n })}${S.inprog.deep ? " · " + t("lp.deepTag") : ""}`, `A.startLesson('${ip.id}',${S.inprog.deep},${S.inprog.s})`);
-  }
-  if (!Object.keys(S.lessons).length && !S.placement) {
-    const sug = suggested();
-    return `<div class="contcard place"><div class="cc-ic">${icon("target", { size: 34, color: "#fff", tint: 0.35 })}</div><div class="cc-body"><div class="cc-kicker">${t("hm.placeT")}</div><div class="cc-sub">${t("hm.placeS")}</div></div>
-      <button class="btn sun" onclick="A.pushThen(this,'startLesson','placement')">${t("hm.placeBtn")}</button>${sug ? `<button class="linkbtn" onclick="A.startLesson('${sug.id}')">${t("hm.skip")}</button>` : ""}</div>`;
+    const pct = Math.round((S.inprog.s / Math.max(1, S.inprog.n)) * 100);
+    return contCard(ip, t("hm.continue"), pct, `${t("hm.step", { n: S.inprog.s + 1, m: S.inprog.n })}${S.inprog.deep ? " · " + t("lp.deepTag") : ""}`, `A.startLesson('${ip.id}',${S.inprog.deep},${S.inprog.s})`);
   }
   const sug = suggested();
+  if (!Object.keys(S.lessons).length && !S.placement) {
+    return `<div class="contcard place"><div class="cc-ic">${icon("target", { size: 30, color: "#fff", tint: 0.35 })}</div><div class="cc-body"><div class="cc-kicker">${t("hm.placeT")}</div><div class="cc-sub">${t("hm.placeS")}</div></div>
+      <button class="btn sun" onclick="A.pushThen(this,'startLesson','placement')">${t("hm.placeBtn")}</button>${sug ? `<button class="linkbtn" onclick="${galaxy ? `A.gxPlanet('${sug.id}')` : `A.openLessonCard('${sug.id}')`}">${t("hm.skip")}</button>` : ""}</div>`;
+  }
   if (!sug) return `<div class="contcard"><div class="cc-body"><div class="cc-sub">${t("hm.allDone")}</div></div></div>`;
-  const d = DOMAINS.find((x) => x.id === sug.domain)!;
-  const real = d.lessons.filter(isReal), pct = Math.round((real.filter((l) => S.lessons[l.id]).length / real.length) * 100);
-  return contCard(d, sug, t("hm.next"), pct, tx(d.title), `A.openLessonCard('${sug.id}')`);
+  const d = domainOf(sug.domain as DomainId), real = d.nodes.filter(isReal), pct = Math.round((real.filter((n) => S.lessons[n.id]).length / real.length) * 100);
+  return contCard(sug, t("hm.next"), pct, tx(d.title), galaxy ? `A.gxPlanet('${sug.id}')` : `A.openLessonCard('${sug.id}')`);
 }
-function contCard(d: Domain, l: Lesson, kicker: string, pct: number, sub: string, go: string) {
-  return `<div class="contcard" style="--dc:${d.color}"><div class="cc-row"><div class="cc-ic" style="background:${d.color}">${icon(l.ic, { size: 34, color: "#fff", tint: 0.35 })}</div>
-    <div class="cc-body"><div class="cc-kicker">${kicker}</div><div class="cc-title">${esc(tx(l.title))}</div><div class="cc-sub">${esc(sub)}</div></div></div>
+function contCard(l: Lesson, kicker: string, pct: number, sub: string, go: string) {
+  const d = domainOf(l.domain as DomainId), n = findNode(l.id);
+  return `<div class="contcard" style="--dc:${d.color}"><div class="cc-row"><div class="cc-ic" style="background:${d.color}">${icon(n?.ic || l.ic, { size: 30, color: "#fff", tint: 0.35 })}</div>
+    <div class="cc-body"><div class="cc-kicker">${kicker}</div><div class="cc-title">${esc(n ? tx(n.hook) : tx(l.title))}</div><div class="cc-sub">${esc(sub)}</div></div></div>
     <div class="cc-prog"><i style="width:${pct}%;background:${d.color}"></i></div><div class="cc-pct">${pct}%</div>
     <button class="btn good" onclick="${go}">${icon("playTri", { size: 18, color: "#fff", tint: 1 })} ${t("hm.cont")}</button></div>`;
 }
 
-function hero() {
-  const talk = S.set.inter ? (PO() ? `<div class="bubble hero-bubble">${esc(homeFirst(true))}</div>` : `<div class="bubble talk hero-bubble" id="homeTalk"></div>`) : "";
-  const k = Math.min(1, S.today.xp / S.goal);
-  return `<section class="hero">
-    <div class="hero-scene">${townScene(360, 190, night())}</div>
-    <button class="hero-lion mascotbtn${noMotion() ? "" : " waving"}" onclick="A.openCustom()" aria-label="${t("bd.customizeAria")}">${lionFull(104)}<span class="editdot">${icon("pencil", { size: 15, color: "var(--pri)" })}</span></button>
-    ${talk}
-  </section>
-  <div class="hero-row">
-    <div class="tile2 goal">${ring(S.today.xp, S.goal)}<div><div class="t2-k">${t("hm.today")}</div><div class="t2-v"><b data-ck="today" data-to="${S.today.xp}">${S.today.xp}</b><small>/${S.goal} XP</small></div><div class="t2-s">${k >= 1 ? t("hm.goalDone") : ""}</div></div></div>
-    <div class="tile2 streak">${icon("flame", { size: 40, color: IC.flame, tint: 0.35 })}<div><div class="t2-v big"><b data-ck="streak2" data-to="${S.streak}">${S.streak}</b></div><div class="t2-k">${t("hm.streak")}</div></div></div>
-  </div>
-  ${continueCard()}`;
+/* ============================== the galaxy ============================== */
+let G: Galaxy | null = null;
+let glFailed = false;
+const ui = { first: true, collapsed: false, deep: false, labels: [] as HTMLElement[], sug: "" };
+const root = document.createElement("div");
+root.className = "gx";
+root.innerHTML = `<div class="gx-labels"></div><div class="gx-hud"></div><div class="gx-ctrl"></div><div class="gx-cont"></div><div class="gx-card" role="dialog" aria-live="polite"></div><div class="gx-fx" aria-hidden="true"></div>`;
+const part = (c: string) => root.querySelector<HTMLElement>(".gx-" + c)!;
+
+function model(): GxModel {
+  return {
+    nodes: NODES.map((n) => ({ id: n.id, domain: n.domain, state: nodeState(n), planet: n.planet })),
+    links: NODES.flatMap((n) => n.prereq.map((p) => ({ from: p, to: n.id, lit: !!S.lessons[p] }))),
+    complete: DOMAINS.filter((d) => domainDone(S, d.id)).map((d) => d.id),
+    homeLights: Math.min(16, 2 + lessonsDone() * 2 + (S.game ? 2 : 0)),
+    comet: cometsWaiting() > 0,
+    night: night(), potato: PO(), motion: !noMotion(),
+  };
 }
 
-/* ---------- the winding road ---------- */
-type Item = { kind: "lesson"; l: Lesson | LessonStub; i: number } | { kind: "chest"; id: string; before: (Lesson | LessonStub)[] } | { kind: "badge"; d: Domain };
-const W = 360, GAP = 112, TOP = 92;
-const XS = [180, 100, 180, 260];
-const TINT: Record<string, string> = { personal: "#E1F5D4", corporate: "#F0E4FA", markets: "#FFEEDB", public: "#DCF3F0", intl: "#DFE8FF" };
-
-function itemsOf(d: Domain): Item[] {
-  const out: Item[] = [];
-  d.lessons.forEach((l, i) => {
-    out.push({ kind: "lesson", l, i });
-    if (i === 2 && d.lessons.length > 3) out.push({ kind: "chest", id: `${d.id}-chest-1`, before: d.lessons.slice(0, 3) });
+function hud() {
+  const lv = G?.level || 1, dom = G?.focusDom ? domainOf(G.focusDom) : null, node = G?.focusNode ? findNode(G.focusNode) : null;
+  const crumb = `<nav class="gx-crumbs" aria-label="${t("gx.title")}">
+    <button onclick="A.gxGalaxy()" class="${lv === 1 ? "on" : ""}" aria-label="Altair">${icon("sparkle", { size: 15, color: "#E0A800", tint: 0.5 })}${dom ? "" : "<span>Altair</span>"}</button>
+    ${dom ? `<i>›</i><button onclick="A.gxSys('${dom.id}')" class="${lv === 2 ? "on" : ""}" style="--dc:${dom.color}"><span class="gx-dot"></span><span>${esc(tx(dom.tag && tx(dom.tag).length <= 14 ? dom.tag : dom.title))}</span></button>` : ""}
+    ${node ? `<i>›</i><span class="gx-crumbcode">${node.code}</span>` : ""}</nav>`;
+  const say = S.set.inter && !PO() && lv === 1 ? `<button class="gx-say" onclick="A.openCustom()" aria-label="${t("gx.lionAria", { name: esc(S.m.name) })}">${lion(34)}<span class="bubble talk" id="homeTalk"></span></button>` : "";
+  return `${crumb}${say}<div class="gx-hudr"><div class="gx-goal" title="${t("hm.today")}">${ring(S.today.xp, S.goal, 26)}<b>${S.today.xp}</b><small>/${S.goal}</small></div>
+    <button class="gx-listbtn" onclick="A.gxList(true)" aria-label="${t("gx.listAria")}">${icon("doc", { size: 16 })}<span>${t("gx.list")}</span></button></div>`;
+}
+function ctrl() {
+  return `<button onclick="A.gxZoom(1)" aria-label="${t("gx.zoomIn")}">+</button><button onclick="A.gxZoom(-1)" aria-label="${t("gx.zoomOut")}">−</button>
+    <button class="gx-home" onclick="A.gxGalaxy()" aria-label="${t("gx.toAltair")}" title="${t("gx.toAltair")}">${icon("sparkle", { size: 20, color: "#E0A800", tint: 0.5 })}</button>`;
+}
+function labels() {
+  const sug = suggested()?.id || "";
+  ui.sug = sug;
+  let h = `<div class="gxl altair" data-k="altair"><button class="gx-lion mascotbtn" onclick="A.gxPick('altair')" aria-label="${t("gx.lionAria", { name: esc(S.m.name) })}">${lion(46)}</button><span class="gxl-name">Altair</span></div>`;
+  h += `<button class="gxl home" data-k="home" onclick="A.gxPick('home')" aria-label="${t("gx.homeAria")}">${icon("house", { size: 14, color: "#2E9B6A", tint: 0.4 })}<span>${t("gx.home")}</span></button>`;
+  DOMAINS.forEach((d) => {
+    const p = explored(d);
+    h += `<button class="gxl sys" data-k="sys:${d.id}" style="--dc:${d.color}" onclick="A.gxPick('sys:${d.id}')" aria-label="${esc(tx(d.title))} — ${t("gx.explored", { p })}">
+      <span class="gx-sysic">${icon(d.ic, { size: 15, color: "#fff", tint: 0.35 })}</span><span class="gx-systx"><b>${esc(tx(d.title))}</b><span class="gx-pct"><i style="width:${Math.max(p, 3)}%"></i></span><small>${t("gx.explored", { p })} · ${t("gx.nLessons", { n: d.nodes.length })}</small></span></button>`;
+    if (domainDone(S, d.id)) h += `<div class="gxl con" data-k="con:${d.id}" style="--dc:${d.color}">✦ ${t("gx.con", { d: esc(tx(d.tag || d.title)) })}</div>`;
   });
-  out.push({ kind: "badge", d });
-  return out;
-}
-/** Smooth road through the points (Catmull-Rom → cubic Bézier). */
-function roadPath(pts: [number, number][]) {
-  let p = `M${pts[0][0]} ${pts[0][1]}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-    p += ` C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${p2[0]} ${p2[1]}`;
-  }
-  return p;
-}
-/** Region scenery: the district of this area on the game map. */
-function decor(d: Domain, k: number, x: number, y: number) {
-  const v = k % 3;
-  switch (d.id) {
-    case "personal": return v === 1 ? tree(x, y, 1, k % 2) + flowers(x + 22, y - 2) : house(x, y, 0.95, "#FFF7E6", ["#EF7B6B", "#5B5BD6", "#F2A33A"][k % 3]) + bush(x + 30, y + 4, 0.7);
-    case "corporate": return v === 2 ? tree(x, y, 0.95, 1) : shop(x, y, 0.95, ["#8E44AD", "#F2A33A", "#2BB673"][k % 3], ["🧋", "🥖", "📚"][k % 3]);
-    case "markets": return v === 1 ? ticker(x, y - 6, 74) + bush(x + 30, y + 4, 0.7) : tower(x - 12, y, 26, 82, "#A9C8F5") + tower(x + 16, y, 22, 58, "#C9B6FF");
-    case "public": return v === 0 ? hall(x, y, 1) : tree(x, y, 0.95, 2) + flowers(x - 20, y);
-    default: return v === 1 ? crane(x + 6, y, 0.9) : ship(x, y - 4, 0.9);
-  }
-}
-
-function region(d: Domain, di: number) {
-  const items = itemsOf(d);
-  const H = TOP + (items.length - 1) * GAP + 64;
-  const pts: [number, number][] = items.map((_, i) => [XS[i % 4], TOP + i * GAP]);
-  const road = roadPath([[180, -10], ...pts, [180, H + 10]]);
-  let deco = "";
-  if (d.id === "intl") deco += water(268, 0, 92, H);
-  pts.forEach(([x, y], i) => {
-    const side = x < 180 ? 296 : x > 180 ? 64 : i % 2 ? 300 : 60;
-    if (d.id === "intl" && side > 180) deco += i % 2 ? ship(312, y + 26, 0.75) : "";
-    else deco += decor(d, i + di, side, y + 26);
-    if (i % 2 === 0) deco += bush(side > 180 ? 30 : 330, y + 70, 0.6);
+  NODES.forEach((n) => {
+    const st = nodeState(n), d = domainOf(n.domain);
+    const tag = st === "soon" ? `<span class="gx-tag soon">${t("gx.st.soon")}</span>` : st === "suggested" ? `<span class="gx-tag sug">${t("gx.st.suggested")}</span>` : st === "progress" ? `<span class="gx-tag prog">${t("gx.st.progress")}</span>` : stars(n.id, 11);
+    h += `<button class="gxl pl st-${st}" data-k="pl:${n.id}" data-d="${n.domain}" style="--dc:${d.color}" onclick="A.gxPick('pl:${n.id}')" aria-label="${esc(`${n.code} — ${tx(n.hook)} — ${stLabel(st)}`)}"><span class="gx-code">${n.code}</span><span class="gx-t">${esc(tx(n.title))}</span>${tag}</button>`;
   });
-  const sug = suggested();
-  const nodes = items.map((it, i) => {
-    const [x, y] = pts[i], pos = `left:${((x / W) * 100).toFixed(2)}%;top:${((y / H) * 100).toFixed(2)}%`;
-    if (it.kind === "lesson") return lessonNode(it.l, d, pos, sug?.id === it.l.id);
-    if (it.kind === "chest") return chestNode(it.id, it.before, pos);
-    return badgeNode(d, pos);
-  }).join("");
-  const real = d.lessons.filter(isReal), done = real.filter((l) => S.lessons[l.id]).length;
-  return `<section class="region" aria-label="${esc(tx(d.title))}">
-    <div class="rhead" style="--dc:${d.color}"><div class="rh-ic">${icon(d.ic, { size: 28, color: "#fff", tint: 0.35 })}</div><div style="flex:1;min-width:0"><small>${t("learn.domain", { n: di + 1 })} · ${t("learn.lessons", { done, total: d.lessons.length })}</small><h3>${tx(d.title)}</h3><div class="rh-desc">${tx(d.desc)}</div></div></div>
-    <div class="rmap" style="aspect-ratio:${W}/${H}">
-      <svg class="rscene" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><rect width="${W}" height="${H}" rx="28" fill="${TINT[d.id]}"/>
-        <path d="${road}" stroke="#E5D3AC" stroke-width="38" fill="none" stroke-linecap="round"/><path d="${road}" stroke="#F4E7C9" stroke-width="30" fill="none" stroke-linecap="round"/><path d="${road}" stroke="#fff" stroke-width="3" fill="none" stroke-dasharray="2 14" stroke-linecap="round" opacity=".9"/>
-        ${deco}</svg>
-      ${nodes}
-    </div></section>`;
+  if (cometsWaiting() > 0) h += `<button class="gxl comet" data-k="comet" onclick="A.gxPick('comet')" aria-label="${t("gx.comet")}"><span>+20 XP</span></button>`;
+  if (sug) h += `<div class="gxl minilion" data-k="minilion" aria-hidden="true">${lion(26)}</div>`;
+  return h;
 }
 
-function lessonNode(l: Lesson | LessonStub, d: Domain, pos: string, isSug: boolean) {
-  const real = isReal(l), rec = S.lessons[l.id];
-  const st = !real ? "soon" : rec ? "done" : isSug ? "current" : "open";
-  const label = esc(tx(l.title));
-  const stars = rec ? `<span class="nstars" aria-hidden="true">${[0, 1, 2].map((k) => icon("star", { size: 13, color: k < rec.stars ? IC.star : "var(--lockd)", tint: k < rec.stars ? 1 : 0.3 })).join("")}</span>` : "";
-  const inner = st === "done" ? icon("check", { size: 30, color: "#fff" }) : icon(l.ic, { size: 30, color: st === "soon" ? "var(--lockd)" : "#fff", tint: st === "soon" ? 0.25 : 0.35 });
-  const pre = real && (l as Lesson).prereq ? `<span class="ntag">${icon("pin", { size: 12 })}${t("ms.prereqTag")}</span>` : "";
-  const stateTxt = st === "done" ? t("learn.done") : st === "soon" ? t("ms.soonTag") : st === "current" ? t("learn.recommended") : "";
-  return `<div class="pnode ${st}" style="${pos};--dc:${d.color}">
-    ${st === "current" ? `<span class="tag">${t("c.start")}</span>` : ""}
-    <button class="pbtn" onclick="A.openLessonCard('${l.id}')" aria-label="${label}${stateTxt ? " — " + stateTxt : ""}">${inner}${rec?.deep ? `<span class="ndeep">${icon("deep", { size: 16, color: "#7E5BE0", tint: 1 })}</span>` : ""}</button>
-    ${stars}<div class="nlabel">${label}</div>${pre}${st === "soon" ? `<span class="ntag soon">${t("ms.soonTag")}</span>` : ""}</div>`;
-}
-const chestReady = (before: (Lesson | LessonStub)[]) => { const r = before.filter(isReal); return r.length > 0 && r.every((l) => S.lessons[l.id]); };
-function chestNode(id: string, before: (Lesson | LessonStub)[], pos: string) {
-  const opened = S.chests.includes(id), ready = !opened && chestReady(before);
-  const st = opened ? "opened" : ready ? "ready" : "locked";
-  return `<div class="pnode chest ${st}" style="${pos}"><button class="pbtn" onclick="A.openChest('${id}')" aria-label="${t("ms.chest")}">${icon(opened ? "chestOpen" : "chest", { size: 34, color: opened ? "#C97A06" : ready ? "#8A5A00" : "var(--lockd)", tint: ready || opened ? 0.45 : 0.2 })}${st === "locked" ? `<span class="nlock">${icon("lock", { size: 14, color: "var(--muted)" })}</span>` : ""}</button><div class="nlabel">${opened ? t("ms.chestDone") : t("ms.chest")}</div></div>`;
-}
-function badgeNode(d: Domain, pos: string) {
-  const got = S.badges.includes("dom-" + d.id);
-  return `<div class="pnode badge ${got ? "got" : "locked"}" style="${pos};--dc:${d.color}"><button class="pbtn" onclick="A.openBadge('dom-${d.id}')" aria-label="${t("ms.badge", { d: esc(tx(d.title)) })}">${icon("medal", { size: 34, color: got ? "#fff" : "var(--lockd)", tint: got ? 0.4 : 0.2 })}</button><div class="nlabel">${t("ms.badge", { d: esc(tx(d.title)) })}</div></div>`;
+/** Planet card (level 3): the mystery question, what you need first, what it unlocks, Basics / Deep dive, LAND. */
+function card(id: string) {
+  const n = findNode(id);
+  if (!n) return "";
+  const d = domainOf(n.domain), st = nodeState(n), les = n.lesson, rec = S.lessons[id];
+  const meta = les
+    ? `${icon("clock", { size: 15 })} ${t("gx.minutes", { n: les.minutes })} · ${t("learn.steps", { n: les.steps.length })}${les.steps.some((s) => s.t === "video") ? ` · ${icon("video", { size: 15 })} ${t("learn.hasVideo")}` : ""}`
+    : `${icon("clock", { size: 15 })} ${t("gx.plannedMin")}`;
+  const pre = n.prereq.length
+    ? `<div class="gx-pre"><b>${icon("pin", { size: 15, color: "#C97A06" })} ${t("learn.prereq")}</b>${n.prereq.map((p) => { const q = findNode(p)!, qd = domainOf(q.domain); return `<button class="gx-chip st-${nodeState(q)}" style="--dc:${qd.color}" onclick="A.gxPlanet('${p}')" title="${t("gx.flyTo")}"><span class="gx-code">${q.code}</span>${esc(tx(q.title))}${S.lessons[p] ? icon("check", { size: 14, color: "var(--good)" }) : ""}</button>`; }).join("")}</div>`
+    : `<div class="gx-pre none">${icon("sparkle", { size: 15, color: "#E0A800", tint: 0.5 })} ${t("gx.noPre")}</div>`;
+  const deepOK = !!(les?.deep && rec);
+  const tiers = les ? `<div class="gx-tiers" role="group" aria-label="${t("gx.basic")} / ${t("gx.deep")}">
+      <button class="${!ui.deep ? "on" : ""}" onclick="A.gxTier(false)">${t("gx.basic")}${rec ? icon("check", { size: 14 }) : ""}</button>
+      ${les.deep ? `<button class="${ui.deep ? "on" : ""}" ${deepOK ? `onclick="A.gxTier(true)"` : `disabled aria-disabled="true" title="${t("learn.deepLocked")}"`}>${icon(deepOK ? "deep" : "lock", { size: 14, tint: 0.3 })} ${t("gx.deep")}${rec?.deep ? icon("check", { size: 14 }) : ""}</button>` : ""}
+    </div>` : "";
+  const land = les
+    ? `<button class="btn good gx-land" onclick="A.gxLand('${id}')">${icon("rocket", { size: 20, color: "#fff", tint: 0.35 })} ${ui.deep && deepOK ? t("gx.landDeep") : t("gx.land")}</button>`
+    : `<button class="btn gx-land" disabled>${t("gx.soonBtn", { d: n.day })}</button>`;
+  return `<div class="gx-card-in" style="--dc:${d.color}">
+    <button class="gx-x" onclick="A.gxBack()" aria-label="${t("gx.close")}">${icon("close", { size: 20 })}</button>
+    <div class="gx-kick"><span class="gx-code">${n.code}</span><span>${esc(tx(d.title))}</span><span class="gx-st st-${st}">${stLabel(st)}</span>${stars(id)}</div>
+    <h2 class="gx-hook">${esc(tx(n.hook))}</h2>
+    <div class="gx-topic">${esc(tx(n.title))} <span class="gx-meta">· ${meta}</span></div>
+    ${les ? "" : `<p class="gx-soon">${t("gx.soonCard", { d: n.day })}</p>`}
+    ${pre}
+    <div class="gx-unlock">${icon("play", { size: 16, color: d.color, tint: 0.35 })} ${t("gx.unlock")}: <b>${esc(tx(n.unlock))}</b></div>
+    ${tiers}
+    <div class="gx-actions">${land}${les ? `<button class="linkbtn" onclick="A.openReview('${id}')">${icon("bolt", { size: 14 })} ${t("learn.review")}</button>` : ""}</div>
+  </div>`;
 }
 
+function refreshUI() {
+  if (!G) return;
+  part("hud").innerHTML = hud();
+  part("ctrl").innerHTML = ctrl();
+  const lab = part("labels");
+  lab.innerHTML = labels();
+  ui.labels = [...lab.querySelectorAll<HTMLElement>(".gxl")];
+  ui.labels.forEach((el) => { el.dataset.w = String(el.offsetWidth); el.dataset.h = String(el.offsetHeight); });
+  const c = part("cont");
+  c.innerHTML = `<button class="gx-grab" onclick="A.gxCont()" aria-label="${ui.collapsed ? t("gx.show") : t("gx.hide")}" aria-expanded="${!ui.collapsed}"><i></i>${ui.collapsed ? `<span>${icon("playTri", { size: 12, color: "var(--pri)", tint: 1 })} ${S.inprog ? t("hm.continue") : t("hm.next")}</span>` : ""}</button>${continueCard(true)}`;
+  c.classList.toggle("collapsed", ui.collapsed);
+  const cd = part("card");
+  if (G.level === 3 && G.focusNode) { if (cd.dataset.id !== G.focusNode + S.set.lang + ui.deep + JSON.stringify(S.lessons[G.focusNode] || 0)) { cd.innerHTML = card(G.focusNode); cd.dataset.id = G.focusNode + S.set.lang + ui.deep + JSON.stringify(S.lessons[G.focusNode] || 0); } }
+  root.dataset.level = String(G.level);
+  place();
+}
+
+/** Every frame the camera moves: put each label on its object (semantic zoom decides which ones show),
+ * then nudge overlapping labels apart so names never sit on top of each other. */
+type Box = { el: HTMLElement; x: number; y: number; w: number; h: number; mid: boolean; fixed: boolean; top: number };
+function place() {
+  if (!G) return;
+  const lv = G.level, W = root.clientWidth, H = root.clientHeight, tm = performance.now() / 1000;
+  const boxes: Box[] = [];
+  for (const el of ui.labels) {
+    const k = el.dataset.k!;
+    let show = false, key = k, dy = 0;
+    if (k === "altair") { show = lv === 1; dy = -10; }
+    else if (k === "home") show = lv < 3;
+    else if (k.startsWith("sys:")) { show = lv === 1; dy = 16; }
+    else if (k.startsWith("con:")) show = lv === 1;
+    else if (k.startsWith("pl:")) show = lv === 2 && el.dataset.d === G.focusDom;
+    else if (k === "comet") show = lv < 3;
+    else if (k === "minilion") { show = lv >= 2 && !!ui.sug && findNode(ui.sug)?.domain === G.focusDom; key = "pl:" + ui.sug; }
+    if (!show) { el.classList.add("off"); continue; }
+    const p = G.project(key);
+    let x = p.x, y = p.y;
+    if (k.startsWith("pl:")) y += p.ppu * 1.15 + 6;
+    else if (k === "home") y += p.ppu * 1.3 + 4;
+    else if (k === "minilion") { const a = noMotion() ? 0.8 : tm * 1.4, R = p.ppu * 1.9; x += Math.cos(a) * R; y += Math.sin(a) * R * 0.45 - p.ppu * 0.6; el.style.zIndex = Math.sin(a) > 0 ? "3" : "1"; }
+    else y += dy;
+    const off = !p.on || x < -60 || x > W + 60 || y < -8 || y > H + 20;
+    el.classList.toggle("off", off);
+    if (off) continue;
+    const mid = k === "altair" || k === "minilion" || k === "comet";
+    const w = +(el.dataset.w || el.offsetWidth), h = +(el.dataset.h || el.offsetHeight);
+    let top = mid ? y - h / 2 : y;
+    boxes.push({ el, x, y, w, h: mid ? y + h / 2 - top : h, mid, fixed: k === "altair" || k === "minilion" || k === "comet", top });
+  }
+  // de-clutter: fixed anchors stay, the others slide down below whatever they overlap
+  const placed = boxes.filter((b) => b.fixed && b.el.dataset.k === "altair");
+  boxes.filter((b) => !b.fixed).sort((a, b) => a.top - b.top).forEach((b) => {
+    for (let n = 0; n < 6; n++) {
+      const hit = placed.find((o) => Math.abs(o.x - b.x) * 2 < o.w + b.w + 4 && b.top < o.top + o.h + 3 && b.top + b.h + 3 > o.top);
+      if (!hit) break;
+      b.top = hit.top + hit.h + 3;
+    }
+    b.y = b.top;
+    placed.push(b);
+  });
+  for (const b of boxes) if (!b.mid) b.x = Math.min(Math.max(b.x, b.w / 2 + 4), W - b.w / 2 - 4); // keep names on screen
+  for (const b of boxes) b.el.style.transform = `translate3d(${b.x.toFixed(1)}px,${b.y.toFixed(1)}px,0) ${b.mid ? "translate(-50%,-50%)" : "translateX(-50%)"}`;
+}
+
+function onLevel(lv: Level) {
+  if (lv !== 3) ui.deep = false;
+  refreshUI();
+  learnCtx();
+}
+
+function mount() {
+  const host = document.getElementById("gxHost");
+  if (!host) return;
+  if (!G && !glFailed) {
+    try {
+      G = new Galaxy(root, {
+        frame: place,
+        level: (lv) => onLevel(lv),
+        pick: (k) => A.gxPick(k),
+        hidden: () => !root.isConnected || document.hidden || !!document.querySelector(".phone.ov"),
+      }, PO());
+      root.prepend(G.canvas);
+      new ResizeObserver(() => G?.resize()).observe(root);
+      bindContSwipe();
+    } catch (e) {
+      console.warn("WebGL unavailable → list view", e);
+      glFailed = true; G = null;
+      host.outerHTML = listView();
+      return;
+    }
+  }
+  host.appendChild(root);
+  G!.resize();
+  G!.setModel(model());
+  if (ui.first) {
+    ui.first = false;
+    const dom = suggestedDomain();
+    if (!S.galaxy.seen && !noMotion()) G!.intro(dom); else G!.place(2, dom);
+    if (!S.galaxy.seen) { S.galaxy.seen = true; save(); }
+  }
+  refreshUI();
+  G!.start();
+}
+
+/** Drag the Continue card down to tuck it away (tap the handle to bring it back). */
+function bindContSwipe() {
+  let y0 = 0, on = false;
+  const c = part("cont");
+  c.addEventListener("pointerdown", (e) => { if ((e.target as HTMLElement).closest("button:not(.gx-grab)")) return; y0 = e.clientY; on = true; });
+  window.addEventListener("pointerup", (e) => {
+    if (!on) return; on = false;
+    const dy = e.clientY - y0;
+    if (dy > 36 && !ui.collapsed) toggleCont(); else if (dy < -36 && ui.collapsed) toggleCont();
+  });
+}
+function toggleCont() { ui.collapsed = !ui.collapsed; refreshUI(); }
+
+/* ---------- actions ---------- */
+function pick(key: string) {
+  if (!G || G.justDragged()) return;
+  if (key.startsWith("sys:")) G.goSystem(key.slice(4) as DomainId);
+  else if (key.startsWith("pl:")) goPlanet(key.slice(3));
+  else if (key === "altair") { if (G.level === 1) A.openCustom(); else G.goGalaxy(); }
+  else if (key === "home") A.go("play");
+  else if (key === "comet") catchComet();
+}
+function goPlanet(id: string) {
+  if (!G) return;
+  ui.deep = false;
+  G.goPlanet(id);
+}
+function catchComet() {
+  if (cometsWaiting() <= 0) return;
+  S.chests.push("comet-" + (S.chests.filter((c) => c.startsWith("comet-")).length + 1));
+  addXP(20);
+  checkBadges(S); save();
+  G?.cometBurst();
+  confetti(document.querySelector<HTMLElement>(".phone"));
+  minitoast(t("gx.cometGot", { xp: 20 }));
+  setTimeout(() => A.go("learn"), 250);
+}
+const ROCKET = `<svg viewBox="0 0 60 92" width="54" height="83" aria-hidden="true"><path class="gx-flame" d="M21 62 Q30 92 39 62Z" fill="#FFC93C"/><path d="M30 3C45 17 47 40 43 63H17C13 40 15 17 30 3Z" fill="#fff" stroke="#1E1B3A" stroke-width="3" stroke-linejoin="round"/><path d="M17 48 5 70l13-4Zm26 0 12 22-13-4Z" fill="#EF4E4E" stroke="#1E1B3A" stroke-width="3" stroke-linejoin="round"/><path d="M30 3c6 6 10 12 12 19H18c2-7 6-13 12-19Z" fill="#5B5BD6" stroke="#1E1B3A" stroke-width="3" stroke-linejoin="round"/><circle cx="30" cy="37" r="11" fill="#CFE6FF" stroke="#1E1B3A" stroke-width="3"/></svg>`;
+/** LAND: Alti Lion's little rocket flies down onto the planet, then the lesson opens. */
+function land(id: string) {
+  if (!G || !findLesson(id)) return;
+  const deep = ui.deep && !!S.lessons[id];
+  if (noMotion()) return A.startLesson(id, deep);
+  const p = G.project("pl:" + id), fx = part("fx");
+  const x1 = p.x - 27, y1 = p.y - p.ppu * 1.0 - 70, x0 = root.clientWidth * 0.82, y0 = -110;
+  fx.innerHTML = `<div class="gx-rocket" style="--x0:${x0}px;--y0:${y0}px;--x1:${x1}px;--y1:${y1}px">${ROCKET}<div class="gx-rl">${lion(20)}</div></div><div class="gx-puff" style="left:${p.x}px;top:${p.y - p.ppu}px"></div>`;
+  root.classList.add("landing");
+  setTimeout(() => { fx.innerHTML = ""; root.classList.remove("landing"); A.startLesson(id, deep); }, 1250);
+}
+
+/* ============================== list view (accessible / low-end / no WebGL) ============================== */
+function listView() {
+  const sub = glFailed ? `<p class="gx-nogl">${icon("info", { size: 16 })} ${t("gx.noGL")}</p>` : "";
+  return `<div class="lhead gxlist-h"><div><h2 class="title">${t("gx.title")}</h2><p class="muted">${t("gx.sub")}</p></div>${glFailed ? "" : `<button class="btn ghost sm" onclick="A.gxList(false)">${icon("sparkle", { size: 16, color: "#E0A800", tint: 0.5 })} ${t("gx.galaxy")}</button>`}</div>${sub}
+  <div class="tile2 goal gxlist-goal">${ring(S.today.xp, S.goal, 56)}<div><div class="t2-k">${t("hm.today")}</div><div class="t2-v"><b>${S.today.xp}</b><small>/${S.goal} XP</small></div></div><div class="gxlist-streak">${icon("flame", { size: 26, color: IC.flame, tint: 0.35 })}<b>${S.streak}</b></div></div>
+  ${continueCard(false)}
+  ${DOMAINS.map((d, i) => `<section class="lsys" aria-label="${esc(tx(d.title))}">
+    <div class="rhead" style="--dc:${d.color}"><div class="rh-ic">${icon(d.ic, { size: 26, color: "#fff", tint: 0.35 })}</div><div style="flex:1;min-width:0"><small>${t("learn.domain", { n: i + 1 })} · ${t("gx.explored", { p: explored(d) })}</small><h3>${esc(tx(d.title))}</h3><div class="rh-desc">${d.tag ? `<b>${esc(tx(d.tag))}</b> · ` : ""}${esc(tx(d.desc))}</div></div></div>
+    <ul class="lrows">${d.nodes.map((n) => { const st = nodeState(n); return `<li><button class="lrow st-${st}" style="--dc:${d.color}" onclick="A.openLessonCard('${n.id}')"><span class="lr-code">${n.code}</span><span class="lr-body"><b>${esc(tx(n.hook))}</b><small>${esc(tx(n.title))} · ${stLabel(st)}${n.prereq.length ? ` · ${t("learn.prereq")}: ${n.prereq.map((p) => findNode(p)!.code).join(", ")}` : ""}</small></span>${st === "soon" ? `<span class="gx-tag soon">${n.day}</span>` : stars(n.id) || icon("chevron", { size: 18, color: "var(--muted)" })}</button></li>`; }).join("")}</ul></section>`).join("")}`;
+}
+
+/* ============================== shell hooks ============================== */
 export function learnView() {
   const fresh = checkBadges(S);
   if (fresh.length) { save(); setTimeout(() => minitoast(t("ms.newBadge", { b: tx(fresh[0].name) })), 400); }
-  return hero() + `<div class="lhead"><h2 class="title">${t("hm.pathTitle")}</h2><p class="muted">${t("learn.sub")}</p></div>` + DOMAINS.map(region).join("");
+  return S.galaxy.list || glFailed ? listView() : `<div class="gxhost" id="gxHost"></div>`;
 }
+/** Called by the shell right after the Learn tab's HTML is in the page. */
+export function afterLearnRender() { if (document.getElementById("gxHost")) mount(); }
 
 export function learnCtx() {
-  setCtx({ key: "tab:learn", where: t("as.whereLearn"), title: t("learn.title"), short: t("learn.sub"), answered: true, kb: ["budget", "inflation", "compound", "breakeven"] });
+  const n = G && !S.galaxy.list && G.level === 3 && G.focusNode ? findNode(G.focusNode) : null;
+  if (n) {
+    const les = n.lesson;
+    return setCtx({ key: "gx:" + n.id, where: t("gx.where") + " · " + n.code, title: tx(n.hook), short: les ? tx(les.info.s) : tx(n.title), long: les ? tx(les.info.l) : undefined, answered: true, kb: les?.kb || [] });
+  }
+  const d = G && !S.galaxy.list && G.focusDom ? domainOf(G.focusDom) : null;
+  setCtx({ key: "tab:learn", where: t("gx.where"), title: d ? tx(d.title) : t("gx.title"), short: d ? tx(d.desc) : t("gx.sub"), answered: true, kb: ["budget", "inflation", "compound", "breakeven"] });
 }
 
-/** Bottom sheet when a node is tapped: what's inside, "Good to know first", 1-minute refresher, Basic / Deep dive. */
+/** Bottom sheet for the List view: what's inside, "Good to know first", 1-minute refresher, Basic / Deep dive. */
 function openLessonCard(id: string) {
-  const les = findLesson(id);
-  if (!les) {
-    const stub = DOMAINS.flatMap((d) => d.lessons).find((l) => l.id === id);
-    return sheet(`<div style="display:inline-block">${lion(70, "wow")}</div><h2>${stub ? esc(tx(stub.title)) : ""}</h2><p class="muted" style="font-weight:700">${t("learn.soonDay")}</p>`, [[t("learn.gotIt"), "A.closeSheet()", "ghost"]]);
-  }
-  const rec = S.lessons[id], d = DOMAINS.find((x) => x.id === les.domain);
-  const hasVideo = les.steps.some((s) => s.t === "video");
+  const n = findNode(id), les = findLesson(id);
+  if (!n) return;
+  const d = domainOf(n.domain);
+  if (!les) return sheet(`<div style="display:inline-block">${lion(70, "wow")}</div><div class="gx-code" style="--dc:${d.color}">${n.code}</div><h2>${esc(tx(n.hook))}</h2><p class="muted" style="font-weight:700">${t("gx.soonCard", { d: n.day })}</p>`, [[t("learn.gotIt"), "A.closeSheet()", "ghost"]]);
+  const rec = S.lessons[id], hasVideo = les.steps.some((s) => s.t === "video");
   const meta = `${icon("clock", { size: 15 })} ${les.minutes} min · ${t("learn.steps", { n: les.steps.length })}${hasVideo ? ` · ${icon("video", { size: 15 })} ${t("learn.hasVideo")}` : ""}`;
-  const prereq = les.prereq ? `<div class="prereq">${icon("pin", { size: 16, color: "#C97A06" })} <b>${t("learn.prereq")}:</b> ${tx(les.prereq)} <button class="linkbtn inline" onclick="A.openReview('${id}')">${icon("bolt", { size: 14 })} ${t("learn.review")}</button></div>` : `<button class="linkbtn" onclick="A.openReview('${id}')">${icon("bolt", { size: 14 })} ${t("learn.review")}</button>`;
+  const pre = n.prereq.length ? `<div class="prereq">${icon("pin", { size: 16, color: "#C97A06" })} <b>${t("learn.prereq")}:</b> ${n.prereq.map((p) => `${findNode(p)!.code} · ${esc(tx(findNode(p)!.title))}`).join(", ")}</div>` : "";
   const btns: Array<[string, string, string?]> = [[`${rec ? "↻ " : ""}${t("learn.startBasic")}`, `A.startLesson('${id}')`, "good"]];
   if (les.deep) btns.push([`${icon(rec ? "deep" : "lock", { size: 18, tint: 0.3 })} ${rec ? t("learn.deep") : t("learn.deepLocked")}`, rec ? `A.startLesson('${id}',true)` : "", rec ? "sun" : "ghost lockedbtn"]);
-  sheet(`<div class="lcard"><div class="lc-ic" style="background:${d?.color || "var(--pri)"}">${icon(les.ic, { size: 32, color: "#fff", tint: 0.35 })}</div><div style="flex:1;min-width:0;text-align:left"><h2 style="margin:0">${tx(les.title)}</h2><div class="muted lc-meta">${meta}</div></div></div>
-    <p class="muted" style="font-weight:700;text-align:left">${tx(les.desc)}</p>${prereq}`, btns);
+  sheet(`<div class="lcard"><div class="lc-ic" style="background:${d.color}">${icon(n.ic, { size: 32, color: "#fff", tint: 0.35 })}</div><div style="flex:1;min-width:0;text-align:left"><div class="muted lc-meta"><b>${n.code}</b> · ${esc(tx(n.title))}</div><h2 style="margin:0">${esc(tx(n.hook))}</h2><div class="muted lc-meta">${meta}</div></div></div>
+    <p class="muted" style="font-weight:700;text-align:left">${tx(les.desc)}</p>${pre}<button class="linkbtn" onclick="A.openReview('${id}')">${icon("bolt", { size: 14 })} ${t("learn.review")}</button>`, btns);
   document.querySelector(".lockedbtn")?.setAttribute("disabled", "");
 }
 function openReview(id: string) {
   const les = findLesson(id);
   if (!les) return;
-  sheet(reviewCard(les), [[t("learn.gotIt"), `A.openLessonCard('${id}')`, "good"]]);
-}
-function openChest(id: string) {
-  const it = DOMAINS.flatMap(itemsOf).find((x) => x.kind === "chest" && x.id === id) as Extract<Item, { kind: "chest" }> | undefined;
-  if (!it) return;
-  if (S.chests.includes(id)) return sheet(`<div class="chestbig">${icon("chestOpen", { size: 84, color: "#C97A06", tint: 0.45 })}</div><h2>${t("ms.chestDone")}</h2>`, [[t("learn.gotIt"), "A.closeSheet()", "ghost"]]);
-  if (!chestReady(it.before)) return sheet(`<div class="chestbig">${icon("chest", { size: 84, color: "var(--lockd)", tint: 0.25 })}</div><h2>${t("ms.chest")}</h2><p class="muted" style="font-weight:700">${t("ms.chestLocked")}</p>`, [[t("learn.gotIt"), "A.closeSheet()", "ghost"]]);
-  S.chests.push(id);
-  addXP(20);
-  sheet(`<div class="chestbig opening">${icon("chestOpen", { size: 92, color: "#C97A06", tint: 0.5 })}<span class="xpfly">+20 XP</span></div><h2>${t("ms.chestOpen")}</h2><p class="muted" style="font-weight:800">${t("ms.chestGot", { xp: 20 })}</p>`, [[t("c.continue"), "A.closeSheet();A.go('learn')", "good"]]);
-  confetti(document.querySelector<HTMLElement>(".phone"));
-}
-function openBadge(id: string) {
-  const d = DOMAINS.find((x) => "dom-" + x.id === id);
-  if (!d) return;
-  const got = S.badges.includes(id) || domainDone(S, d.id);
-  sheet(`<div class="badgebig" style="background:${got ? d.color : "var(--lock)"}">${icon("medal", { size: 64, color: "#fff", tint: 0.4 })}</div><h2>${t("ms.badge", { d: esc(tx(d.title)) })}</h2><p class="muted" style="font-weight:700">${got ? t("ms.badgeGot") : t("ms.badgeHow")}</p>`, [[t("learn.gotIt"), "A.closeSheet()", "ghost"]]);
+  sheet(reviewCard(les), [[t("learn.gotIt"), S.galaxy.list || glFailed ? `A.openLessonCard('${id}')` : "A.closeSheet()", "good"]]);
 }
 
-reg({ openLessonCard, openReview, openChest, openBadge, closeLessonCard: () => closeSheet() });
+reg({
+  openLessonCard, openReview, closeLessonCard: () => closeSheet(),
+  gxPick: pick,
+  gxPlanet: (id: string) => { if (S.galaxy.list || glFailed) return openLessonCard(id); goPlanet(id); },
+  gxSys: (id: DomainId) => G?.goSystem(id),
+  gxGalaxy: () => G?.goGalaxy(),
+  gxBack: () => G?.back(),
+  gxZoom: (d: 1 | -1) => G?.zoomStep(d),
+  gxTier: (deep: boolean) => { ui.deep = deep; refreshUI(); },
+  gxLand: land,
+  gxCont: toggleCont,
+  gxList: (on: boolean) => { S.galaxy.list = on; save(); A.go("learn"); },
+});

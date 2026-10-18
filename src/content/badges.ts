@@ -7,7 +7,7 @@ export interface Badge { id: string; ic: string; color: string; name: T; how: T;
 
 const done = (S: State) => Object.keys(S.lessons).length;
 export const domainDone = (S: State, id: string) => {
-  const real = DOMAINS.find((d) => d.id === id)!.lessons.filter(isReal);
+  const real = DOMAINS.find((d) => d.id === id)!.nodes.filter(isReal);
   return real.length > 0 && real.every((l) => S.lessons[l.id]);
 };
 
@@ -19,7 +19,7 @@ export const BADGES: Badge[] = [
   { id: "streak3", ic: "flame", color: "#F2762E", name: { vi: "Lửa nhỏ", en: "Spark" }, how: { vi: "Học 3 ngày liên tiếp.", en: "Learn 3 days in a row." }, test: (S) => S.streak >= 3 },
   { id: "streak7", ic: "flame", color: "#EF4E4E", name: { vi: "Lửa bền", en: "On fire" }, how: { vi: "Học 7 ngày liên tiếp.", en: "Learn 7 days in a row." }, test: (S) => S.streak >= 7 },
   { id: "xp100", ic: "trophy", color: "#E0A800", name: { vi: "100 XP", en: "100 XP" }, how: { vi: "Tích lũy 100 XP.", en: "Earn 100 XP." }, test: (S) => S.xp >= 100 },
-  { id: "chest", ic: "chestOpen", color: "#C97A06", name: { vi: "Săn kho báu", en: "Treasure hunter" }, how: { vi: "Mở một rương thưởng trên con đường học.", en: "Open a reward chest on the learning road." }, test: (S) => S.chests.length > 0 },
+  { id: "chest", ic: "chestOpen", color: "#C97A06", name: { vi: "Săn sao chổi", en: "Comet catcher" }, how: { vi: "Nhặt một sao chổi thưởng trong dải ngân hà.", en: "Catch a reward comet in the galaxy." }, test: (S) => S.chests.length > 0 },
   { id: "placement", ic: "target", color: "#0E9F9A", name: { vi: "Biết mình ở đâu", en: "Know thyself" }, how: { vi: "Làm bài test xếp lớp.", en: "Take the placement test." }, test: (S) => !!S.placement },
   ...DOMAINS.map((d): Badge => { const n = d.title as T; return { id: "dom-" + d.id, ic: d.ic, color: d.color, name: n, how: { vi: `Học xong mọi bài hiện có của mảng "${n.vi}".`, en: `Finish every available lesson in "${n.en}".` }, test: (S) => domainDone(S, d.id) }; }),
 ];

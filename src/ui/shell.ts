@@ -10,7 +10,7 @@ import { hydrateImages } from "./realimage";
 import { wxOverlay } from "./weather";
 import { setCtx } from "../assistant/context";
 import { refreshFab, placeFab } from "../assistant/assistant";
-import { learnView, homeFirst, learnCtx } from "./learn";
+import { learnView, homeFirst, learnCtx, afterLearnRender } from "./learn";
 import { exploreView } from "./explore";
 import { playView } from "./play";
 import { meView } from "./me";
@@ -53,6 +53,8 @@ export function render(enter = false) {
   const views: Record<Tab, () => string> = { learn: learnView, explore: exploreView, play: playView, me: meView, settings: settingsView };
   const scr = $("#screen")!;
   scr.innerHTML = views[tab]();
+  scr.classList.toggle("gxmode", !!$("#gxHost"));
+  if (tab === "learn") afterLearnRender();
   scr.classList.toggle("enter", enter);
   if (enter) setTimeout(() => scr.classList.remove("enter"), 900);
   document.querySelectorAll<HTMLButtonElement>(".nav button").forEach((b) => {
@@ -65,7 +67,7 @@ export function render(enter = false) {
   hydrateImages(scr);
   if (!ovShown()) tabCtx();
   refreshFab();
-  if (tab === "learn" && S.set.inter && !PO() && !ovShown()) {
+  if (tab === "learn" && S.set.inter && !PO() && !ovShown() && document.getElementById("homeTalk")) {
     if (talkId() === "homeTalk") paintTalk(false);
     else startTalk("homeTalk", LINES.home, homeFirst(false));
   }

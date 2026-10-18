@@ -4,7 +4,7 @@
 import type { TL } from "../i18n/i18n";
 import type { VideoDef } from "./video";
 
-export type DomainId = "personal" | "corporate" | "markets" | "public" | "intl";
+export type DomainId = "personal" | "corporate" | "macro" | "markets" | "public" | "intl";
 
 export interface Img { src: string; alt: TL; credit: TL } // real photos must carry a credit (see assets/CREDITS.md)
 
@@ -62,5 +62,29 @@ export interface Lesson {
   deep?: Step[]; // "Đào sâu" (optional)
 }
 
-/** Lessons not written yet still appear on the path so the 5-area structure is visible. */
-export interface LessonStub { id: string; domain: DomainId; icon: string; ic: string; title: TL; soon: true }
+/* ---------- Course map (design doc 13.1 & 13.2d): every lesson is a planet in the Altair galaxy ----------
+ * A node exists for all 20 lessons; `lesson` is set once the content is written (otherwise the planet is a dashed sketch). */
+export type PlanetShape = "rocky" | "gas" | "ocean" | "ice";
+export type PlanetFeature =
+  | "leak" | "cardRing" | "shrink" | "flags" | "strata" | "boba" | "tagRing" | "craters" | "twin" | "cities"
+  | "swell" | "dial" | "satellites" | "twinMoons" | "bars" | "crystals" | "pie" | "saturn" | "split" | "cracked";
+export interface PlanetDef {
+  shape: PlanetShape;
+  palette: string[]; // 3–4 colors, low → high ground (or band colors for gas planets)
+  feature: PlanetFeature; // the shape that hints at the topic (13.1 level 2)
+  size?: number; // radius multiplier (default 1)
+  at?: [number, number]; // hand-placed [angle in degrees, orbit radius] inside its system; default = automatic
+}
+export interface CourseNode {
+  id: string;
+  code: string; // P1, B3, M2… (13.2d)
+  domain: DomainId;
+  ic: string; // UI icon (src/ui/icons.ts)
+  title: TL; // short topic — planet label
+  hook: TL; // the mystery question (13.2b-1) — headline of the planet card
+  prereq: string[]; // "good to know first" lesson ids, may point into another area (13.2f light bands)
+  unlock: TL; // what finishing it unlocks in the game (13.2b-7)
+  planet: PlanetDef;
+  day: string; // when the (re)written content is scheduled (13.6)
+  lesson?: Lesson;
+}

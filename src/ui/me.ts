@@ -4,7 +4,7 @@ import { S, save, resetState, lessonsDone, type Profile } from "../core/state";
 import { reg } from "../core/actions";
 import { t, tx, lang } from "../i18n/i18n";
 import { lion } from "../mascot/lion";
-import { DOMAINS } from "../content/domains";
+import { NODES } from "../content/domains";
 import { BN, openO, closeO, render, setOvRerender } from "./shell";
 import { sheet, closeSheet } from "./fx";
 import { COUNTRIES, country, countryName, wxName, pickWx, updateWeather, wxHTML } from "./weather";
@@ -43,7 +43,7 @@ function nwCard() {
 export function meView() {
   if (checkBadges(S).length) save();
   const time = new Date(S.lastOpen).toLocaleTimeString(lang() === "vi" ? "vi-VN" : "en-US", { hour: "2-digit", minute: "2-digit" });
-  const total = DOMAINS.reduce((a, d) => a + d.lessons.length, 0);
+  const total = NODES.length;
   const lv = curLvl(), p = S.p, c = country(p.country), ini = (p.name.trim()[0] || "?").toUpperCase();
   const stat = (ic: string, color: string, key: string, val: number, label: string, extra = "") => `<div class="mestat">${icon(ic, { size: 26, color, tint: 0.3 })}<b data-ck="${key}" data-to="${val}">${val}</b>${extra}<span>${label}</span></div>`;
   return `<section class="mehead">

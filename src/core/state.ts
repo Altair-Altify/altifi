@@ -39,9 +39,10 @@ export interface State {
   game: GameState | null;
   today: { day: string; xp: number }; // daily goal ring on the home hero
   goal: number; // daily XP goal
-  chests: string[]; // opened milestone chests on the path
+  chests: string[]; // collected reward comets in the galaxy (were chests on the old road)
   badges: string[]; // earned achievement badges (kept once earned)
   inprog: { id: string; deep: boolean; s: number; n: number } | null; // lesson left half-way → "Continue" card
+  galaxy: { seen: boolean; list: boolean }; // Learn tab (13.1): intro fly-in already shown · list view instead of the galaxy
   legacy: { life?: unknown; oldLessonsDone?: number; migratedFrom?: string[] };
 }
 
@@ -62,6 +63,7 @@ export const fresh = (): State => ({
   v: 1, xp: 0, streak: 1, lastDay: new Date().toDateString(), lastOpen: Date.now(), hearts: MAX_HEARTS,
   set: defaultSet(), p: defaultP(), m: defaultM(), lessons: {}, placement: null, game: null, legacy: {},
   today: { day: new Date().toDateString(), xp: 0 }, goal: 20, chests: [], badges: [], inprog: null,
+  galaxy: { seen: false, list: false },
 });
 
 /* Coin "Tiko" → lion "Alti Lion". Eyes/mouth keys mostly match; colors differ. */
@@ -129,6 +131,7 @@ export function normalize(raw: any): State {
   if (!Array.isArray(S.badges)) S.badges = [];
   if (!S.today || typeof S.today.xp !== "number") S.today = { day: new Date().toDateString(), xp: 0 };
   if (typeof S.goal !== "number") S.goal = 20;
+  S.galaxy = Object.assign({ seen: false, list: false }, raw.galaxy || {});
   if (typeof S.hearts !== "number") S.hearts = MAX_HEARTS;
   S.hearts = Math.max(0, Math.min(MAX_HEARTS, S.hearts));
   if (!["vi", "en"].includes(S.set.lang)) S.set.lang = guessLang();
