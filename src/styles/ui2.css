@@ -228,3 +228,34 @@ body.night .mestat{border:1px solid var(--line)}
 .q{font-size:22px;letter-spacing:-.2px}
 .rc-btns .btn,.sheet .btn{display:flex;align-items:center;justify-content:center;gap:6px}
 .deeptag{display:inline-flex;align-items:center;gap:3px}
+
+/* ---- Explore: article cards & reader ---- */
+.exhero.tap,.exsmall.tap{cursor:pointer}
+.exsumm{margin:4px 0 6px;font-size:13.5px;line-height:1.45;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.exmeta{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:800;color:var(--muted);margin-left:6px;vertical-align:middle}
+.exsmall .exmeta{display:flex;margin:4px 0 0}
+.exsoon{opacity:.75}
+.exhead{font-size:17px}
+.exread .rimg{border-radius:18px;margin:0 0 10px}
+.exread h2.extitle{margin:8px 0 10px;font-size:22px;line-height:1.25}
+.exread h3{margin:20px 0 8px;font-size:17px}
+.exread p{line-height:1.55;margin:0 0 10px}
+.exsum{border-left:5px solid var(--pri)}
+.exsum p{margin:4px 0 0}
+.exlbl{font-size:12px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.exsides{display:grid;gap:10px}
+.exside{display:flex;gap:10px;align-items:flex-start;margin:0}
+.exside .e{font-size:26px;line-height:1}
+.exside p{margin:2px 0 0;font-size:14px}
+.exq{margin:0 0 10px}
+.exopts{display:grid;gap:8px;margin-top:10px}
+.exopt{text-align:left;padding:11px 12px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:800;font-size:14px;min-height:44px}
+.exopt.right{background:var(--okbg);border-color:var(--okline);color:var(--okt)}
+.exopt.wrong{background:var(--nobg);border-color:var(--noline);color:var(--not)}
+.exopt.dim{opacity:.6}
+.exwhy{margin:10px 0 0;font-size:14px}
+.exsrc{margin:0 0 8px;padding-left:20px;font-size:13.5px;line-height:1.5}
+.exdraft{font-size:12.5px;font-style:italic}
+.exbtns{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
+.exbtns .btn{flex:1 1 140px}
+.obody.exread{padding-bottom:84px}

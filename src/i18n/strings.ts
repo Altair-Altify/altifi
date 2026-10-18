@@ -220,7 +220,18 @@ export const STRINGS = {
   /* explore */
   "ex.title": ["Khám phá", "Explore"],
   "ex.sub": ["Sự kiện tài chính thế giới, tóm tắt từ nguồn uy tín — có góc nhìn của từng bên.", "World finance stories, summarised from trusted sources — with every side's view."],
-  "ex.soon": ["Bài đọc đầu tiên sẽ lên vào 23/10", "First stories land on 23 Oct"],
+  "ex.hello": ["Chạm một bài để đọc — gặp từ khó cứ hỏi mình nhé", "Tap a story to read — ask me about any tricky word"],
+  "ex.sum30": ["Tóm tắt 30 giây", "The 30-second version"],
+  "ex.happened": ["Chuyện gì đã xảy ra", "What happened"],
+  "ex.matters": ["Vì sao quan trọng", "Why it matters"],
+  "ex.sides": ["Góc nhìn các bên", "Every side's view"],
+  "ex.quiz": ["Thử hiểu nhanh", "Quick check"],
+  "ex.sources": ["Nguồn", "Sources"],
+  "ex.ok": ["Đúng rồi!", "Right!"],
+  "ex.no": ["Chưa đúng.", "Not quite."],
+  "ex.ask": ["Hỏi Alti Lion", "Ask Alti Lion"],
+  "ex.lesson": ["Học bài liên quan", "Related lesson"],
+  "ex.draft": ["Bài do AI tổng hợp bằng lời của Altifi từ các nguồn trên; số liệu làm tròn, đang được nhóm kiểm chứng.", "Written by AI in Altifi's own words from the sources above; figures are rounded and being checked by the team."],
 
   /* play */
   "pl.title": ["Chơi", "Play"],

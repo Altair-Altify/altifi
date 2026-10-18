@@ -16,6 +16,8 @@
 - **(21/10) Lãi suất mô phỏng: NHTW 4% → 5% (tháng 5) → 6% (tháng 7); vay thả nổi = NHTW + 6,5%; cố định 12,5%; tiết kiệm = NHTW + 1,6%; thẻ tín dụng 30%/năm; lạm phát 3,5%/năm** — gần đúng diễn biến 2022 để bài M2 có hậu quả thật. ⚠️ Cần kiểm chứng/ghi nguồn trước khi nộp.
 - **(21/10) Bảng giá nhà/xe** (phòng trọ 2,5tr/tháng, căn hộ thuê 5,5tr, xe máy 35tr, căn hộ 1,6 tỷ, ô tô nhỏ 550tr…) và **7 bạn NPC có quỹ đạo tài sản theo lối sống** (người liều mất 65% ở tháng 5 khi quỹ sụp…) — số "gần thật", chỉnh khi cân bằng game (13.4 cho phép).
 - **(21/10) Mỗi tháng có 30% khả năng gặp sự cố (ốm 4tr / hỏng điện thoại 3tr) từ tháng 3** — để quỹ khẩn cấp và bảo hiểm có ý nghĩa (6.3 "sự kiện bất ngờ").
+- **(26/10) Khám phá làm 3 bài: lãi suất NHTW (Fed 2022–23), châu Á 1997, vàng khi bất ổn; SpaceX và "doanh nghiệp VN" để "sắp có"** — 3 bài này có số liệu ổn định, gắn thẳng với bài M2/X2/I2; định giá SpaceX thay đổi liên tục và Claude không tra được số mới (mạng chặn), chủ đề doanh nghiệp VN cần nhóm chọn cho trung lập (mục 4). Nguồn ghi là tên tổ chức/báo cáo, chưa có link — ⚠️ nhóm kiểm số & thêm link.
+- **(26/10) Bài Khám phá chưa cộng XP, chưa lưu "đã đọc"** — giữ bản tối thiểu, không đổi cấu trúc save; thêm sau nếu cần.
 - **(26/10) X1/X2: tỷ giá USD/VND 2020–2024 (≈ 23,1 → 25,4 nghìn), baht 25 → ~50–56/USD, mức mất giá 1997–98 (Indonesia ~80%, Thái ~55%, Hàn ~50%, Malaysia ~45%), gói IMF (Thái ~17 tỷ, Indonesia ~40 tỷ, Hàn ~57 tỷ USD) đều là số làm tròn theo trí nhớ** — biểu đồ ghi "cần kiểm chứng" ngay trên màn hình. ⚠️ nhóm đối chiếu NHNN / IMF.
 - **(26/10) "Phòng 1997" trong Bảo tàng hiện thẻ "bài X2 đã mở phòng này, vai chơi đang dựng" (chưa chơi được)** — 13.6 xếp 1973/2008 sau 26/10 và X2 chỉ yêu cầu "mở phòng"; dựng vai Thống đốc Thái Lan như 1929 cần thêm ~1 ngày, để sau Khám phá.
 - **(24/10) Mọi số liệu thị trường trong I1/I2 (VN-Index 2022, Nasdaq 2000–02, Bitcoin 2020–22) là số làm tròn theo trí nhớ** — biểu đồ Bitcoin ghi "cần kiểm chứng" ngay trên màn hình. ⚠️ nhóm đối chiếu.
@@ -31,6 +33,10 @@
 - **(21/10) Phí trễ hạn BNPL 60.000₫/kỳ, lãi thẻ 30%/năm trong P2 là số minh họa** (ghi rõ "giả định" trong bài) — mỗi ví/ngân hàng mỗi khác; ⚠️ nhóm kiểm một sản phẩm thật để dẫn nguồn.
 - **(21/10) 5 case tháng do Claude soạn nháp** — ⚠️ quy định cuộc thi: nhóm phải đọc, sửa lời, kiểm số liệu (Madoff ~65 tỷ USD, 150 năm tù; Madrian & Shea 37% → 86%; Fed 2022–23; NHNN tăng lãi 2 lần cuối 2022) trước khi nộp.
 - **(20/10) Cửa có thể vào = nút hành động góc phải dưới hiện khi đứng gần (≤ 1,9 m); trong nhà/quầy hiện khung thoại kem + nút "Học ngay" nếu chưa học bài mở khóa nơi đó** — 13.3 yêu cầu nút hành động có nhãn; gắn mỗi nơi với cột "Game" của 13.2d để học xong có lý do vào game (13.2b-7).
+
+## Phiên 5 (tiếp) — 24–26/10: Khám phá 3 bài ✅ (đã push)
+- Dữ liệu `src/content/explore.ts` (`ARTICLES`), giao diện `src/ui/explore.ts`: thẻ lớn + lưới thẻ nhỏ; chạm → màn đọc: ảnh thật → **tóm tắt 30 giây** → chuyện gì đã xảy ra → vì sao quan trọng → **góc nhìn các bên** (4 bên) → **2 câu hỏi nhanh** (chạm là hiện giải thích) → nguồn → nút **Hỏi Alti Lion** (Alti Lion biết đang đọc bài nào, `setCtx` key `ex:<id>`) + **Học bài liên quan** (M2 / X2 / I2). Đổi ngôn ngữ khi đang đọc vẫn giữ bài & câu trả lời.
+- 3 bài: "Ngân hàng trung ương tăng lãi suất: ai được, ai mất?", "Khủng hoảng tài chính châu Á 1997", "Vì sao giá vàng tăng khi thị trường bất ổn?". Thêm bài = thêm 1 phần tử vào `ARTICLES`.
 
 ## Phiên 5 (tiếp) — 24–26/10: bài X1, X2 ✅ (đã push) → **đủ 20/20 bài của 13.2d**
 - **X1 "Vì sao USD tăng thì du học & iPhone đắt hơn?"** (`x-fx`): **đoán** học phí 30.000 USD khi tỷ giá 23k → 25k (+60tr/năm) → phân loại cầu/cung USD → **tính** iPhone +2tr, xưởng may xuất khẩu lời 100tr → 300tr → **chuyện thật** USD/VND 2020–24 & Fed 2022 → **bẫy** "tỷ giá tăng = kinh tế sụp" → trùm cuối (chuẩn bị tiền du học) → Dùng ngay. Đào sâu: ngang giá sức mua (tính).
@@ -308,10 +314,10 @@ Nhóm đo trên altifi.vercel.app ở khung 375×812 và gửi đúng diff sửa
 - Ảnh Wikimedia vẫn chưa test được vì mạng phiên bị chặn (như phiên 2).
 
 ## ▶️ Việc đầu tiên của phiên sau (cập nhật 18/10 tối, giờ VN)
-**Trạng thái:** mọi việc trong lịch 13.6 tới **23/10 đã xong và đã deploy** (thị trấn 7 khu, chế độ Cá nhân, chế độ Doanh nghiệp, khủng hoảng 1929 hai vai, bài P1–P3, B1, B3, B4, M1–M3). Đang làm dòng **24–26/10**.
+**Trạng thái:** mọi việc trong lịch 13.6 tới **23/10 đã xong và đã deploy**; dòng **24–26/10**: đủ **20/20 bài** và **3 bài Khám phá** đã xong, đã deploy. Còn: sửa lỗi/đánh bóng, thử điện thoại (nhóm).
 1. `git pull`, đọc mục "Quyết định Claude Code tự đưa ra" ở đầu file + các mục Phiên 5. `npm install && npm run dev`, `node scripts/playthrough.cjs vi` (đã gồm 20 bài; bước `predict` báo WRONG là đúng thiết kế).
 2. Làm tiếp các bài còn thiếu theo thứ tự 13.6: ~~P4, P5, B2, B5, M4, I1, I2, G1, G2, X1, X2~~ — **xong cả 20 bài**. Bài mới theo khung 6 nhịp 13.2c (mẫu `src/content/lessons/p-bnpl.ts`; thêm `lesson:` vào node trong `src/content/domains.ts` và id vào `scripts/playthrough.cjs`).
-3. **Việc tiếp theo: Khám phá 3 bài (mục 4 — gợi ý trong mục 4: SpaceX, vàng tăng khi bất ổn, một doanh nghiệp VN trung lập)**, rồi sửa lỗi; thử trên điện thoại thật là việc của nhóm. Sau đó nếu còn thời gian: vai chơi phòng 1997.
+3. ~~Khám phá 3 bài~~ (xong: lãi suất, 1997, vàng). **Việc tiếp theo:** sửa lỗi + đánh bóng (dòng 24–26/10); thử trên điện thoại thật là việc của nhóm. Nếu còn thời gian: vai chơi phòng 1997 trong Bảo tàng (giống 1929: `src/content/crisis1929.ts` + `src/ui/crisis.ts`), bài Khám phá thứ 4–5 (SpaceX, doanh nghiệp VN — cần nhóm chọn chủ đề).
 4. Kiểm tra nhanh trước khi push: build, playthrough, và Playwright 375×812 (5 tab, mở bài học, vào thị trấn, kéo joystick, thoát). Script tham khảo đã dùng: mở tab Chơi → `A.goTown()`; trong dev có `window.__town` để dịch chuyển nhân vật.
 5. Tổng kết tuần: nếu từ 18:00 thứ Năm 22/10 (giờ VN) chưa có bản tổng kết ở đầu file thì viết.
 
