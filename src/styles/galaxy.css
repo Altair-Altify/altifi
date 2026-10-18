@@ -196,7 +196,7 @@ body.night .hs-k{color:#FFD66B}
 body.imgbg .gx{background:linear-gradient(rgba(24,18,60,.28),rgba(24,18,60,.28)),var(--bgimg) center/cover no-repeat}
 
 /* ===== Tab change (design doc 10b "Chuyển tab"): only the content layer moves, the background stays ===== */
-.screen-ghost{position:absolute;z-index:1;overflow:hidden;pointer-events:none;flex:none;animation:tabout .16s cubic-bezier(.4,0,1,1) forwards}
+.screen-ghost,.phone>.screen-ghost{position:absolute;z-index:1;margin:0;overflow:hidden;pointer-events:none;flex:none;animation:tabout .16s cubic-bezier(.4,0,1,1) forwards}
 .screen-ghost .ghost-in{position:relative}
 .screen-ghost.from-learn{animation:galaxyout .32s cubic-bezier(.4,0,.6,1) forwards} /* the 3D galaxy recedes into the light background */
 @keyframes tabout{to{opacity:0;transform:translateY(8px)}}

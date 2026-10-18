@@ -49,7 +49,9 @@ function ghostOut(scr: HTMLElement, from: Tab) {
   inner.style.cssText = `height:${scr.scrollHeight}px;transform:translateY(${-scr.scrollTop}px)`;
   while (scr.firstChild) inner.appendChild(scr.firstChild);
   g.appendChild(inner);
-  g.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id")); // the new screen owns the ids
+  // the new screen owns the ids — but leave the persistent 3D layers (galaxy, home planet) alone: they are re-mounted
+  // into the next Learn/Play screen and need their ids (e.g. #homeTalk, Alti Lion's speech bubble) to keep working
+  g.querySelectorAll("[id]").forEach((e) => { if (!e.closest(".gx,.hs-host")) e.removeAttribute("id"); });
   scr.parentElement!.insertBefore(g, scr);
   if (from === "learn") recedeGalaxy();
   setTimeout(() => g.remove(), from === "learn" ? 340 : 200);

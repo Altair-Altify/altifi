@@ -2,6 +2,19 @@
 
 > Đọc file này + `ALTIFI_DESIGN.md` ở đầu mỗi phiên. Cập nhật ở cuối mỗi phiên.
 
+## Phiên 4d — sửa lỗi chuyển tab (do commit 21a6dac) ✅
+
+Nhóm đo trên altifi.vercel.app ở khung 375×812 và gửi đúng diff sửa; đã áp dụng nguyên văn.
+1. **Lớp ghost chiếm chỗ trong bố cục:** `.phone>.screen{position:relative}` (base.css) mạnh hơn `.screen-ghost{position:absolute}`. Ghost lại mang class `screen` (do sao chép className của #screen), nên nằm trong luồng bố cục và đẩy #screen mới xuống còn ~43px trong 0,2–0,34s → giật/chớp. Sửa: thêm selector `.phone>.screen-ghost` (cùng độ mạnh, nạp sau nên thắng) và `margin:0` (`src/styles/galaxy.css`).
+2. **ghostOut xóa id trong các lớp 3D dùng lại:** `.gx` (ngân hà) và `.hs-host` (hành tinh nhà) được gắn lại ở lần vào Học/Chơi sau, nhưng id bên trong đã bị xóa → `#homeTalk` mất, bong bóng thoại Alti Lion ngừng chạy sau lần rời tab Học đầu tiên. Sửa: bỏ qua các phần tử nằm trong `.gx`, `.hs-host` (`ghostOut` trong `src/ui/shell.ts`).
+
+**Kiểm tra** (Playwright, 375×812, lấy mẫu mỗi khung hình trong 400ms sau mỗi lần đổi tab):
+- Học → Khám phá → Chơi → Tôi → Học: `.screen-ghost` luôn `position:absolute`, #screen luôn cao 674px (trước khi sửa: ~43px).
+- Bong bóng Alti Lion: sau Học → Khám phá → Học, `#homeTalk` vẫn còn, có câu thoại, và 6 giây sau đã đổi sang câu khác.
+- `npm run build` không lỗi; không lỗi console.
+
+**Lỗi cũ phát hiện thêm (chưa sửa, không do 21a6dac):** bong bóng thoại chỉ được khởi động khi shell render lại cả tab. Nếu đang ở tab Học mà thu nhỏ từ tầng 2 lên tầng 1 trong ngân hà, bong bóng hiện nhưng trống cho đến lần render sau (vd đổi tab rồi quay lại). Cách sửa gợi ý: khi đổi sang tầng 1 trong `onLevel` (`src/ui/learn.ts`), gọi `startTalk("homeTalk", …)` như shell.ts đang làm.
+
 ## Phiên 4c — đợt sửa cuối của phiên: Night mặc định, tương phản Night, chuyển tab ✅
 
 Đã ghi vào `ALTIFI_DESIGN.md`: mục **13.1b** điểm 7–9 và đoạn **"Chuyển tab"** trong phần motion của **10b**.
