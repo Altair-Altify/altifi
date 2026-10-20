@@ -76,7 +76,80 @@ function chatFor(c: Ctx) {
 }
 export function clearChats() { for (const k of Object.keys(chats)) delete chats[k]; }
 
-/* ---------- floating button ---------- */
+/* ---------- floating button ----------
+ * Hold and drag it anywhere; on release it glides to the nearest edge of the free area (never over the top bar,
+ * the tab bar or a footer) and the spot is remembered on this device. A quick tap still opens the chat.
+ * Hidden during a lesson (the lesson header's ⓘ opens the assistant there). In the town it is pinned top-right
+ * and can't be dragged: joystick, minimap and action button already take the other corners. */
+type FabSpot = { e: "l" | "r" | "t" | "b"; f: number }; // edge + position along it (0..1)
+const FAB_KEY = "altifi-fab-v1", FAB_M = 12;
+let spot: FabSpot = { e: "r", f: 1 }; // default: bottom-right, just above the tab bar
+try { const v = JSON.parse(localStorage.getItem(FAB_KEY) || "null"); if (v && "lrtb".includes(v.e) && v.f >= 0 && v.f <= 1) spot = v; } catch { /* storage blocked */ }
+const saveSpot = () => { try { localStorage.setItem(FAB_KEY, JSON.stringify(spot)); } catch { /* storage blocked */ } };
+const inLesson = () => !!$("#overlay.show.lessonov");
+const pinned = () => !!$(".phone.ingame");
+
+/** The rectangle the button's top-left corner may sit in (phone coordinates). */
+function fabArea(fab: HTMLElement) {
+  const phone = $(".phone")!, ov = $("#overlay");
+  const W = phone.clientWidth, H = phone.clientHeight, size = fab.offsetWidth || 62;
+  let top: number, bottom: number;
+  if (ov?.classList.contains("show")) {
+    const head = ov.querySelector<HTMLElement>(".ohead"), foot = ov.querySelector<HTMLElement>(".ofoot");
+    top = head ? head.offsetHeight : 0;
+    bottom = ov.querySelector(".resultbg") ? 0 : foot ? foot.offsetHeight : 0;
+  } else {
+    top = $("#top")?.offsetHeight || 0;
+    bottom = ($(".nav")?.offsetHeight || 64) + ($("#chatbarSlot")?.offsetHeight || 0);
+  }
+  const x0 = FAB_M, x1 = Math.max(x0, W - FAB_M - size), y0 = top + FAB_M, y1 = Math.max(y0, H - bottom - FAB_M - size);
+  return { x0, x1, y0, y1 };
+}
+const spotXY = (a: ReturnType<typeof fabArea>, sp: FabSpot) => ({
+  x: sp.e === "l" ? a.x0 : sp.e === "r" ? a.x1 : a.x0 + sp.f * (a.x1 - a.x0),
+  y: sp.e === "t" ? a.y0 : sp.e === "b" ? a.y1 : a.y0 + sp.f * (a.y1 - a.y0),
+});
+/** Nearest edge of the free area to a point. */
+function nearestSpot(a: ReturnType<typeof fabArea>, x: number, y: number): FabSpot {
+  const fx = a.x1 > a.x0 ? (x - a.x0) / (a.x1 - a.x0) : 0, fy = a.y1 > a.y0 ? (y - a.y0) / (a.y1 - a.y0) : 0;
+  const d = [["l", x - a.x0, fy], ["r", a.x1 - x, fy], ["t", y - a.y0, fx], ["b", a.y1 - y, fx]] as Array<[FabSpot["e"], number, number]>;
+  d.sort((p, q) => p[1] - q[1]);
+  return { e: d[0][0], f: Math.max(0, Math.min(1, d[0][2])) };
+}
+
+let drag: null | { id: number; sx: number; sy: number; ox: number; oy: number; moved: boolean } = null;
+let dragged = false; // swallow the click that follows a drag
+function fabDown(e: PointerEvent) {
+  const fab = e.currentTarget as HTMLElement;
+  if (pinned() || e.button > 0) return;
+  drag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: fab.offsetLeft, oy: fab.offsetTop, moved: false };
+  dragged = false;
+  try { fab.setPointerCapture(e.pointerId); } catch { /* pointer already gone */ } // fast flicks leave the button before the drag starts
+}
+function fabMove(e: PointerEvent) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const fab = e.currentTarget as HTMLElement, dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+  if (!drag.moved) {
+    if (Math.hypot(dx, dy) < 8) return; // still a tap
+    drag.moved = true;
+    fab.classList.add("dragging");
+  }
+  const a = fabArea(fab);
+  fab.style.left = Math.max(a.x0, Math.min(a.x1, drag.ox + dx)) + "px";
+  fab.style.top = Math.max(a.y0, Math.min(a.y1, drag.oy + dy)) + "px";
+}
+function fabUp(e: PointerEvent) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const fab = e.currentTarget as HTMLElement, moved = drag.moved;
+  drag = null;
+  if (!moved) return;
+  dragged = true;
+  fab.classList.remove("dragging");
+  spot = nearestSpot(fabArea(fab), fab.offsetLeft, fab.offsetTop);
+  saveSpot();
+  placeFab(); // the CSS transition on left/top makes it glide to the edge
+}
+
 export function refreshFab() {
   const phone = $(".phone");
   if (!phone) return;
@@ -85,7 +158,11 @@ export function refreshFab() {
     fab = document.createElement("button");
     fab.id = "lionfab";
     fab.className = "lionfab";
-    fab.onclick = () => openAssistant();
+    fab.onclick = () => { if (dragged) { dragged = false; return; } openAssistant(); };
+    fab.addEventListener("pointerdown", fabDown);
+    fab.addEventListener("pointermove", fabMove);
+    fab.addEventListener("pointerup", fabUp);
+    fab.addEventListener("pointercancel", fabUp);
     phone.appendChild(fab);
   }
   const label = t("as.open", { name: S.m.name });
@@ -94,27 +171,23 @@ export function refreshFab() {
   fab.innerHTML = `${lionFor(curLvl(), 52)}<span class="fabq">?</span>`;
   placeFab();
 }
-/** Keep the button above the nav bar / the lesson's footer, whatever its height. */
+/** Put the button at its remembered edge spot inside the current free area (or hide / pin it). */
 export function placeFab() {
   const fab = $("#lionfab"), phone = $(".phone");
   if (!fab || !phone) return;
-  const ov = $("#overlay");
-  let bottom = 12;
-  if (ov?.classList.contains("show")) {
-    const foot = ov.querySelector<HTMLElement>(".ofoot");
-    const result = ov.querySelector(".resultbg");
-    bottom = result ? 12 : foot ? foot.offsetHeight + 10 : 14;
-  } else {
-    bottom = ($(".nav")?.offsetHeight || 64) + 12 + ($("#chatbarSlot")?.offsetHeight || 0);
-  }
-  fab.style.bottom = bottom + "px";
+  fab.classList.toggle("gone", inLesson());
+  if (pinned() || inLesson()) { fab.style.removeProperty("left"); fab.style.removeProperty("top"); return; }
+  if (drag?.moved) return;
+  const { x, y } = spotXY(fabArea(fab), spot);
+  fab.style.left = x + "px";
+  fab.style.top = y + "px";
 }
 new ResizeObserver(() => placeFab()).observe(document.documentElement);
 
-/** Where answer pop-ups sit: just above the floating button. */
+/** Where answer pop-ups sit: just above the lesson footer (the floating button is hidden in lessons). */
 function popBottom() {
-  const fab = $("#lionfab");
-  return parseInt(fab?.style.bottom || "80") + 66;
+  const foot = $("#overlay.show .ofoot") as HTMLElement | null;
+  return (foot ? foot.offsetHeight : 80) + 10;
 }
 
 /* ---------- tip pop-up after an answer (Intelligence setting) ---------- */

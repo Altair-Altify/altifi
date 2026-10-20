@@ -348,7 +348,7 @@ export function lessonRender(fx?: string) {
   const wave = (fx === "wave" || fx === "shake") && !PO() ? " " + fx : "";
   openO(`<div class="ohead"><button class="x" onclick="A.quitLesson()" aria-label="${t("lp.quit")}">${icon("close", { size: 26 })}</button><div class="prog"><i style="width:${pct}%"></i></div>${heartsHTML(L.broke)}${S.set.intel ? `<button class="infobtn" onclick="A.openAssistant()" aria-label="Tips">${icon("info", { size: 22, tint: 0 })}</button>` : ""}</div>
     <div class="obody${wave}" id="lbody"><div class="budrow"><div id="bud" class="bud" data-size="56">${lion(56, bud.mood)}</div>${talkEl}</div>
-    <div class="ltag">${tag}</div>${body}</div>${foot}<div id="lmodal"></div>`);
+    <div class="ltag">${tag}</div>${body}</div>${foot}<div id="lmodal"></div>`, { cls: "lessonov" }); // lessonov: the floating Alti Lion button hides
   paintTalk(false);
   if (st.t === "video") mountVideo(st.video, () => { L!.videoDone[L!.s] = true; const b = $("#vcont") as HTMLButtonElement | null; if (b) { b.disabled = false; b.textContent = t("c.continue"); b.nextElementSibling?.remove(); } }, !!L.videoDone[L.s]);
   L.broke = 0;

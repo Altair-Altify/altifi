@@ -14,7 +14,14 @@
 body.potato .lion .lion-eyes,body.potato .lion .lion-mane{animation:none!important}
 
 /* ---- Floating assistant button (bottom-right on every screen) ---- */
-.lionfab{position:absolute;right:12px;bottom:84px;z-index:28;width:62px;height:62px;border-radius:50%;border:3px solid #fff;background:radial-gradient(circle at 50% 40%,#FFF1F7,#FFD6E7);box-shadow:0 6px 18px rgba(30,27,58,.28),0 3px 0 rgba(0,0,0,.12);padding:0;display:flex;align-items:center;justify-content:center;transition:bottom .25s ease,transform .15s,opacity .2s}
+.lionfab{position:absolute;left:auto;top:auto;right:12px;bottom:84px;z-index:28;touch-action:none;width:62px;height:62px;border-radius:50%;border:3px solid #fff;background:radial-gradient(circle at 50% 40%,#FFF1F7,#FFD6E7);box-shadow:0 6px 18px rgba(30,27,58,.28),0 3px 0 rgba(0,0,0,.12);padding:0;display:flex;align-items:center;justify-content:center;transition:left .32s cubic-bezier(.3,1.25,.5,1),top .32s cubic-bezier(.3,1.25,.5,1),transform .15s,opacity .2s}
+.lionfab[style*="left"]{right:auto;bottom:auto}
+.lionfab.dragging{transition:transform .15s,opacity .2s;transform:scale(1.08);cursor:grabbing}
+.lionfab.gone{display:none}
+body.potato .lionfab{transition:opacity .2s}
+@media (prefers-reduced-motion: reduce){.lionfab{transition:none}}
+/* in a lesson the button is hidden: answer pop-ups sit right above the footer, no pointer arrow */
+.phone.ov .infopop.fabpop:before{display:none}
 .lionfab svg{margin-top:2px}
 .lionfab:hover{transform:scale(1.06) rotate(-4deg)}
 .lionfab:active{transform:scale(.93)}
