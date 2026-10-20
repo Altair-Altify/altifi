@@ -34,6 +34,51 @@
 - **(21/10) Phí trễ hạn BNPL 60.000₫/kỳ, lãi thẻ 30%/năm trong P2 là số minh họa** (ghi rõ "giả định" trong bài) — mỗi ví/ngân hàng mỗi khác; ⚠️ nhóm kiểm một sản phẩm thật để dẫn nguồn.
 - **(21/10) 5 case tháng do Claude soạn nháp** — ⚠️ quy định cuộc thi: nhóm phải đọc, sửa lời, kiểm số liệu (Madoff ~65 tỷ USD, 150 năm tù; Madrian & Shea 37% → 86%; Fed 2022–23; NHNN tăng lãi 2 lần cuối 2022) trước khi nộp.
 - **(20/10) Cửa có thể vào = nút hành động góc phải dưới hiện khi đứng gần (≤ 1,9 m); trong nhà/quầy hiện khung thoại kem + nút "Học ngay" nếu chưa học bài mở khóa nơi đó** — 13.3 yêu cầu nút hành động có nhãn; gắn mỗi nơi với cột "Game" của 13.2d để học xong có lý do vào game (13.2b-7).
+- **(Phiên 6) Chuyển màn con / overlay = đúng thông số fade-through của tab** (chờ 60ms, hiện 210ms, phóng 98% → 100% trong 300ms) bằng class `ft-in` (`src/styles/base.css`); không có pha "mờ màn cũ 90ms" vì overlay phủ lên trên còn trang con Cài đặt dựng lại tại chỗ. `pageAnim()` bỏ tham số hướng — không còn trượt trái/phải.
+- **(Phiên 6) Câu nhắc khi trả lời sai chỉ hiện khi bật Intelligence** (như pop-up mẹo cũ); "sai 2 câu liên tiếp" tính trong cùng một bài, trả lời đúng thì đếm lại từ 0; từ câu sai thứ 2 liên tiếp trở đi đều kèm gợi ý. Pop-up câu nhắc viền xám (không tím), hiện 5 giây, có gợi ý thì 8 giây. 12 câu ở `as.nudge` (`src/i18n/strings.ts`) — sửa/thêm câu ở đó.
+- **(Phiên 6) Nút Alti Lion hít vào cạnh gần nhất trong 4 cạnh của vùng trống** (dưới top bar, trên thanh tab; trong overlay: dưới `.ohead`, trên `.ofoot`), lưu dạng "cạnh + vị trí dọc cạnh" (key `altifi-fab-v1`) để đổi kích thước màn hình vẫn đúng chỗ; mặc định góc phải dưới như cũ. Ẩn trong bài học = từ bước đầu tới bước cuối; **pop-up kết quả cuối bài hiện lại nút** (lúc đó đã ra khỏi bài). ⚠️ Hệ quả: khi **tắt** Intelligence thì trong bài không còn đường nào mở Alti Lion (nút ⓘ chỉ có khi bật) — nhóm quyết có cần thêm không.
+- **(Phiên 6) VERIFY.md liệt kê cả tham số game "gần thật"** (lãi suất mô phỏng, bảng giá nhà/xe, thông số quầy) và số khảo sát của nhóm, vì PROGRESS đều đánh ⚠️; các con số tự tính trong bài tập ghi "tự tính lại".
+- **(Phiên 6) Viết lại P1/P3/M2 theo giọng "người mới đi làm"** — trái với 13.2b-3 ("đời teen trước") nhưng theo yêu cầu mới của nhóm. Nhân vật P1 là **Minh, 23 tuổi, thực nhận 9 triệu** (làm tròn để chia hũ 50/30/20 dễ; game và P5 dùng 8,95 triệu). Số khảo sát (46 bạn 14–17 tuổi) giữ nguyên vì là số thật. Câu thoại Alti Lion trong bài (`lion:`) giữ nguyên, kể cả ẩn dụ "vòi nước" của M2 dù tiêu đề đã đổi.
+- **(Phiên 6) Thuật ngữ:** bản VI in đậm + giải thích 1 câu + tên tiếng Anh trong ngoặc; bản EN in đậm + giải thích, không ngoặc. "Lần đầu" tính **trong từng bài** (người học không bắt buộc học theo thứ tự). Mức độ: P1 4 thuật ngữ (+3 ở Đào sâu), M2 ~8 (+4), P3 ~11 (+4).
+
+## Phiên 6 — 20/10 (nhóm đang thi): 6 việc đánh bóng ✅ (mỗi việc 1 commit, đã push)
+
+**Tóm tắt.** Mỗi việc: `npm run build` sạch → `node scripts/playthrough.cjs` (148/148 bước có chấm điểm đúng, 0 lỗi console; 19 bước `predict` báo WRONG là đúng thiết kế) → commit → push riêng. Lỗi console duy nhất khi chạy thử là ảnh Wikimedia bị mạng của phiên chặn (như các phiên trước).
+
+1. **Chuyển cảnh đồng nhất** (`471f611`): `pageAnim()` (`src/ui/fx.ts`) nay dùng đúng kiểu fade-through của tab — chờ 60ms, mờ → rõ 210ms, phóng 98% → 100% 300ms, chỉ opacity/transform. Áp cho Cài đặt › Theme (và mọi trang con Cài đặt), mở/đóng overlay (bài học, hồ sơ, thị trấn…). Đã xóa class `mb-r/mb-l`, keyframes `mbr/mbl` (`base.css`) và 2 filter SVG `#mbS/#mbW` (`index.html`). Tab giữ nguyên. Potato Mode / giảm chuyển động: không hiệu ứng.
+2. **Intelligence khi trả lời sai** (`93a72e8`): câu đúng giữ pop-up mẹo như cũ; câu sai hiện 1 trong 12 câu nhắc nghiêm túc song ngữ (vd "Nghĩ trước đã. Đừng vội." / "Think first. Don't rush."), hiện cả khi bài không có `info.s`; sai 2 câu liên tiếp thì thêm **Gợi ý:** `st.hint` (không có thì `info.s`). Câu phản ứng của Alti Lion (`react.ok/sad/laugh`) không đổi. Code: `showNudgePop()` trong `src/assistant/assistant.ts`, đếm `wrongRun` trong `src/lesson/player.ts`.
+3. **Nút Alti Lion nổi** (`c1c59d0`): giữ & kéo được; thả ra tự lướt (lò xo nhẹ 320ms) vào cạnh gần nhất của vùng trống, không đè top bar / thanh tab / footer bài học; nhớ vị trí (`localStorage` key `altifi-fab-v1`, có try/catch). Chạm nhanh (< 8px) vẫn mở chat. **Ẩn hoàn toàn trong bài học** (overlay có class `lessonov`); trong bài mở trợ lý qua nút ⓘ; pop-up gợi ý (việc 2) nằm ngay trên footer bài, không còn mũi nhọn. **Thị trấn:** ghim góc phải trên, không kéo được.
+4. **`VERIFY.md`** (`7f47b9e`, cập nhật ở việc 6): bảng ✓ · bài/màn hình · nội dung · giá trị hiện tại · file:dòng · nguồn nên tra. Thứ tự: vòng demo (M2 → 1929 → Cuộc sống của tôi → Alti Lion) → P1, P3 → các bài khác, Khám phá, tham số game. Chỉ liệt kê, không sửa số.
+5. **Kiểm thử vòng demo tiếng Anh ở 375×812 và 412×915** (`dcd3316`): học M2 (đủ 9 bước + kết quả) → Chơi › Bảo tàng › phòng 1929 vai người dân (4 mốc + "Chuyện gì đã thực sự xảy ra") → Cuộc sống của tôi 2 tháng (Công ty → Chợ → Ngân hàng → Nhà → báo cáo) → hỏi Alti Lion trong thị trấn. 0 lỗi console, không có phần tử nào tràn ngang. Đã sửa 2 lỗi hiển thị (`src/styles/town.css`): tiêu đề sheet 1929 bị bóp thành cột hẹp khi ngày dài ("30 Oct 1929 · after 'Black Tuesday'") → ngày xuống dòng dưới tiêu đề; dòng gợi ý điều khiển lộ ra sau sheet Bảo tàng → ẩn khi có sheet mở.
+   - **Còn lại (không phải lỗi, ghi để nhóm xem khi quay video):** nút "Next lesson ·" ở pop-up kết quả chỉ có icon bài, không có tên (thiết kế cũ); ở tab Chơi nút Alti Lion nằm sát chữ của thẻ "My Life" — nay kéo sang cạnh trái được. Chưa thử trên điện thoại thật (kéo nút bằng ngón tay, cảm giác chuyển cảnh).
+6. **Viết lại giọng văn P1, P3, M2** (`e4d7c47`): bỏ trà sữa và tiền tiêu vặt, đổi sang người mới đi làm; tiêu đề kiểu tin tức; thuật ngữ tăng dần, lần đầu xuất hiện in đậm + giải thích 1 câu + tên tiếng Anh (bản VI). Giữ id, 6 nhịp, dạng bài, Alti Lion; đáp án đổi theo số mới (đã ghi vào VERIFY.md). Playthrough VI và EN đều đúng hết. **17 bài còn lại chưa làm.**
+
+### Việc 6 — để nhóm duyệt giọng trước khi làm 17 bài còn lại
+**Tiêu đề cũ → mới** (đổi cả trong bài và trên hành tinh, `src/content/domains.ts`):
+| Bài | Cũ | Mới (VI) | Mới (EN) |
+|---|---|---|---|
+| P1 | Tiền tiêu vặt của mình biến đi đâu hết? | **Tháng lương đầu tiên: tiền đi đâu trong 30 ngày?** | First paycheck: where does the money go in 30 days? |
+| P3 | Vì sao 100 nghìn của mình đang teo dần? | **Lạm phát 4% mỗi năm: 10 triệu để yên còn giá trị bao nhiêu?** | 4% inflation a year: what is 10 million left idle worth? |
+| M2 | Ngân hàng trung ương — người cầm vòi nước | **Lãi suất điều hành tăng: khoản vay 1 tỷ đắt thêm bao nhiêu?** | The policy rate goes up: how much more does a 1-billion loan cost? |
+
+Nhãn ngắn trên hành tinh P1: "Tiền tiêu vặt & ngân sách" → "Lương & ngân sách".
+
+**Ví dụ đã thay:**
+- **P1:** Lan lớp 10, 500k/tuần, còn 20k → **Minh 23 tuổi, nhân viên văn phòng TP.HCM, thực nhận 9 triệu, ngày 25 còn 930k**. Sổ chi tiêu tuần (cơm căng tin, gửi xe, trà sữa ×4, nạp game, ship Shopee, ăn vặt cổng trường) → sổ chi tiêu tháng (phòng ở ghép + điện nước 2,9tr, ăn trưa, đi chợ, xăng; rò rỉ: **cà phê mang đi ×20, phí giao đồ ăn, 3 gói đăng ký ít dùng, 6 đơn hàng lẻ** = 2,32tr ≈ 26%). Chia hũ 500k → **9 triệu** (4,5 / 2,7 / 1,8tr). Trà sữa 4 ly/tuần cả năm → **cà phê 20 ly/tháng cả năm = 8,4tr**. Huy "300k/tuần" → **đồng nghiệp lương 7 triệu**. Bài đăng sneaker "cả lớp có rồi" → **tai nghe chống ồn "cả văn phòng dùng hết rồi"**, mốc đợi 24 giờ 100k → 500k. Trùm cuối: em 300k/tuần → **bạn cùng phòng mới đi làm, 8 triệu, ngày 20 hết tiền**. Dùng ngay: chuyển 20% sang tài khoản tiết kiệm/lệnh tự động ngày lương về. Đào sâu: chị Mai 9tr → **Mai 27 tuổi, 12tr**; tiền lì xì → **thưởng Tết**.
+  - Thuật ngữ: lương thực nhận (take-home pay), ngân sách (budget), quy tắc 50/30/20, lựa chọn mặc định (default option); Đào sâu: kế toán tinh thần, ngân sách cơ sở 0, quỹ khẩn cấp, chi phí sinh hoạt.
+- **P3:** tờ 100k trong ống heo, trà sữa 25k → 45k → **10 triệu để dành nằm trong tài khoản thanh toán lãi ~0%**; đoán 100k → 67.600₫ → **10 triệu → ~6,76 triệu**; biểu đồ "ống heo" → "tài khoản thanh toán ~0%"; video: gửi lúc 15 / 25 tuổi → **22 / 32 tuổi** (186 / 86 triệu); trùm cuối quỹ khẩn cấp 3 triệu → **27 triệu = 3 tháng chi tiêu thiết yếu**, "ống heo" → "tiền mặt ở nhà", tài khoản tiết kiệm → **tiền gửi kỳ hạn ngắn rút trước hạn được**; Dùng ngay: hỏi bố mẹ → **tự mở app ngân hàng xem lãi 6/12 tháng, so với CPI**.
+  - Thuật ngữ: lạm phát, CPI, sức mua, quỹ chỉ số, lãi suất thực / danh nghĩa, lãi suất thực âm, lãi kép, lãi đơn, quy tắc 72, quỹ khẩn cấp, thanh khoản; Đào sâu: phương trình Fisher, tái phân phối của cải, chủ nợ / con nợ.
+- **M2:** "nhà bạn vay 1 tỷ" → **"bạn vay 1 tỷ mua căn hộ đầu tiên"** (số giữ nguyên, đáp án không đổi); thẻ phân loại "chủ quán trà sữa vay mua máy" → **"chủ cửa hàng vay thả nổi để nhập hàng"**, "gia đình vay mua nhà" → **"người vừa vay mua căn hộ"**; "bạn của bạn hỏi" → **"đồng nghiệp hỏi"**; Dùng ngay "hỏi bố mẹ nhà mình có khoản vay thả nổi" → **"xem lại hợp đồng vay (xe, nhà, tiêu dùng) của bạn"**.
+  - Thuật ngữ: lãi suất điều hành, ngân hàng trung ương, lãi thả nổi / cố định, cơ chế truyền dẫn, lãi suất tái cấp vốn, lãi suất cơ sở, biên độ, đáo hạn; Đào sâu: lãi suất thực trung lập, độ chênh sản lượng, độ trễ chính sách, kỳ vọng lạm phát.
+- Chỗ khác trong app vẫn còn "tiền tiêu vặt" (bài P2 trùm cuối, B2, B3, gợi ý M3, câu thoại NPC Bảo Anh) — thuộc 17 bài/phần chưa làm, chưa đụng.
+
+### Việc nhóm cần làm sau khi thi xong
+1. **Duyệt giọng 3 bài P1/P3/M2** (bảng trên + mở app đọc cả VI/EN). Ưng thì giao làm 17 bài còn lại theo cùng cách; không ưng thì ghi chỗ cần đổi (độ "người lớn", mật độ thuật ngữ, cách ghi tên tiếng Anh).
+2. Cập nhật tiêu đề P1/P3/M2 trong bảng 13.2d của `ALTIFI_DESIGN.md` nếu chốt (Claude không sửa tài liệu thiết kế).
+3. Đi hết **`VERIFY.md`** (ưu tiên phần A — vòng demo), ghi nguồn/link, sửa số trong code nếu sai.
+4. Thử trên **điện thoại thật**: kéo nút Alti Lion bằng ngón tay (cả khi đang cuộn trang), chuyển cảnh Cài đặt › Theme / mở bài học, pop-up câu nhắc trên footer bài.
+5. Quyết 2 việc còn treo: **avatar / gộp Intelligence với Alti Lion** (chưa đụng tới theo yêu cầu) và **có cần cách mở Alti Lion trong bài khi tắt Intelligence** không.
+6. Đọc 12 câu nhắc ở `as.nudge` (`src/i18n/strings.ts`), sửa lời nếu muốn.
 
 ## Phiên 5 (tiếp) — Bảo tàng: phòng 1997 chơi được ✅ (đã push)
 - Vai **Thống đốc Thái Lan**: đầu 1996 (bùng nổ — giữ nguyên / nới biên độ & hạn chế nợ USD ngắn hạn / tăng lãi) → 5/1997 (tấn công tiền tệ — bảo vệ bằng mọi giá / thả sớm + IMF / tách thị trường) → 8/1997 (xếp hàng rút tiền — đóng công ty hỏng + bảo đảm tiền gửi + IMF / in tiền cứu tất cả / phong tỏa). Mỗi nước đi được chấm như cờ vua; cuối: baht tệ nhất & dự trữ còn lại "nếu như" so với thực tế, chuyện thật, 4 góc nhìn.
@@ -319,6 +364,8 @@ Nhóm đo trên altifi.vercel.app ở khung 375×812 và gửi đúng diff sửa
 - Ảnh Wikimedia vẫn chưa test được vì mạng phiên bị chặn (như phiên 2).
 
 ## ▶️ Việc đầu tiên của phiên sau (cập nhật 18/10 tối, giờ VN)
+> **Cập nhật phiên 6:** xem mục "Phiên 6 → Việc nhóm cần làm sau khi thi xong" ở đầu file. Phiên Claude tiếp theo: chỉ làm 17 bài còn lại **sau khi** nhóm duyệt giọng P1/P3/M2.
+
 **Trạng thái:** mọi việc trong lịch 13.6 tới **23/10 đã xong và đã deploy**; dòng **24–26/10**: đủ **20/20 bài** và **3 bài Khám phá** đã xong, đã deploy. Còn: sửa lỗi/đánh bóng, thử điện thoại (nhóm).
 1. `git pull`, đọc mục "Quyết định Claude Code tự đưa ra" ở đầu file + các mục Phiên 5. `npm install && npm run dev`, `node scripts/playthrough.cjs vi` (đã gồm 20 bài; bước `predict` báo WRONG là đúng thiết kế).
 2. Làm tiếp các bài còn thiếu theo thứ tự 13.6: ~~P4, P5, B2, B5, M4, I1, I2, G1, G2, X1, X2~~ — **xong cả 20 bài**. Bài mới theo khung 6 nhịp 13.2c (mẫu `src/content/lessons/p-bnpl.ts`; thêm `lesson:` vào node trong `src/content/domains.ts` và id vào `scripts/playthrough.cjs`).
