@@ -1,4 +1,6 @@
-/* Macroeconomics · M2 — "The central bank — who holds the tap?" (design doc 13.2d ③, 6-beat frame 13.2c)
+/* Macroeconomics · M2 — "The policy rate goes up: how much more does a 1-billion loan cost?" (design doc 13.2d ③, 6-beat frame 13.2c)
+ * Lesson 2 of 4 in the domain: moderate terms (policy rate, floating/fixed rate, transmission mechanism, refinancing rate,
+ * base rate & margin); the deep dive adds the neutral rate, output gap, policy lag and inflation expectations.
  * Policy rate → bank rates → borrowing & spending → prices; the inflation–unemployment trade-off; your own loan.
  * Survey trap (13.2e): only 13% knew a floating-rate loan costs MORE when rates rise.
  * ⚠️ Draft written with AI help — team review. Verify: Fed funds target 2022–23 (near 0% → 5.25–5.5% by Jul 2023);
@@ -12,10 +14,10 @@ const lesson: Lesson = {
   icon: "🎛️",
   ic: "bank",
   minutes: 7,
-  title: { vi: "Ngân hàng trung ương — người cầm vòi nước", en: "The central bank — who holds the tap?" },
+  title: { vi: "Lãi suất điều hành tăng: khoản vay 1 tỷ đắt thêm bao nhiêu?", en: "The policy rate goes up: how much more does a 1-billion loan cost?" },
   desc: {
-    vi: "Lãi suất điều hành lan sang lãi vay, lãi gửi, chi tiêu và giá cả ra sao; vì sao hạ lạm phát phải đánh đổi việc làm; và vì sao khoản vay thả nổi của nhà bạn tăng theo.",
-    en: "How the policy rate flows into loan and deposit rates, spending and prices; why taming inflation trades off jobs; and why your family's floating loan goes up with it.",
+    vi: "Lãi suất điều hành lan sang lãi vay, lãi gửi, chi tiêu và giá cả ra sao; vì sao hạ lạm phát phải đánh đổi việc làm; và vì sao khoản vay thả nổi của bạn tăng theo.",
+    en: "How the policy rate flows into loan and deposit rates, spending and prices; why taming inflation trades off jobs; and why your own floating-rate loan goes up with it.",
   },
   prereq: { vi: "lạm phát là giá cả nói chung tăng; vay thả nổi thì lãi đổi theo thị trường.", en: "inflation is prices rising in general; a floating loan's rate follows the market." },
   review: {
@@ -39,16 +41,16 @@ const lesson: Lesson = {
     /* 1 · Hook */
     {
       t: "learn", photo: { query: "Federal Reserve Board building Washington" }, art: "🎛️ → 🏦 → 🏠💸", cap: { vi: "Một con số, hàng triệu khoản trả góp", en: "One number, millions of loan payments" },
-      title: { vi: "Ngân hàng trung ương — người cầm vòi nước", en: "The central bank — who holds the tap?" },
+      title: { vi: "Lãi suất điều hành tăng: khoản vay 1 tỷ đắt thêm bao nhiêu?", en: "The policy rate goes up: how much more does a 1-billion loan cost?" },
       text: {
-        vi: "Năm 2022, giá cả ở Mỹ tăng nhanh nhất 40 năm. Một nhóm người họp vài lần mỗi năm, quyết định <b>một con số</b> — lãi suất điều hành — và con số đó làm thay đổi khoản trả góp của hàng triệu gia đình, kể cả ở Việt Nam. Hôm nay <b>bạn</b> ngồi vào ghế Thống đốc.",
-        en: "In 2022, US prices rose at the fastest pace in 40 years. A small group meets a few times a year, decides <b>one number</b> — the policy rate — and that number changes the loan payments of millions of families, in Vietnam too. Today <b>you</b> take the Governor's chair.",
+        vi: "Năm 2022, giá cả ở Mỹ tăng nhanh nhất 40 năm. Một hội đồng họp vài lần mỗi năm và quyết định <b>một con số</b>: <b>lãi suất điều hành</b> (policy rate) — mức lãi mà <b>ngân hàng trung ương</b> (central bank; ở Việt Nam là Ngân hàng Nhà nước) dùng làm 'giá gốc' của tiền cho cả hệ thống ngân hàng. Con số đó làm thay đổi khoản trả góp của hàng triệu người vay, kể cả ở Việt Nam. Hôm nay <b>bạn</b> ngồi vào ghế Thống đốc.",
+        en: "In 2022, US prices rose at the fastest pace in 40 years. A committee meets a few times a year and decides <b>one number</b>: the <b>policy rate</b> — the rate the <b>central bank</b> (in Vietnam, the State Bank of Vietnam) uses as the base 'price' of money for the whole banking system. That number changes the loan payments of millions of borrowers, in Vietnam too. Today <b>you</b> take the Governor's chair.",
       },
       lion: { vi: "Hình dung NHTW cầm vòi nước: mở to → tiền chảy mạnh, kinh tế nóng; vặn nhỏ → tiền chảy chậm, giá cả nguội lại 🚰", en: "Picture the central bank holding a tap: open wide → money gushes, the economy heats up; turn it down → money slows, prices cool 🚰" },
     },
     /* 2 · Guess first (survey trap: 13% knew this) */
     {
-      t: "predict", q: { vi: "Đoán thử: nhà bạn vay 1 tỷ mua nhà, 20 năm, lãi THẢ NỔI 8% → trả 8,36 triệu/tháng. NHTW tăng lãi suất, lãi vay lên 10%. Khoản trả mới mỗi tháng là bao nhiêu?", en: "Guess: your family borrowed 1 billion for a home over 20 years at a FLOATING 8% → 8.36 million a month. The central bank raises rates and the loan goes to 10%. What's the new monthly payment?" },
+      t: "predict", q: { vi: "Đoán thử: bạn vay 1 tỷ mua căn hộ đầu tiên, trả trong 20 năm, <b>lãi thả nổi</b> (floating rate — lãi được điều chỉnh định kỳ theo thị trường) 8% → trả 8,36 triệu/tháng. NHTW tăng lãi suất, lãi vay lên 10%. Khoản trả mới mỗi tháng là bao nhiêu?", en: "Guess: you borrowed 1 billion for your first flat over 20 years at a <b>floating rate</b> — one that is reset regularly in line with the market — of 8% → 8.36 million a month. The central bank raises rates and the loan goes to 10%. What's the new monthly payment?" },
       art: "🏠 1 tỷ · 8% → 10%", min: 8000000, max: 12000000, step: 50000, start: 8350000, actual: 9650000, unit: "vnd",
       reveal: { vi: "Khoảng <b>9,65 triệu</b> — thêm gần 1,3 triệu mỗi tháng (+15%), chỉ vì một quyết định ở NHTW. Trong khảo sát của nhóm, chỉ 13% bạn biết vay thả nổi sẽ trả NHIỀU hơn khi lãi suất tăng; nhiều bạn nghĩ khoản trả giữ nguyên.", en: "About <b>9.65 million</b> — nearly 1.3 million more a month (+15%), from one central-bank decision. In our survey only 13% knew a floating loan costs MORE when rates rise; many thought it stays the same." },
     },
@@ -62,14 +64,14 @@ const lesson: Lesson = {
         ["🛒", { vi: "Chi tiêu và đầu tư chậm lại", en: "Spending and investment slow down" }],
         ["📉", { vi: "Giá cả tăng chậm lại — lạm phát giảm", en: "Prices rise more slowly — inflation falls" }],
       ],
-      why: { vi: "Đây gọi là cơ chế truyền dẫn. Mỗi mắt xích cần thời gian — thường 6–18 tháng mới thấy lạm phát giảm rõ.", en: "This is the transmission mechanism. Each link takes time — it usually takes 6–18 months to see inflation clearly fall." },
+      why: { vi: "Đây gọi là <b>cơ chế truyền dẫn</b> (transmission mechanism) — đường đi từ quyết định của NHTW tới giá cả. Mỗi mắt xích cần thời gian — thường 6–18 tháng mới thấy lạm phát giảm rõ.", en: "This is the <b>transmission mechanism</b> — the path from a central-bank decision to prices. Each link takes time — it usually takes 6–18 months to see inflation clearly fall." },
       hint: { vi: "Bắt đầu từ NHTW, kết thúc ở giá cả.", en: "Start at the central bank, end with prices." },
     },
     {
       t: "dial", q: { vi: "Bạn là Thống đốc. Lạm phát đang <b>7%</b> — quá cao. Mục tiêu năm sau: lạm phát ≤ 4,5%, nhưng thất nghiệp không được vượt 5%. Xoay núm lãi suất rồi bấm Kiểm tra.", en: "You're the Governor. Inflation is <b>7%</b> — too high. Next year's goal: inflation ≤ 4.5%, without unemployment going over 5%. Turn the rate dial, then press Check." },
       dial: { min: 2, max: 10, step: 0.25, start: 4, r0: 4, pi0: 7, kPi: 0.8, u0: 2.4, kU: 0.6, goalPi: 4.5, goalU: 5, loan: 1_000_000_000, months: 240, spread: 4 },
       a: 7.75,
-      why: { vi: "Khoảng 7,25–8,25% thì đạt cả hai mục tiêu. Thấp hơn: lạm phát vẫn cao, ai cũng mất sức mua. Cao hơn: hãm quá tay, doanh nghiệp cắt giảm, thất nghiệp vượt 5%. Và để ý ô thứ ba: chính khoản vay nhà bạn tăng theo mỗi nấc. (Đây là mô hình đơn giản để minh họa — nền kinh tế thật phức tạp và có độ trễ.)", en: "Roughly 7.25–8.25% meets both goals. Lower: inflation stays high and everyone loses buying power. Higher: you brake too hard, firms cut back and unemployment passes 5%. And watch the third box: your family's own loan rises with every notch. (A simple model for illustration — the real economy is more complex and slower.)" },
+      why: { vi: "Khoảng 7,25–8,25% thì đạt cả hai mục tiêu. Thấp hơn: lạm phát vẫn cao, ai cũng mất sức mua. Cao hơn: hãm quá tay, doanh nghiệp cắt giảm, thất nghiệp vượt 5%. Và để ý ô thứ ba: chính khoản vay của bạn tăng theo mỗi nấc. (Đây là mô hình đơn giản để minh họa — nền kinh tế thật phức tạp và có độ trễ.)", en: "Roughly 7.25–8.25% meets both goals. Lower: inflation stays high and everyone loses buying power. Higher: you brake too hard, firms cut back and unemployment passes 5%. And watch the third box: your own loan payment rises with every notch. (A simple model for illustration — the real economy is more complex and slower.)" },
       hint: { vi: "Tìm vùng mà cả hai ô đầu cùng xanh.", en: "Find the zone where the first two boxes are both green." },
     },
     /* 4 · The real story */
@@ -92,7 +94,7 @@ const lesson: Lesson = {
         { vi: "Không liên quan gì đến lãi suất", en: "Had nothing to do with rates" },
       ],
       a: 0,
-      why: { vi: "Lạm phát đỉnh ~9,1% (6/2022) rồi giảm còn ~3% giữa 2023 — chậm hơn nhiều so với tốc độ tăng lãi suất. Ở Việt Nam, NHNN tăng lãi suất tái cấp vốn từ 4% lên 5% (9/2022) rồi 6% (10/2022).", en: "Inflation peaked at ~9.1% (Jun 2022) and fell to ~3% by mid-2023 — much more slowly than rates rose. In Vietnam, the State Bank raised its refinancing rate from 4% to 5% (Sep 2022) and 6% (Oct 2022)." },
+      why: { vi: "Lạm phát đỉnh ~9,1% (6/2022) rồi giảm còn ~3% giữa 2023 — chậm hơn nhiều so với tốc độ tăng lãi suất. Ở Việt Nam, NHNN tăng <b>lãi suất tái cấp vốn</b> (refinancing rate — lãi NHNN áp khi cho các ngân hàng vay lại) từ 4% lên 5% (9/2022) rồi 6% (10/2022).", en: "Inflation peaked at ~9.1% (Jun 2022) and fell to ~3% by mid-2023 — much more slowly than rates rose. In Vietnam, the State Bank raised its <b>refinancing rate</b> — what it charges when it lends to banks — from 4% to 5% (Sep 2022) and 6% (Oct 2022)." },
       hint: { vi: "Theo dõi đường đỏ từ trái sang phải.", en: "Follow the red line from left to right." },
     },
     /* 5 · Trap */
@@ -105,7 +107,7 @@ const lesson: Lesson = {
         { vi: "Ngân hàng phải hủy hợp đồng", en: "The bank has to cancel the contract" },
       ],
       a: 1,
-      why: { vi: "'Thả nổi' nghĩa là lãi suất đi theo thị trường (thường = lãi cơ sở + biên độ cố định). Hợp đồng đã ký chính là điều khoản cho phép lãi thay đổi. Chỉ vay <b>cố định</b> mới giữ nguyên.", en: "'Floating' means the rate follows the market (usually a base rate + a fixed margin). The signed contract is exactly what lets it change. Only a <b>fixed</b> loan stays the same." },
+      why: { vi: "'Thả nổi' nghĩa là lãi suất đi theo thị trường, thường = <b>lãi suất cơ sở</b> (base rate — mức tham chiếu ngân hàng công bố, đổi theo thị trường) + <b>biên độ</b> (margin — phần cộng thêm cố định ghi trong hợp đồng). Hợp đồng đã ký chính là điều khoản cho phép lãi thay đổi. Chỉ vay <b>lãi cố định</b> (fixed rate) mới giữ nguyên.", en: "'Floating' means the rate follows the market, usually = a <b>base rate</b> (a reference rate the bank publishes, which moves with the market) + a <b>margin</b> (a fixed add-on written in the contract). The signed contract is exactly what lets it change. Only a <b>fixed-rate</b> loan stays the same." },
       hint: { vi: "'Thả nổi' — nổi theo cái gì?", en: "'Floating' — floating with what?" },
     },
     {
@@ -113,10 +115,10 @@ const lesson: Lesson = {
       buckets: [["😊", { vi: "Vui hơn", en: "Happier" }], ["😟", { vi: "Lo hơn", en: "More worried" }]],
       items: [
         ["🐷", { vi: "Người đang gửi tiết kiệm", en: "Someone with savings" }, 0],
-        ["🏠", { vi: "Gia đình vay mua nhà lãi thả nổi", en: "A family with a floating mortgage" }, 1],
+        ["🏠", { vi: "Người vừa vay mua căn hộ, lãi thả nổi", en: "Someone who just took a floating-rate home loan" }, 1],
         ["🏭", { vi: "Doanh nghiệp định vay để mở xưởng", en: "A firm planning to borrow for a factory" }, 1],
         ["👵", { vi: "Người về hưu sống bằng lãi tiết kiệm", en: "A retiree living on savings interest" }, 0],
-        ["🧋", { vi: "Chủ quán vừa vay thả nổi mua máy", en: "A shop owner with a new floating loan" }, 1],
+        ["🏪", { vi: "Chủ cửa hàng vừa vay thả nổi để nhập hàng", en: "A shop owner with a new floating loan for stock" }, 1],
         ["🛒", { vi: "Người lo giá cả tăng quá nhanh", en: "Someone worried prices rise too fast" }, 0],
       ],
       why: { vi: "Lãi suất cao thưởng cho người gửi tiền và (về lâu dài) người lo lạm phát; người vay — nhất là vay thả nổi — chịu thiệt. Không có quyết định nào làm vui tất cả.", en: "High rates reward savers and (in time) anyone worried about inflation; borrowers — especially floating — lose out. No decision pleases everyone." },
@@ -124,7 +126,7 @@ const lesson: Lesson = {
     },
     /* 6 · Boss + use it today */
     {
-      t: "explain", q: { vi: "Trùm cuối: bạn của bạn hỏi “Sao NHTW lại cố tình làm vay tiền đắt hơn, để nhiều người khổ?” Giải thích 1–2 câu.", en: "Final boss: a friend asks “Why would the central bank make borrowing dearer on purpose and hurt people?” Explain in 1–2 sentences." },
+      t: "explain", q: { vi: "Trùm cuối: một đồng nghiệp hỏi “Sao NHTW lại cố tình làm vay tiền đắt hơn, để nhiều người khổ?” Giải thích 1–2 câu.", en: "Final boss: a colleague asks “Why would the central bank make borrowing dearer on purpose and hurt people?” Explain in 1–2 sentences." },
       keys: [
         { label: { vi: "Hạ lạm phát / giữ giá", en: "Cut inflation / steady prices" }, words: { vi: ["lạm phát", "giá cả", "giá tăng", "sức mua", "ổn định giá"], en: ["inflation", "prices", "buying power", "purchasing power", "stable"] } },
         { label: { vi: "Giảm vay & chi tiêu", en: "Less borrowing & spending" }, words: { vi: ["chi tiêu", "vay ít", "bớt vay", "giảm vay", "tiêu ít", "hạ nhiệt", "nguội", "cầu"], en: ["spending", "borrow less", "less borrowing", "cool", "demand"] } },
@@ -140,8 +142,8 @@ const lesson: Lesson = {
       title: { vi: "Dùng ngay hôm nay", en: "Use it today" },
       text: { vi: "Lần tới đọc tin “NHNN tăng/giảm lãi suất điều hành”:", en: "Next time you see “the State Bank raises/cuts its policy rate”:" },
       items: [
-        ["🏠", { vi: "Hỏi bố mẹ: nhà mình có khoản vay thả nổi nào không? Kỳ điều chỉnh lãi là khi nào?", en: "Ask your parents: do we have a floating loan? When does its rate reset?" }],
-        ["🐷", { vi: "Lãi tiết kiệm sắp tăng/giảm — sổ tiết kiệm sắp đáo hạn có nên gửi kỳ dài hơn?", en: "Savings rates will follow — should a maturing deposit go for a longer term?" }],
+        ["🏠", { vi: "Xem lại hợp đồng vay của bạn (xe, nhà, tiêu dùng): lãi cố định hay thả nổi? Kỳ điều chỉnh lãi tiếp theo là khi nào?", en: "Check your own loan contracts (bike, home, consumer): fixed or floating? When is the next rate reset?" }],
+        ["🐷", { vi: "Lãi tiết kiệm sẽ đi theo — khoản tiền gửi sắp <b>đáo hạn</b> (maturity — hết kỳ hạn) có nên gửi kỳ dài hơn?", en: "Savings rates will follow — should a deposit reaching <b>maturity</b> (the end of its term) go for a longer term?" }],
         ["🔎", { vi: "Đọc tiếp: lạm phát tháng gần nhất là bao nhiêu? NHTW đang hãm hay đang bơm?", en: "Read on: what was last month's inflation? Is the central bank braking or pumping?" }],
       ],
       lion: { vi: "🎮 Đã mở trong game: lãi suất ở Ngân hàng và Quán do NHTW mô phỏng điều chỉnh — và vai Thống đốc trong chế độ Khủng hoảng!", en: "🎮 Unlocked in the game: rates at the Bank and your Shop follow the simulated central bank — and the Governor role in Crisis mode!" },
@@ -152,8 +154,8 @@ const lesson: Lesson = {
       t: "learn", art: "i = r* + π + ½(π − π*) + ½·gap", fs: 20,
       title: { vi: "Quy tắc Taylor — 'công thức' tham khảo của NHTW", en: "The Taylor rule — a central bank's reference formula" },
       text: {
-        vi: "Năm 1993, nhà kinh tế John Taylor đề xuất một quy tắc đơn giản: lãi suất điều hành <b>i</b> = lãi suất thực trung lập <b>r*</b> + lạm phát hiện tại <b>π</b> + ½ × (lạm phát − mục tiêu) + ½ × (độ chênh sản lượng). Lạm phát vượt mục tiêu 1 điểm → lãi suất nên tăng <b>hơn</b> 1 điểm, để lãi suất <b>thực</b> thật sự tăng. Không NHTW nào làm theo máy móc, nhưng họ dùng nó để đối chiếu.",
-        en: "In 1993 economist John Taylor proposed a simple rule: policy rate <b>i</b> = neutral real rate <b>r*</b> + current inflation <b>π</b> + ½ × (inflation − target) + ½ × (output gap). Inflation 1 point over target → rates should rise by <b>more</b> than 1 point, so the <b>real</b> rate actually goes up. No central bank follows it mechanically, but they use it as a cross-check.",
+        vi: "Năm 1993, nhà kinh tế John Taylor đề xuất một quy tắc đơn giản: lãi suất điều hành <b>i</b> = <b>lãi suất thực trung lập</b> <b>r*</b> (neutral real rate — mức lãi thực không làm kinh tế nóng lên hay nguội đi) + lạm phát hiện tại <b>π</b> + ½ × (lạm phát − mục tiêu) + ½ × <b>độ chênh sản lượng</b> (output gap — sản lượng thực tế cao hơn hay thấp hơn mức tiềm năng bao nhiêu %). Lạm phát vượt mục tiêu 1 điểm → lãi suất nên tăng <b>hơn</b> 1 điểm, để lãi suất <b>thực</b> thật sự tăng. Không NHTW nào làm theo máy móc, nhưng họ dùng nó để đối chiếu.",
+        en: "In 1993 economist John Taylor proposed a simple rule: policy rate <b>i</b> = the <b>neutral real rate</b> <b>r*</b> (the real rate that neither heats nor cools the economy) + current inflation <b>π</b> + ½ × (inflation − target) + ½ × the <b>output gap</b> (how far actual output is above or below its potential, in %). Inflation 1 point over target → rates should rise by <b>more</b> than 1 point, so the <b>real</b> rate actually goes up. No central bank follows it mechanically, but they use it as a cross-check.",
       },
     },
     {
@@ -174,7 +176,7 @@ const lesson: Lesson = {
         { vi: "Lạm phát chỉ phụ thuộc vào tỷ giá", en: "Inflation depends only on the exchange rate" },
       ],
       a: 0,
-      why: { vi: "Hợp đồng vay cũ, giá đã niêm yết, kỳ vọng của người dân… đều cần thời gian điều chỉnh. Vì thế NHTW phải nhìn trước và không nên 'đạp phanh' quá mạnh chỉ vì số liệu tháng này.", en: "Existing loans, posted prices and people's expectations all take time to adjust. So central banks must look ahead and not slam the brakes because of a single month's data." },
+      why: { vi: "Đây là <b>độ trễ chính sách</b> (policy lag). Hợp đồng vay cũ, giá đã niêm yết và <b>kỳ vọng lạm phát</b> (inflation expectations — mức lạm phát người dân và doanh nghiệp tin sẽ xảy ra, nên đã tính sẵn vào lương, giá) đều cần thời gian điều chỉnh. Vì thế NHTW phải nhìn trước và không nên 'đạp phanh' quá mạnh chỉ vì số liệu tháng này.", en: "This is the <b>policy lag</b>. Existing loans, posted prices and <b>inflation expectations</b> — the inflation people and firms believe is coming, so they build it into wages and prices — all take time to adjust. So central banks must look ahead and not slam the brakes because of a single month's data." },
     },
   ],
 };

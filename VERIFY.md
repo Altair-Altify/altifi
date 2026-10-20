@@ -10,13 +10,13 @@
 
 | ✓ | Bài / màn hình | Nội dung cần kiểm | Giá trị hiện tại | file:dòng | Nguồn nên tra |
 |---|---|---|---|---|---|
-| | M2 · Đoán thử | Khảo sát nhóm: chỉ 13% biết vay thả nổi trả nhiều hơn khi lãi tăng | 13% (6/46) | `src/content/lessons/m-centralbank.ts:53` | Dữ liệu khảo sát của nhóm (mục 1.3 ALTIFI_DESIGN) |
-| | M2 · Đoán thử | Khoản trả vay nhà 1 tỷ / 20 năm khi lãi 8% → 10% (tự tính) | 8,36tr → 9,65tr | `src/content/lessons/m-centralbank.ts:51–53` | Tự tính lại bằng công thức trả góp (PMT) |
-| | M2 · Núm Thống đốc | Mô hình minh họa: lạm phát = 7 − 0,8·(r − 4); thất nghiệp = 2,4 + 0,6·(r − 4) | hệ số 0,8 / 0,6 | `src/content/lessons/m-centralbank.ts:70` | Không phải số thật — chỉ cần màn hình ghi rõ "mô hình minh họa" |
-| | M2 · Chuyện thật (biểu đồ) | Lãi suất Fed 2022–23 theo mốc | 0,1 → 1,6 → 3,1 → 4,4 → 4,9 → 5,4% | `src/content/lessons/m-centralbank.ts:82` | Fed (federalreserve.gov — FOMC target range), FRED `FEDFUNDS` |
-| | M2 · Chuyện thật (biểu đồ) | Lạm phát Mỹ cùng các mốc; đỉnh ~9,1% (6/2022), ~3% giữa 2023 | 7,5 → 9,1 → 8,2 → 6,5 → 5,0 → 3,2% | `src/content/lessons/m-centralbank.ts:83, 95` | US Bureau of Labor Statistics (CPI-U, yoy), FRED `CPIAUCSL` |
-| | M2 · Chuyện thật | NHNN tăng lãi suất tái cấp vốn 4% → 5% (9/2022) → 6% (10/2022) | 4 → 5 → 6% | `src/content/lessons/m-centralbank.ts:95` | Ngân hàng Nhà nước (sbv.gov.vn — quyết định điều chỉnh lãi suất 2022) |
-| | M2 · Đào sâu | Quy tắc Taylor (1993), hệ số ½ | John Taylor 1993 | `src/content/lessons/m-centralbank.ts:155` | Taylor (1993), *Carnegie-Rochester Conference Series on Public Policy* |
+| | M2 · Đoán thử | Khảo sát nhóm: chỉ 13% biết vay thả nổi trả nhiều hơn khi lãi tăng | 13% (6/46) | `src/content/lessons/m-centralbank.ts:55` | Dữ liệu khảo sát của nhóm (mục 1.3 ALTIFI_DESIGN) |
+| | M2 · Đoán thử | Khoản trả vay nhà 1 tỷ / 20 năm khi lãi 8% → 10% (tự tính) | 8,36tr → 9,65tr | `src/content/lessons/m-centralbank.ts:53–55` | Tự tính lại bằng công thức trả góp (PMT) |
+| | M2 · Núm Thống đốc | Mô hình minh họa: lạm phát = 7 − 0,8·(r − 4); thất nghiệp = 2,4 + 0,6·(r − 4) | hệ số 0,8 / 0,6 | `src/content/lessons/m-centralbank.ts:72` | Không phải số thật — chỉ cần màn hình ghi rõ "mô hình minh họa" |
+| | M2 · Chuyện thật (biểu đồ) | Lãi suất Fed 2022–23 theo mốc | 0,1 → 1,6 → 3,1 → 4,4 → 4,9 → 5,4% | `src/content/lessons/m-centralbank.ts:84` | Fed (federalreserve.gov — FOMC target range), FRED `FEDFUNDS` |
+| | M2 · Chuyện thật (biểu đồ) | Lạm phát Mỹ cùng các mốc; đỉnh ~9,1% (6/2022), ~3% giữa 2023 | 7,5 → 9,1 → 8,2 → 6,5 → 5,0 → 3,2% | `src/content/lessons/m-centralbank.ts:85, 97` | US Bureau of Labor Statistics (CPI-U, yoy), FRED `CPIAUCSL` |
+| | M2 · Chuyện thật | NHNN tăng lãi suất tái cấp vốn 4% → 5% (9/2022) → 6% (10/2022) | 4 → 5 → 6% | `src/content/lessons/m-centralbank.ts:97` | Ngân hàng Nhà nước (sbv.gov.vn — quyết định điều chỉnh lãi suất 2022) |
+| | M2 · Đào sâu | Quy tắc Taylor (1993), hệ số ½ | John Taylor 1993 | `src/content/lessons/m-centralbank.ts:157` | Taylor (1993), *Carnegie-Rochester Conference Series on Public Policy* |
 | | Bảo tàng 1929 · Chuyện thật | Dow Jones đỉnh 3/9/1929 → đáy 8/7/1932 | ~381 → ~41 (≈ −89%) | `src/content/crisis1929.ts:124` (chỉ số theo bước: `:21`) | S&P Dow Jones Indices / dữ liệu lịch sử DJIA; Federal Reserve History |
 | | Bảo tàng 1929 | Ngày "Thứ Năm Đen tối" 24/10 và "Thứ Ba Đen tối" 29/10/1929 | 24/10, 29/10 | `src/content/crisis1929.ts:124` | Federal Reserve History ("Stock Market Crash of 1929") |
 | | Bảo tàng 1929 · bước 12/1930 | Bank of United States đóng cửa 12/1930 | 12/1930 | `src/content/crisis1929.ts:52` | Federal Reserve History; Friedman & Schwartz (1963) |
@@ -46,12 +46,15 @@
 
 | ✓ | Bài / màn hình | Nội dung cần kiểm | Giá trị hiện tại | file:dòng | Nguồn nên tra |
 |---|---|---|---|---|---|
-| | P1 · Chuyện thật | Madrian & Shea (2001): 37% → 86% (biểu đồ + giải thích) | 37% → 86% | `src/content/lessons/p-budget.ts:101, 105` | Madrian & Shea (2001), *QJE* |
-| | P1 · Cơ chế | 50/30/20 — Warren & Tyagi (2005) | 50/30/20 | `src/content/lessons/p-budget.ts:75` | Warren & Tyagi (2005), *All Your Worth* |
-| | P1 · Bẫy | Khảo sát nhóm: 20/46 bạn từng mua vì "bạn bè có rồi" | 20/46 | `src/content/lessons/p-budget.ts:133` | Dữ liệu khảo sát của nhóm |
-| | P3 · Chuyện thật | Lạm phát bình quân Việt Nam 2008 | ~23% | `src/content/lessons/p-inflation.ts:135, 176–180` | Tổng cục Thống kê (CPI bình quân năm 2008) |
-| | P3 · Móc câu | Giá trà sữa 25k (2015) → 45k (2025) — số minh họa | 25k → 45k | `src/content/lessons/p-inflation.ts:129` | Minh họa — nếu giữ thì ghi "ví dụ" |
-| | P3 · Bẫy | Khảo sát nhóm: 12/46 nhầm lãi kép với lãi đơn | 12/46 | `src/content/lessons/p-inflation.ts:183–188` | Dữ liệu khảo sát của nhóm |
+| | P1 · Chuyện thật | Madrian & Shea (2001): 37% → 86% (biểu đồ + giải thích) | 37% → 86% | `src/content/lessons/p-budget.ts:104–110` | Madrian & Shea (2001), *QJE* |
+| | P1 · Cơ chế | 50/30/20 — Warren & Tyagi (2005) | 50/30/20 | `src/content/lessons/p-budget.ts:80` | Warren & Tyagi (2005), *All Your Worth* |
+| | P1 · Bẫy | Khảo sát nhóm: 20/46 bạn từng mua vì "bạn bè có rồi" | 20/46 | `src/content/lessons/p-budget.ts:138` | Dữ liệu khảo sát của nhóm |
+| | P3 · Chuyện thật | Lạm phát bình quân Việt Nam 2008 | ~23% | `src/content/lessons/p-inflation.ts:137, 181–182` | Tổng cục Thống kê (CPI bình quân năm 2008) |
+| | P3 · Bẫy | Khảo sát nhóm: 12/46 nhầm lãi kép với lãi đơn | 12/46 | `src/content/lessons/p-inflation.ts:185–190` | Dữ liệu khảo sát của nhóm |
+| | P1 · cả bài (viết lại 20/10) | Tháng lương của Minh — **số tự đặt**, đáp án đã đổi theo: thực nhận 9tr; rò rỉ 2,32tr ≈ **26%** (trước: 54%); hũ 4,5 / 2,7 / 1,8tr; cà phê 35k × 20 × 12 = **8,4tr/năm** (trước: trà sữa 7,3tr); Đào sâu: Mai 12tr → để dành 2,4tr, quỹ 18tr, **7,5 tháng** | xem cột trước | `src/content/lessons/p-budget.ts:4–7` (phép tính), `:56–57, 64–73, 87–89, 94–96, 182–186` | Tự tính lại; mức lương/tiền phòng chỉ là ví dụ gần thực tế TP.HCM — nhóm chỉnh nếu thấy lệch |
+| | P3 · Đoán thử (viết lại 20/10) | 10 triệu, lạm phát 4%/năm, 10 năm → sức mua **≈ 6,76 triệu** (trước: 100k → 67.600₫) | 10.000.000 ÷ 1,04¹⁰ | `src/content/lessons/p-inflation.ts:141–143` | Tự tính lại |
+| | P3 · video "Quả cầu tuyết" (viết lại 20/10) | 10 triệu, 8%/năm, gửi từ 22 tuổi → 60 tuổi ≈ **186 triệu**; từ 32 tuổi ≈ **86 triệu** (trước: 15 → 319tr, 25 → 148tr) | 10tr × 1,08³⁸ / 1,08²⁸ | `src/content/lessons/p-inflation.ts:64–69` | Tự tính lại |
+| | P3 · Trùm cuối | Quỹ khẩn cấp 27 triệu = 3 tháng chi tiêu thiết yếu (ví dụ) | 27tr | `src/content/lessons/p-inflation.ts` (bước "Trùm cuối") | Ví dụ — không cần nguồn |
 
 ## C. Các bài khác (theo mảng)
 
