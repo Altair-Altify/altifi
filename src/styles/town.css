@@ -33,6 +33,7 @@
 .tw-tbtns .btn.ghost{background:#fff;color:#5B4636;border-color:#E8D9C2;box-shadow:0 3px 0 #E8D9C2}
 .tw-hint{position:absolute;left:50%;top:70px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);margin:0;padding:8px 14px;border-radius:16px;background:rgba(58,47,40,.78);color:#fff;font-size:13px;font-weight:800;text-align:center;z-index:3;transition:opacity .4s;pointer-events:none}
 .tw-hint.off{opacity:0}
+.tw-sheet:not([hidden]) ~ .tw-hint{opacity:0} /* never peek out behind an open sheet */
 body.potato .tw-act,body.potato .tw-talk{animation:none}
 @media (prefers-reduced-motion:reduce){.tw-act,.tw-talk{animation:none}}
 /* minimap (top-left, under the HUD) + district banner */
@@ -70,7 +71,7 @@ body.potato .tw-act,body.potato .tw-talk{animation:none}
 .lf-mood{position:absolute;right:8px;top:6px;display:flex;align-items:center;gap:3px;font-style:normal;font-weight:900;font-size:12px;color:#3A2F28}
 .tw-phone{position:absolute;left:12px;top:150px;z-index:3;width:46px;height:46px;border-radius:50%;border:none;background:#FFF8EC;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #E8D9C2,0 6px 14px rgba(58,47,40,.18)}
 .tw-sheet{max-height:72%;overflow-y:auto;overscroll-behavior:contain}
-.lf-h{display:flex;align-items:baseline;gap:8px;margin:0 0 8px;padding-right:40px;position:relative}
+.lf-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin:0 0 8px;padding-right:40px;position:relative} /* a long date wraps under the title instead of squeezing it */
 .lf-h h3{margin:0;font-size:18px}
 .lf-h span{font-size:12px;font-weight:800;color:#7A6656;white-space:nowrap}
 .lf-x{position:absolute;right:-4px;top:-6px;width:40px;height:40px;border-radius:50%;border:none;background:#F3E7D3;color:#3A2F28;display:flex;align-items:center;justify-content:center}
