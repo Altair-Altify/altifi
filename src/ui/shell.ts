@@ -39,7 +39,7 @@ export function markDirty(k?: Tab) { if (k) dirty[k] = true; else NAVORD.forEach
 let wcTimer: ReturnType<typeof setTimeout> | undefined;
 export function go(to: Tab) {
   const from = tab, hadSub = !!getSetSub();
-  if (to === from) { if (hadSub) { clearSetSub(); markDirty("settings"); render(); pageAnim(-1); } return; }
+  if (to === from) { if (hadSub) { clearSetSub(); markDirty("settings"); render(); pageAnim(); } return; }
   clearSetSub();
   tab = to;
   const wrap = $("#screenWrap")!;
@@ -134,7 +134,7 @@ export function openO(html: string, opts?: { cls?: string }) {
   o.className = "overlay show" + (opts?.cls ? " " + opts.cls : "");
   $(".phone")!.classList.add("ov");
   if (opts?.cls !== "townov") $(".phone")!.classList.remove("ingame"); // the town sets it after opening
-  if (isNew) pageAnim(1, o);
+  if (isNew) pageAnim(o);
   requestAnimationFrame(placeFab);
   hydrateImages(o);
   runCounts(o, fmtCount);
@@ -144,7 +144,7 @@ export function closeO() {
   $("#overlay")!.classList.remove("show");
   $(".phone")!.classList.remove("ov", "ingame");
   render();
-  pageAnim(-1);
+  pageAnim();
 }
 export function backHome() {
   ovRerender = null;
@@ -154,7 +154,7 @@ export function backHome() {
   tab = "learn";
   clearSetSub();
   render();
-  pageAnim(-1);
+  pageAnim();
 }
 
 /* ---------- Result pop-up: big Alti Lion whose mood follows your score ---------- */

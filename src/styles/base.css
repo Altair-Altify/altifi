@@ -264,10 +264,12 @@ body.potato .pop,body.potato .wave,body.potato .fxin,body.potato .say{animation:
 @keyframes cfall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--dx),720px) rotate(var(--r));opacity:0}}
 .breaking{display:inline-block;animation:hbreak .9s ease}
 @keyframes hbreak{0%{transform:scale(1.7)}20%{transform:scale(1.7) rotate(-14deg)}40%{transform:scale(1.4) rotate(14deg)}60%{transform:scale(1.2) rotate(-8deg)}100%{transform:none}}
-.mb-r{animation:mbr .34s ease-out}.mb-l{animation:mbl .34s ease-out}
-@keyframes mbr{0%{transform:translateX(56px);filter:url(#mbS);opacity:.35}50%{filter:url(#mbW)}100%{transform:none;filter:none;opacity:1}}
-@keyframes mbl{0%{transform:translateX(-56px);filter:url(#mbS);opacity:.35}50%{filter:url(#mbW)}100%{transform:none;filter:none;opacity:1}}
-body.potato .push,body.potato .shake,body.potato .mb-r,body.potato .mb-l{animation:none!important}
+/* sub-screens & overlays: same fade-through as a tab change (galaxy.css .pane.on), no slide, no blur */
+.ft-in{animation:ftop 210ms cubic-bezier(.05,.7,.1,1) 60ms both,ftsc 300ms cubic-bezier(.05,.7,.1,1) 60ms both;will-change:opacity,transform}
+@keyframes ftop{from{opacity:0}to{opacity:1}}
+@keyframes ftsc{from{transform:scale(.98)}to{transform:none}}
+body.potato .push,body.potato .shake,body.potato .ft-in{animation:none!important}
+@media (prefers-reduced-motion: reduce){.ft-in{animation:none!important}}
 /* ---- v4: result pop-up ---- */
 .resultbg{position:absolute;inset:0;z-index:5;background:rgba(30,27,58,.45);display:flex;align-items:center;justify-content:center;padding:16px;animation:fadein .25s}
 .resultcard{background:var(--card);border-radius:28px;width:100%;max-width:350px;max-height:100%;overflow-y:auto;padding:20px 18px 18px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.25);animation:popin .45s cubic-bezier(.34,1.56,.64,1)}

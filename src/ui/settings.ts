@@ -106,8 +106,8 @@ function closeSheetIfAny() { const m = $("#pmodal"); if (m) m.innerHTML = ""; }
 
 reg({
   flip, setTheme, askPhotos, gotPhoto,
-  openSub(k: string) { setSub = k; render(); pageAnim(1); },
-  closeSub() { setSub = null; render(); pageAnim(-1); },
+  openSub(k: string) { setSub = k; render(); pageAnim(); },
+  closeSub() { setSub = null; render(); pageAnim(); },
   closePerm() { $("#pmodal")!.innerHTML = ""; },
   allowPhotos() { S.set.photosOK = true; save(); $("#pmodal")!.innerHTML = ""; ($("#filein") as HTMLInputElement).click(); },
   setLangTo(l: "vi" | "en") { setLang(l); },

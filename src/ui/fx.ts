@@ -5,16 +5,17 @@ import { lion } from "../mascot/lion";
 import { reg } from "../core/actions";
 import { t } from "../i18n/i18n";
 
-/** Slide the page in from the side of the tab you came from (motion blur via SVG filters in index.html). */
-export function pageAnim(dir: number, el?: HTMLElement | null) {
+/** Show a sub-screen / overlay with the same fade-through as a tab change (galaxy.css .pane.on):
+ * wait 60ms, fade in over 210ms and grow 98% → 100% over 300ms. Opacity/transform only; off in Potato Mode / reduce motion. */
+export function pageAnim(el?: HTMLElement | null) {
   if (noMotion()) return;
   el = el || document.querySelector<HTMLElement>(".pane.on");
   if (!el) return;
-  el.classList.remove("mb-r", "mb-l");
+  el.classList.remove("ft-in");
   void el.offsetWidth;
-  el.classList.add(dir > 0 ? "mb-r" : "mb-l");
-  clearTimeout((el as any)._mb);
-  (el as any)._mb = setTimeout(() => el!.classList.remove("mb-r", "mb-l"), 400);
+  el.classList.add("ft-in");
+  clearTimeout((el as any)._ft);
+  (el as any)._ft = setTimeout(() => el!.classList.remove("ft-in"), 400);
 }
 
 /** Press animation, then run the action (buttons can't be double-fired). */
