@@ -24,7 +24,9 @@ body.potato .lion .lion-eyes,body.potato .lion .lion-mane{animation:none!importa
 body.night .lionfab{border-color:var(--card);background:radial-gradient(circle at 50% 40%,#3A2B44,#2A2D37)}
 body.potato .fabq{animation:none}
 .infopop.fabpop{top:auto;right:14px;z-index:29}
+.infopop .nhint{display:block;margin-top:6px;font-weight:700}.infopop .nhint b{color:var(--pri)}
 .infopop.fabpop:before{top:auto;bottom:-9px;right:22px;border:8px solid transparent;border-top-color:var(--pri);border-bottom:0}
+.infopop.nudge{border-color:var(--muted)}.infopop.nudge:before{border-top-color:var(--muted)}.infopop.nudge>b{color:var(--ink)}
 .aspanel{z-index:45}
 .ashead{line-height:0;flex:none}
 .lvlbar{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:8px 12px;margin-bottom:12px;font-size:12px;font-weight:800;color:var(--muted)}

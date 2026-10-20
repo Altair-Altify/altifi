@@ -14,13 +14,14 @@ import { realImage } from "../ui/realimage";
 import { openO, closeO, resultPopup, setOvRerender } from "../ui/shell";
 import { bud, emote, react, startTalk, stopTalk, paintTalk, confetti, sheet, closeSheet, LINES, REACT, minitoast } from "../ui/fx";
 import { setCtx } from "../assistant/context";
-import { showTipPop } from "../assistant/assistant";
+import { showTipPop, showNudgePop } from "../assistant/assistant";
 import { findLesson, ALL_LESSONS } from "../content/domains";
 
 type St = Record<string, any>;
 let L: null | {
   les: Lesson; deep: boolean; steps: Step[]; s: number; ok: number; graded: number;
   checked: boolean; right: boolean; st: St; t0: number; broke: number; outShown: boolean; videoDone: Record<number, boolean>;
+  wrongRun: number; // wrong answers in a row (2+ → the nudge also shows a hint)
 } = null;
 
 const cur = () => L!.steps[L!.s];
@@ -75,7 +76,7 @@ export function startLesson(id: string, deep = false, from = 0) {
   if (!les) return;
   closeSheet();
   const steps = deep && les.deep ? les.deep : les.steps;
-  L = { les, deep: deep && !!les.deep, steps, s: Math.max(0, Math.min(from, steps.length - 1)), ok: 0, graded: 0, checked: false, right: false, st: {}, t0: Date.now(), broke: 0, outShown: false, videoDone: {} };
+  L = { les, deep: deep && !!les.deep, steps, s: Math.max(0, Math.min(from, steps.length - 1)), ok: 0, graded: 0, checked: false, right: false, st: {}, t0: Date.now(), broke: 0, outShown: false, videoDone: {}, wrongRun: 0 };
   bud.mood = "happy";
   initStep();
   trackProgress();
@@ -383,7 +384,13 @@ function finishStep(right: boolean) {
   lessonRender(right ? "wave" : "shake");
   if (right) { confetti(); emote("cheer", 1600); react(rand(REACT.ok())); }
   else { const m = Math.random() < 0.5 ? "sad" : "laugh"; emote(m, 2600); react(rand(m === "sad" ? REACT.sad() : REACT.laugh())); }
-  if (S.set.intel) showTipPop();
+  L.wrongRun = right ? 0 : L.wrongRun + 1;
+  if (!S.set.intel) return;
+  if (right) showTipPop();
+  else {
+    const st = cur() as any;
+    showNudgePop(L.wrongRun >= 2 ? tx(st.hint || L.les.info.s) : undefined);
+  }
 }
 function checkStep() {
   if (!L || L.checked) return;

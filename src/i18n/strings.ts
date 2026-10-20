@@ -670,6 +670,8 @@ export const STRINGS = {
   "as.chip.simpler": ["Nói đơn giản hơn 🙏", "Explain it simpler 🙏"],
   "as.chip.why": ["Vì sao điều này quan trọng?", "Why does this matter?"],
   "as.chip.deeper": ["Nói sâu hơn 🎓", "Go deeper 🎓"],
+  "as.nudge": ["Nghĩ trước đã. Đừng vội.|Đọc lại câu hỏi, chậm thôi.|Xem lại từng con số trước khi chọn.|Đáp án nhanh nhất thường không phải đáp án đúng.|Dừng một nhịp: đề đang hỏi chính xác điều gì?|Tự nói ra lý do trước khi bấm.|Loại những phương án chắc chắn sai trước.|Đọc kỹ phần giải thích rồi hãy sang câu sau.|Ước lượng thô trước, tính chi tiết sau.|Để ý đơn vị: tháng hay năm, triệu hay nghìn.|Sai cũng là dữ liệu. Tìm bước mình hiểu nhầm.|Chậm mà chắc. Không ai bấm giờ bạn.", "Think first. Don't rush.|Read the question again, slowly.|Check each number before you choose.|The fastest answer is rarely the right one.|Pause: what exactly is the question asking?|Say your reason to yourself before you tap.|Rule out the options that are clearly wrong first.|Read the explanation carefully before moving on.|Estimate roughly first, then work out the details.|Watch the units: month or year, million or thousand.|A wrong answer is data. Find the step you misread.|Slow and sure. Nobody is timing you."],
+  "as.nudgeHint": ["Gợi ý:", "Hint:"],
   "as.tapMore": ["Bấm để hỏi thêm →", "Tap to learn more →"],
   "as.greet": ["Hỏi mình bất cứ điều gì về phần này nhé! 🦁", "Ask me anything about this! 🦁"],
   "as.greetHint": ["Bí à? Hỏi mình một gợi ý 💡", "Stuck? Ask me for a hint 💡"],

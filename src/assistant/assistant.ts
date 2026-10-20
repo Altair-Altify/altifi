@@ -111,6 +111,12 @@ export function placeFab() {
 }
 new ResizeObserver(() => placeFab()).observe(document.documentElement);
 
+/** Where answer pop-ups sit: just above the floating button. */
+function popBottom() {
+  const fab = $("#lionfab");
+  return parseInt(fab?.style.bottom || "80") + 66;
+}
+
 /* ---------- tip pop-up after an answer (Intelligence setting) ---------- */
 export function showTipPop() {
   const c = getCtx();
@@ -121,10 +127,26 @@ export function showTipPop() {
   p.className = "infopop fabpop";
   p.innerHTML = `<b>💡 ${esc(c.title)}</b><br>${esc(c.short)}<span class="tap">${t("as.tapMore")}</span>`;
   p.onclick = () => openAssistant();
-  const fab = $("#lionfab");
-  p.style.bottom = (parseInt(fab?.style.bottom || "80") + 66) + "px";
+  p.style.bottom = popBottom() + "px";
   phone.appendChild(p);
   setTimeout(() => { p.classList.add("out"); setTimeout(() => p.remove(), 400); }, 5500);
+}
+
+/** After a wrong answer (Intelligence setting): a calm, serious nudge — no jokes, no blame.
+ * From the 2nd wrong answer in a row it also carries the question's hint. Shown even when the lesson has no tip text. */
+export function showNudgePop(hint?: string) {
+  const phone = $(".phone");
+  if (!phone) return;
+  phone.querySelectorAll(".infopop").forEach((e) => e.remove());
+  const lines = t("as.nudge").split("|");
+  const p = document.createElement("div");
+  p.className = "infopop fabpop nudge";
+  p.setAttribute("role", "status");
+  p.innerHTML = `<b>${esc(lines[Math.floor(Math.random() * lines.length)])}</b>${hint ? `<span class="nhint"><b>${t("as.nudgeHint")}</b> ${esc(hint)}</span>` : ""}<span class="tap">${t("as.tapMore")}</span>`;
+  p.onclick = () => openAssistant();
+  p.style.bottom = popBottom() + "px";
+  phone.appendChild(p);
+  setTimeout(() => { p.classList.add("out"); setTimeout(() => p.remove(), 400); }, hint ? 8000 : 5000);
 }
 
 /* ---------- full panel ---------- */
