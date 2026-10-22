@@ -34,12 +34,41 @@
 - **(21/10) Phí trễ hạn BNPL 60.000₫/kỳ, lãi thẻ 30%/năm trong P2 là số minh họa** (ghi rõ "giả định" trong bài) — mỗi ví/ngân hàng mỗi khác; ⚠️ nhóm kiểm một sản phẩm thật để dẫn nguồn.
 - **(21/10) 5 case tháng do Claude soạn nháp** — ⚠️ quy định cuộc thi: nhóm phải đọc, sửa lời, kiểm số liệu (Madoff ~65 tỷ USD, 150 năm tù; Madrian & Shea 37% → 86%; Fed 2022–23; NHNN tăng lãi 2 lần cuối 2022) trước khi nộp.
 - **(20/10) Cửa có thể vào = nút hành động góc phải dưới hiện khi đứng gần (≤ 1,9 m); trong nhà/quầy hiện khung thoại kem + nút "Học ngay" nếu chưa học bài mở khóa nơi đó** — 13.3 yêu cầu nút hành động có nhãn; gắn mỗi nơi với cột "Game" của 13.2d để học xong có lý do vào game (13.2b-7).
+- **(Phiên 7) Camera thị trấn theo hình dạng màn hình** (`RIGS` trong `src/game/town.ts`): màn dọc (≤ 0,6, vd 390×844) camera cao 18,5 / lùi 17,5 / nhìn trước 8 m / FOV 50 → nhân vật đứng ở ~70% chiều cao màn hình (trước: ~59%), thấy hết phố phía trước; màn vuông và màn ngang lùi nhẹ hơn. Thế giới cong bắt đầu xa hơn (`BEND_NEAR` 16 → 20), sương mù 46–100 m. Muốn gần/xa hơn: sửa `cam`/`lead` của dòng đầu `RIGS`.
+- **(Phiên 7) HUD góc trái trên gộp còn 1 hàng**: nút quay lại + thẻ net worth; khi chơi "Cuộc sống của tôi" thẻ net worth được thay bằng **một thẻ** "Tháng · tâm trạng · net worth · việc tiếp theo"; **chạm vào thẻ = mở điện thoại** (bỏ nút biểu đồ riêng). Minimap nằm dưới nút quay lại. Thẻ có `aria-label` đọc đủ nội dung.
+- **(Phiên 7) Đồ trang trí đặt tay quanh 6 nơi quay video** (nhà, công ty, ngân hàng, chợ, quán trà sữa, bảo tàng) chứ không rải ngẫu nhiên cả bản đồ — để không tốn tam giác ở chỗ không lên hình. Tượng **bò đồng** trước Bảo tàng (biểu tượng thị trường chứng khoán, tự dựng bằng khối). Lối từ cửa ra đường = **gạch lát**; ven đường phía nam 2 phố chính có **hàng rào cây thấp** (≤ 0,6 m, không che nhân vật).
+- **(Phiên 7) Bù hiệu năng bằng cách bỏ các mặt camera không bao giờ thấy** (nắp thân cây, đáy tầng lá thông, đáy nón cỏ) và hoa dùng khối 14 tam giác thay vì 32, gạch lát chỉ có mặt trên — nên tổng tam giác chỉ +3,8% dù thêm nhiều chi tiết.
 - **(Phiên 6) Chuyển màn con / overlay = đúng thông số fade-through của tab** (chờ 60ms, hiện 210ms, phóng 98% → 100% trong 300ms) bằng class `ft-in` (`src/styles/base.css`); không có pha "mờ màn cũ 90ms" vì overlay phủ lên trên còn trang con Cài đặt dựng lại tại chỗ. `pageAnim()` bỏ tham số hướng — không còn trượt trái/phải.
 - **(Phiên 6) Câu nhắc khi trả lời sai chỉ hiện khi bật Intelligence** (như pop-up mẹo cũ); "sai 2 câu liên tiếp" tính trong cùng một bài, trả lời đúng thì đếm lại từ 0; từ câu sai thứ 2 liên tiếp trở đi đều kèm gợi ý. Pop-up câu nhắc viền xám (không tím), hiện 5 giây, có gợi ý thì 8 giây. 12 câu ở `as.nudge` (`src/i18n/strings.ts`) — sửa/thêm câu ở đó.
 - **(Phiên 6) Nút Alti Lion hít vào cạnh gần nhất trong 4 cạnh của vùng trống** (dưới top bar, trên thanh tab; trong overlay: dưới `.ohead`, trên `.ofoot`), lưu dạng "cạnh + vị trí dọc cạnh" (key `altifi-fab-v1`) để đổi kích thước màn hình vẫn đúng chỗ; mặc định góc phải dưới như cũ. Ẩn trong bài học = từ bước đầu tới bước cuối; **pop-up kết quả cuối bài hiện lại nút** (lúc đó đã ra khỏi bài). ⚠️ Hệ quả: khi **tắt** Intelligence thì trong bài không còn đường nào mở Alti Lion (nút ⓘ chỉ có khi bật) — nhóm quyết có cần thêm không.
 - **(Phiên 6) VERIFY.md liệt kê cả tham số game "gần thật"** (lãi suất mô phỏng, bảng giá nhà/xe, thông số quầy) và số khảo sát của nhóm, vì PROGRESS đều đánh ⚠️; các con số tự tính trong bài tập ghi "tự tính lại".
 - **(Phiên 6) Viết lại P1/P3/M2 theo giọng "người mới đi làm"** — trái với 13.2b-3 ("đời teen trước") nhưng theo yêu cầu mới của nhóm. Nhân vật P1 là **Minh, 23 tuổi, thực nhận 9 triệu** (làm tròn để chia hũ 50/30/20 dễ; game và P5 dùng 8,95 triệu). Số khảo sát (46 bạn 14–17 tuổi) giữ nguyên vì là số thật. Câu thoại Alti Lion trong bài (`lion:`) giữ nguyên, kể cả ẩn dụ "vòi nước" của M2 dù tiêu đề đã đổi.
 - **(Phiên 6) Thuật ngữ:** bản VI in đậm + giải thích 1 câu + tên tiếng Anh trong ngoặc; bản EN in đậm + giải thích, không ngoặc. "Lần đầu" tính **trong từng bài** (người học không bắt buộc học theo thứ tự). Mức độ: P1 4 thuật ngữ (+3 ở Đào sâu), M2 ~8 (+4), P3 ~11 (+4).
+
+## Phiên 7 — 22/10 (nhóm đang thi): làm đẹp thị trấn cho video demo ✅ (đã push)
+
+Không thêm gameplay. Ảnh trước/sau ở 390×844, ban ngày (`?hour=10`) và ban đêm (`?hour=20`), thời tiết tắt để so đúng thị trấn: **`dev/screens/compare-day.jpg`, `dev/screens/compare-night.jpg`** (hàng trên = trước, hàng dưới = sau) + từng ảnh `before-*/after-*-{day,night}.png` cho 6 nơi. Chụp lại: `npm run dev` rồi `node scripts/townshots.cjs dev/screens after` (in kèm số đo hiệu năng).
+
+1. **Camera** (`src/game/town.ts`): lùi + cao hơn, nhìn xa phía trước; trên màn dọc nhân vật ở ~70% chiều cao (trước ~59%), nửa dưới hết mảng cỏ trống, thấy được dãy nhà phố tiếp theo. Khi mở bảng (sheet), nhân vật vẫn được đưa lên nửa trên như cũ.
+2. **Chi tiết dọc đường** (`src/game/world.ts`, khối "street furniture", gộp vào cùng mesh tĩnh): nhà — 2 bồn hoa sau hàng rào, luống rau, đá lót bước; công ty — chậu cây cắt tròn, giá để xe, hộp thư xanh, ghế + biển chỉ đường ở góc phố, đá; ngân hàng — chậu cây, **cây ATM** (màn hình sáng ban đêm), ghế, đèn; chợ — thùng trái cây 2 bên cửa, xe đẩy hàng; bảo tàng — tượng bò đồng trên bệ, cột chắn dây đỏ xếp hàng; quán trà sữa — 2 bàn dù sọc, bảng menu phấn, chậu cây, thùng rác, ghế + đèn + biển chỉ đường. Thêm đèn đường (có vệt sáng ban đêm), hàng rào cây thấp có hoa, cụm đá + hoa ven 2 phố chính. Lối cửa → đường lát **gạch pastel**. **Potato Mode**: giữ đồ lớn, bỏ hoa trong bồn, ghế đẩu, trái cây rời, đá phụ, gạch (dùng đường đất như cũ), mép cỏ và vệt cỏ.
+3. **Mặt đất**: cỏ có thêm lớp đổi sắc rộng (vàng nắng ↔ xanh đậm) + dải cỏ khô hơn dọc mọi lối đi; đường đất đổi sắc nhẹ theo vị trí; **mép cỏ lởm chởm** ăn vào mép đường, **vệt cỏ + lá cỏ** và **sỏi** rải trên đường (không làm trong Potato Mode). `Builder.add` (`src/game/kit.ts`) có thêm tham số `tint(x, z)`.
+4. **HUD**: xem quyết định ở trên. Đã kiểm: chạy 2 tháng (Công ty → Chợ → Ngân hàng → Nhà → báo cáo), thẻ cập nhật tháng/net worth, chạm thẻ mở điện thoại, 0 lỗi console.
+
+**Hiệu năng** (Chromium headless, WebGL = SwiftShader trên CPU, 390×844, DPR 2 → pixel ratio 1,5, đứng ở cửa nhà; chạy xen kẽ trước/sau nhiều lần — chỉ so tương đối, **không phải số của điện thoại**):
+| | Trước | Sau |
+|---|---|---|
+| Thời gian vẽ 1 khung (trung vị 40 lần, 6 lượt) | 102,8 ms | 101,6 ms |
+| fps đứng yên (TB 6 lượt) | 9,8 | 9,35 |
+| fps khi đi (TB 6 lượt) | 9,2 | 8,5 |
+| Draw call | 248 | 248 |
+| Tam giác | 178.774 | 185.587 (+3,8%) |
+| Potato: thời gian vẽ / fps đứng yên / tam giác | 32,7 ms / 27,3 / 124.884 | 32,0 ms / 25,9 / 129.362 |
+
+Thời gian vẽ thuần như nhau; fps của vòng lặp dao động ±10% giữa các lượt (cùng một bản đo 2 lần ra 9,5 và 8,8), chênh lệch trung bình −5…−7% nằm trong nhiễu. Đo bằng `scripts/townshots.cjs`. ⚠️ Nhóm nên đo lại trên điện thoại thật khi quay video.
+
+Build sạch; `node scripts/playthrough.cjs vi` và `en`: 148/148 bước có chấm điểm đúng (19 bước `predict` WRONG đúng thiết kế); lỗi console duy nhất là ảnh Wikimedia bị mạng phiên chặn.
+
+**Nhóm xem sau khi thi:** `compare-day.jpg` / `compare-night.jpg`; nếu muốn camera gần hơn hoặc ít đồ hơn thì sửa `RIGS` (town.ts) hoặc xóa từng dòng trong khối "street furniture" (world.ts). Chưa thêm chi tiết cho các khu không lên video (Tài chính, Hành chính, NHTW, Cảng) — cùng helper `pot/bed/bench/signpost/…` dùng lại được.
 
 ## Phiên 6 — 20/10 (nhóm đang thi): 6 việc đánh bóng ✅ (mỗi việc 1 commit, đã push)
 
