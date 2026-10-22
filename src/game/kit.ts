@@ -11,7 +11,7 @@ export const U = { time: { value: 0 }, curve: { value: 0.0042 }, wind: { value: 
 
 /** Curved world: in view space, everything further than BEND_NEAR from the camera drops by k·d² (the
  * Animal-Crossing-like horizon). wind: vertices with aSway > 0 sway (tree crowns, grass, flowers). */
-const BEND_NEAR = 16;
+const BEND_NEAR = 20;
 export function bend<M extends THREE.Material>(m: M, wind = false): M {
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uTime = U.time; sh.uniforms.uCurve = U.curve; sh.uniforms.uWind = U.wind;
@@ -57,14 +57,16 @@ export function matrixOf(o?: Place) {
 export class Builder {
   private parts: THREE.BufferGeometry[] = [];
   constructor(private rnd: () => number = Math.random) {}
-  add(g: THREE.BufferGeometry, color: THREE.ColorRepresentation, at?: Place, sway = 0, jit = 0.05) {
+  /** tint(x, z) (optional): brightness multiplier by world position of each triangle — breaks up big flat areas. */
+  add(g: THREE.BufferGeometry, color: THREE.ColorRepresentation, at?: Place, sway = 0, jit = 0.05, tint?: (x: number, z: number) => number) {
     const geo = g.index ? g.toNonIndexed() : g.clone();
     g.dispose();
     for (const k of Object.keys(geo.attributes)) if (k !== "position" && k !== "normal") geo.deleteAttribute(k);
     geo.applyMatrix4(matrixOf(at));
-    const n = geo.getAttribute("position").count, c = new THREE.Color(color), col = new Float32Array(n * 3), sw = new Float32Array(n);
+    const pos = geo.getAttribute("position"), n = pos.count, c = new THREE.Color(color), col = new Float32Array(n * 3), sw = new Float32Array(n);
     for (let i = 0; i < n; i += 3) {
-      const j = 1 + (this.rnd() - 0.5) * 2 * jit;
+      let j = 1 + (this.rnd() - 0.5) * 2 * jit;
+      if (tint) j *= tint((pos.getX(i) + pos.getX(i + 1) + pos.getX(i + 2)) / 3, (pos.getZ(i) + pos.getZ(i + 1) + pos.getZ(i + 2)) / 3);
       for (let v = i; v < i + 3 && v < n; v++) { col[v * 3] = c.r * j; col[v * 3 + 1] = c.g * j; col[v * 3 + 2] = c.b * j; }
     }
     sw.fill(sway);

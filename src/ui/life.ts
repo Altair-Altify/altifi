@@ -8,7 +8,7 @@ import { $, esc, shortVnd, vnd, clamp } from "../core/util";
 import { S, save, noMotion } from "../core/state";
 import { reg } from "../core/actions";
 import { t, tx, lang } from "../i18n/i18n";
-import { icon } from "./icons";
+import { icon, IC } from "./icons";
 import { lion } from "../mascot/lion";
 import { minitoast, confetti } from "./fx";
 import { DOMAINS } from "../content/domains";
@@ -43,15 +43,16 @@ function learnChip(id?: string) {
 }
 const head = (title: string, sub = "") => `<div class="lf-h"><h3>${title}</h3>${sub ? `<span>${sub}</span>` : ""}<button class="lf-x" onclick="A.townSheetClose()" aria-label="${esc(t("c.close"))}">${icon("close", { size: 20 })}</button></div>`;
 
-/* ---- HUD: month + next step + mood, and the phone button ---- */
+/* ---- HUD: one card in the top row — month · mood · net worth / next step; tapping it opens the phone ---- */
 function hud() {
-  const el = $("#twLife"), ph = $("#twPhone"), L = life();
-  if (!el || !ph) return;
-  el.hidden = !L; ph.hidden = !L;
+  const el = $("#twLife"), nw = $(".tw-nw"), L = life();
+  if (!el) return;
+  el.hidden = !L; if (nw) nw.hidden = !!L;
   if (!L) return;
-  const owner = !!L.biz && !L.biz.closed;
+  const owner = !!L.biz && !L.biz.closed, worth = shortVnd(netWorth(L), lang());
   const next = owner ? (!L.biz!.decided ? t("bz.next.shop") : !L.plan ? t("lf.next.market") : t("lf.next.home")) : !L.worked ? t("lf.next.work") : !L.plan ? t("lf.next.market") : t("lf.next.home");
-  el.innerHTML = `<b>${t("lf.month", { m: L.month })}</b><span>${next}</span><i class="lf-mood" title="${esc(t("lf.mood"))}" style="--m:${L.mood}%">${icon("heart", { size: 14, color: L.mood < 30 ? "#EF4E4E" : "#F7867A" })}${Math.round(L.mood)}</i>`;
+  el.setAttribute("aria-label", `${t("lf.month", { m: L.month })} · ${t("top.netWorth")} ${worth} · ${next} · ${t("lf.phone")}`);
+  el.innerHTML = `<span class="lf-r1"><b>${t("lf.month", { m: L.month })}</b><i class="lf-mood" title="${esc(t("lf.mood"))}">${icon("heart", { size: 13, color: L.mood < 30 ? "#EF4E4E" : "#F7867A" })}${Math.round(L.mood)}</i><em class="lf-nw" title="${esc(t("top.netWorth"))}">${icon("wallet", { size: 15, color: IC.wallet })}${worth}</em>${icon("chart", { size: 16, color: "#7A6656" })}</span><span class="lf-r2">${next}</span>`;
 }
 townHooks.hud = hud;
 

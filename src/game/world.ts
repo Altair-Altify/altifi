@@ -119,20 +119,42 @@ export function buildWorld(potato: boolean): World {
   const GX = 64, GZ0 = -64, GZ1 = 46; // ground extent: beyond the walkable area so the curved horizon is green / blue
   const bounds: Box = { x0: -47.5, z0: SEA_Z - 0.6, x1: 47.5, z1: 30 };
 
-  /* ---- ground: 1-unit cells, colour patches from noise; sand along the sea ---- */
+  const allPaths = [...ROADS];
+  for (const b of BUILDINGS) allPaths.push([b.x, b.z! + b.d / 2 + 0.3, b.x, b.road, b.lot ? 2.6 : 1.9]);
+  /** Distance from (x, z) to the nearest path edge (< 0 = on a path). */
+  const pathDist = (x: number, z: number, list = allPaths) => {
+    let best = 1e9;
+    for (const [ax, az, bx, bz, w] of list) {
+      const vx = bx - ax, vz = bz - az, L = vx * vx + vz * vz || 1, k = Math.max(0, Math.min(1, ((x - ax) * vx + (z - az) * vz) / L));
+      best = Math.min(best, Math.hypot(x - ax - vx * k, z - az - vz * k) - w / 2);
+    }
+    return best;
+  };
+
+  /* ---- ground: 1-unit cells, colour patches from noise; sand along the sea ----
+   * Three layers keep the big lawns from looking flat: small patches (fbm 0.09), a broad drift between sunny
+   * yellow-green and deep blue-green (fbm 0.035), and drier, trodden grass in a band along every path. */
+  const GA = new THREE.Color(P.grass), GB2 = new THREE.Color(P.grass2), GB3 = new THREE.Color(P.grass3), SAND = new THREE.Color(P.sand), WET = new THREE.Color(P.sandW);
+  const WARM = new THREE.Color("#BEDB78"), LUSH = new THREE.Color("#78BC62"), DRY = new THREE.Color("#B9D47E");
+  const groundCol = (cx: number, cz: number, c: THREE.Color) => {
+    const f = fbm(cx * 0.09, 0.5, cz * 0.09), shore = SEA_Z + 4 + (fbm(cx * 0.2, 2, 0) - 0.5) * 2;
+    const pd = Math.hypot(cx - POND.x, cz - POND.z);
+    if (cz < SEA_Z + 0.5 || inWater(cx, cz)) return c.copy(WET);
+    if (pd < POND.r + 0.9) return c.copy(SAND).lerp(GA, 0.35);
+    if (cz < shore) return c.copy(SAND);
+    c.copy(GA); if (f > 0.58) c.lerp(GB3, Math.min(1, (f - 0.58) * 6)); else if (f < 0.4) c.lerp(GB2, Math.min(1, (0.4 - f) * 6));
+    const h = fbm(cx * 0.035 + 7, 1.5, cz * 0.035 - 3);
+    if (h > 0.54) c.lerp(WARM, Math.min(0.6, (h - 0.54) * 3.5)); else if (h < 0.44) c.lerp(LUSH, Math.min(0.55, (0.44 - h) * 3.5));
+    if (cz > SEA_Z + 3) { const e = pathDist(cx, cz); if (e < 1.3) c.lerp(DRY, (1 - Math.max(0, e) / 1.3) * 0.5); }
+    return c;
+  };
   {
     const w = GX * 2, d = GZ1 - GZ0, g = new THREE.PlaneGeometry(w, d, w, d).toNonIndexed(); g.rotateX(-Math.PI / 2); g.translate(0, 0, (GZ0 + GZ1) / 2);
     const pos = g.getAttribute("position"), col = new Float32Array(pos.count * 3), c = new THREE.Color();
-    const a = new THREE.Color(P.grass), b2 = new THREE.Color(P.grass2), b3 = new THREE.Color(P.grass3), sand = new THREE.Color(P.sand), wet = new THREE.Color(P.sandW);
     for (let i = 0; i < pos.count; i += 3) {
       const cx = (pos.getX(i) + pos.getX(i + 1) + pos.getX(i + 2)) / 3, cz = (pos.getZ(i) + pos.getZ(i + 1) + pos.getZ(i + 2)) / 3;
-      const f = fbm(cx * 0.09, 0.5, cz * 0.09), shore = SEA_Z + 4 + (fbm(cx * 0.2, 2, 0) - 0.5) * 2;
-      const pd = Math.hypot(cx - POND.x, cz - POND.z);
-      if (cz < SEA_Z + 0.5 || inWater(cx, cz)) c.copy(wet);
-      else if (pd < POND.r + 0.9) c.copy(sand).lerp(a, 0.35);
-      else if (cz < shore) c.copy(sand);
-      else { c.copy(a); if (f > 0.58) c.lerp(b3, Math.min(1, (f - 0.58) * 6)); else if (f < 0.4) c.lerp(b2, Math.min(1, (0.4 - f) * 6)); }
-      c.multiplyScalar(0.97 + rnd() * 0.06);
+      groundCol(cx, cz, c);
+      c.multiplyScalar(0.96 + rnd() * 0.08);
       for (let v = i; v < i + 3; v++) { col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b; }
     }
     // the sea floor dips so the water surface sits above it
@@ -160,15 +182,64 @@ export function buildWorld(potato: boolean): World {
   cliff(-50, 32, 50, 46, 2.2);
 
   /* ---- roads (subdivided strips so they follow the curve) + round joints ---- */
+  const roadTint = (x: number, z: number) => 0.95 + fbm(x * 0.17, 3.3, z * 0.17) * 0.1; // sun-bleached / damp patches
   const strip = (x0: number, z0: number, x1: number, z1: number, w: number, color: string, y = 0.02) => {
-    const len = Math.hypot(x1 - x0, z1 - z0), g = new THREE.PlaneGeometry(w, len, 1, Math.max(1, Math.ceil(len)));
+    const len = Math.hypot(x1 - x0, z1 - z0), g = new THREE.PlaneGeometry(w, len, 2, Math.max(1, Math.ceil(len)));
     g.rotateX(-Math.PI / 2);
-    B.add(g, color, { p: [(x0 + x1) / 2, y, (z0 + z1) / 2], r: [0, Math.atan2(x1 - x0, z1 - z0), 0] }, 0, 0.03);
-    for (const [x, z] of [[x0, z0], [x1, z1]]) { const c = new THREE.CircleGeometry(w / 2, 14); c.rotateX(-Math.PI / 2); B.add(c, color, { p: [x, y + 0.001, z] }, 0, 0.03); }
+    B.add(g, color, { p: [(x0 + x1) / 2, y, (z0 + z1) / 2], r: [0, Math.atan2(x1 - x0, z1 - z0), 0] }, 0, 0.015, roadTint);
+    for (const [x, z] of [[x0, z0], [x1, z1]]) { const c = new THREE.CircleGeometry(w / 2, 14); c.rotateX(-Math.PI / 2); B.add(c, color, { p: [x, y + 0.001, z] }, 0, 0.03, roadTint); }
   };
-  const allPaths = [...ROADS];
-  for (const b of BUILDINGS) allPaths.push([b.x, b.z! + b.d / 2 + 0.3, b.x, b.road, b.lot ? 2.6 : 1.9]);
-  for (const [x0, z0, x1, z1, w] of allPaths) strip(x0, z0, x1, z1, w, P.path);
+  const BRICK = ["#EBBE9B", "#E2AC88", "#F2CDAE", "#E8B48F"];
+  /** Brick walk from a door to the road: mortar bed + staggered pastel bricks. */
+  const pavers = (x: number, z0: number, z1: number, w: number) => {
+    const g = new THREE.PlaneGeometry(w, z1 - z0, 2, Math.max(1, Math.ceil(z1 - z0))); g.rotateX(-Math.PI / 2);
+    B.add(g, "#D8C3A6", { p: [x, 0.022, (z0 + z1) / 2] }, 0, 0.03);
+    const cols = Math.round(w / 0.48), bw = w / cols;
+    for (let r = 0, z = z0 + 0.17; z < z1 - 0.12; r++, z += 0.32) {
+      for (let i = 0; i < cols + (r % 2); i++) {
+        const lx = -w / 2 + bw * (i + (r % 2 ? 0 : 0.5)), x0 = Math.max(-w / 2, lx - bw / 2 + 0.03), x1 = Math.min(w / 2, lx + bw / 2 - 0.03);
+        if (x1 - x0 < 0.12) continue;
+        const q = new THREE.PlaneGeometry(x1 - x0, 0.26); q.rotateX(-Math.PI / 2);
+        B.add(q, BRICK[Math.floor(rnd() * BRICK.length)], { p: [x + (x0 + x1) / 2, 0.04, z] }, 0, 0.03);
+      }
+    }
+  };
+  for (const [x0, z0, x1, z1, w] of ROADS) strip(x0, z0, x1, z1, w, P.path);
+  for (const b of BUILDINGS) {
+    const z0 = b.z! + b.d / 2 + 0.3, rw = ROADS.find((r) => r[1] === b.road && r[3] === b.road)?.[4] ?? 2.4;
+    if (potato || b.lot) strip(b.x, z0, b.x, b.road, b.lot ? 2.6 : 1.9, P.path);
+    else pavers(b.x, z0, b.road - rw / 2 + 0.05, 1.9);
+  }
+  /* ragged grass edges, grass growing in the dirt roads, pebbles (not in Potato Mode) */
+  if (!potato) {
+    const c = new THREE.Color();
+    for (const [x0, z0, x1, z1, w] of ROADS) {
+      const len = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / len, uz = (z1 - z0) / len, ang = Math.atan2(x1 - x0, z1 - z0);
+      const others = ROADS.filter((r) => r[0] !== x0 || r[1] !== z0 || r[2] !== x1 || r[3] !== z1);
+      for (let k = 0.3; k < len; k += 0.5) {
+        for (const side of [-1, 1]) {
+          if (rnd() < 0.55) continue;
+          const off = w / 2 - 0.04 - rnd() * 0.16, x = x0 + ux * k - uz * off * side, z = z0 + uz * k + ux * off * side;
+          if (pathDist(x + -uz * side * 0.7, z + ux * side * 0.7, others) < 0.2 || Math.hypot(x - PLAZA[0], z - PLAZA[1]) < 6.8 || z < SEA_Z + 4) continue;
+          const r = 0.16 + rnd() * 0.2, g = new THREE.CircleGeometry(r, 5 + Math.floor(rnd() * 3)); g.rotateX(-Math.PI / 2);
+          groundCol(x, z, c).lerp(DRY, 0.15);
+          B.add(g, c.getStyle(), { p: [x, 0.034, z], r: [0, ang + (rnd() - 0.5) * 0.6, 0], s: [1, 1, 1.5 + rnd()] }, 0, 0.02);
+        }
+      }
+      for (let k = 2; k < len - 2; k += 2.2) {
+        const lat = (rnd() - 0.5) * w * 0.55, x = x0 + ux * k - uz * lat, z = z0 + uz * k + ux * lat;
+        if (Math.hypot(x - PLAZA[0], z - PLAZA[1]) < 6.8 || pathDist(x, z, others) < 0.3) continue;
+        const roll = rnd();
+        if (roll < 0.3) { // a streak of grass along the road, a few blades sticking up
+          const g = new THREE.CircleGeometry(0.3, 6); g.rotateX(-Math.PI / 2);
+          B.add(g, groundCol(x, z, c).lerp(DRY, 0.25).getStyle(), { p: [x, 0.033, z], r: [0, ang, 0], s: [0.6 + rnd() * 0.5, 1, 2.5 + rnd() * 2.5] }, 0, 0.04);
+          for (let i = 0; i < 3; i++) B.add(new THREE.ConeGeometry(0.05, 0.26, 3, 1, true), P.grass2, { p: [x + ux * (i - 1) * 0.4, 0.12, z + uz * (i - 1) * 0.4], r: [(i - 1) * 0.3, 0, (i - 1) * 0.3] }, 0.7);
+        } else if (roll < 0.55) { // pebbles
+          for (let i = 0; i < 3; i++) B.add(new THREE.DodecahedronGeometry(0.07 + rnd() * 0.06, 0), rnd() < 0.5 ? "#D9CBB0" : "#C8BBA2", { p: [x + (rnd() - 0.5) * 0.6, 0.04, z + (rnd() - 0.5) * 0.6], s: [1, 0.5, 1] }, 0, 0.04);
+        }
+      }
+    }
+  }
 
   /* ---- plaza + fountain ---- */
   {
@@ -183,6 +254,11 @@ export function buildWorld(potato: boolean): World {
     for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; bench(px + Math.cos(a) * 5.4, pz + Math.sin(a) * 5.4, -a + Math.PI / 2); }
     circles.push({ x: px, z: pz, r: 2.7 });
     blobs.push({ x: px, z: pz, rx: 3.3 });
+  }
+  /** One flower: open 3-sided stem + octahedron head (14 triangles — there are hundreds of them). */
+  function flower(x: number, y: number, z: number, col: string) {
+    B.add(new THREE.CylinderGeometry(0.02, 0.02, 0.28, 3, 1, true), P.leaf2, { p: [x, y + 0.14, z] }, 0.5);
+    B.add(new THREE.OctahedronGeometry(0.115, 0), col, { p: [x, y + 0.31, z], r: [0, x * 3.1, 0] }, 0.6);
   }
   function bench(x: number, z: number, ry: number) {
     B.add(rbox(1.6, 0.12, 0.5, 0.04), "#C98B5E", { p: [x, 0.45, z], r: [0, ry, 0] });
@@ -322,6 +398,167 @@ export function buildWorld(potato: boolean): World {
   B.add(new THREE.CylinderGeometry(0.06, 0.06, 1, 5), P.pole, { p: [home.x + 2.2, 0.5, fz1 - 0.6] });
   B.add(rbox(0.5, 0.36, 0.34, 0.08), "#E5484D", { p: [home.x + 2.2, 1.1, fz1 - 0.6] });
 
+  /* ---- street furniture & garden details around the demo places (home, office, bank, market, museum, shop) ----
+   * Everything is merged into the same static mesh; Potato Mode keeps the furniture but drops the small stuff
+   * (flowers in beds, stools, fruit, extra rocks). Front-of-door strips (± 1 m around each path) stay clear. */
+  const rich = !potato;
+  const extraLamps: [number, number][] = [];
+  const FLW = ["#FF8FA3", "#FFFFFF", "#FFC93C", "#B39DFF", "#FF7A6B"];
+  const posy = (x: number, z: number, y: number, col: string, n: number, sx: number, sz: number) => { // little flowers
+    if (!rich) return;
+    for (let i = 0; i < n; i++) {
+      const fx = x + (rnd() - 0.5) * sx, fz = z + (rnd() - 0.5) * sz;
+      flower(fx, y, fz, i % 3 === 2 ? FLW[(i + 1) % FLW.length] : col);
+    }
+  };
+  const rock = (x: number, z: number, s2: number) => B.add(new THREE.DodecahedronGeometry(0.34 * s2, 0), rnd() < 0.5 ? P.stone : "#B7B0C8", { p: [x, 0.1 * s2, z], r: [rnd(), rnd() * 6, rnd() * 0.3], s: [1.25, 0.65, 1] }, 0, 0.06);
+  /** Wooden planter with soil, a bush at one end and flowers. */
+  const bed = (x: number, z: number, w: number, d: number, col: string) => {
+    B.add(rbox(w, 0.32, d, 0.06), "#C98B5E", { p: [x, 0.16, z] });
+    const soil = new THREE.PlaneGeometry(w - 0.16, d - 0.16); soil.rotateX(-Math.PI / 2); B.add(soil, "#7A5A44", { p: [x, 0.325, z] }, 0, 0.04);
+    B.add(new THREE.IcosahedronGeometry(Math.min(0.42, d * 0.55), 1), P.leaf, { p: [x - w / 2 + 0.4, 0.5, z], s: [1.15, 0.85, 1] }, 0.4);
+    posy(x + 0.2, z, 0.3, col, Math.round(w * 4), w - 0.9, d - 0.25);
+    boxes.push({ x0: x - w / 2, z0: z - d / 2, x1: x + w / 2, z1: z + d / 2 });
+  };
+  /** Terracotta pot with a clipped round shrub (topiary). */
+  const pot = (x: number, z: number, leaf = P.leaf2) => {
+    B.add(new THREE.CylinderGeometry(0.34, 0.26, 0.5, 8), "#D9825B", { p: [x, 0.25, z] });
+    B.add(new THREE.CylinderGeometry(0.37, 0.37, 0.08, 8), "#C46F4A", { p: [x, 0.5, z] });
+    B.add(new THREE.IcosahedronGeometry(0.42, 1), leaf, { p: [x, 0.92, z] }, 0.3);
+    if (rich) for (let i = 0; i < 3; i++) { const a = rnd() * 6.28; B.add(new THREE.IcosahedronGeometry(0.07, 0), "#FF8FA3", { p: [x + Math.cos(a) * 0.36, 0.95 + (rnd() - 0.5) * 0.3, z + Math.sin(a) * 0.36] }, 0.3); }
+    circles.push({ x, z, r: 0.38 }); blobs.push({ x, z: z + 0.1, rx: 0.55 });
+  };
+  /** Wooden signpost with two arrow boards. */
+  const signpost = (x: number, z: number, c1: string, c2: string) => {
+    B.add(new THREE.CylinderGeometry(0.07, 0.08, 2, 6), P.trunk, { p: [x, 1, z] });
+    B.add(rbox(1.1, 0.3, 0.07, 0.04), c1, { p: [x + 0.35, 1.65, z], r: [0, 0.15, 0] });
+    B.add(new THREE.ConeGeometry(0.17, 0.25, 3), c1, { p: [x + 0.97, 1.65, z + 0.09], r: [0, 0.15, -Math.PI / 2] });
+    B.add(rbox(1.1, 0.3, 0.07, 0.04), c2, { p: [x - 0.35, 1.25, z], r: [0, -0.2, 0] });
+    B.add(new THREE.ConeGeometry(0.17, 0.25, 3), c2, { p: [x - 0.97, 1.25, z + 0.12], r: [0, -0.2, Math.PI / 2] });
+    circles.push({ x, z, r: 0.2 });
+  };
+  const mailbox = (x: number, z: number, col: string) => {
+    B.add(new THREE.CylinderGeometry(0.06, 0.06, 1, 5), P.pole, { p: [x, 0.5, z] });
+    B.add(rbox(0.36, 0.34, 0.5, 0.08), col, { p: [x, 1.1, z] });
+    B.add(new THREE.BoxGeometry(0.04, 0.22, 0.1), "#FFC93C", { p: [x + 0.2, 1.25, z - 0.12] });
+    circles.push({ x, z, r: 0.2 });
+  };
+  const bin = (x: number, z: number) => {
+    B.add(new THREE.CylinderGeometry(0.26, 0.22, 0.7, 8), "#5FA78A", { p: [x, 0.35, z] });
+    B.add(new THREE.CylinderGeometry(0.29, 0.29, 0.07, 8), "#4A8A70", { p: [x, 0.72, z] });
+    circles.push({ x, z, r: 0.28 });
+  };
+  /** Café table with a striped umbrella and two stools. */
+  const cafe = (x: number, z: number, c1: string, c2: string) => {
+    B.add(new THREE.CylinderGeometry(0.05, 0.05, 2.1, 5), "#FFFFFF", { p: [x, 1.05, z] });
+    B.add(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 10), "#FFFFFF", { p: [x, 0.72, z] });
+    B.add(new THREE.CylinderGeometry(0.07, 0.12, 0.7, 6), P.pole, { p: [x, 0.36, z] });
+    for (let i = 0; i < 8; i++) B.add(new THREE.ConeGeometry(1.05, 0.45, 3, 1, true, (i / 8) * Math.PI * 2, Math.PI / 4), i % 2 ? c1 : c2, { p: [x, 2.2, z] }, 0.15, 0.02);
+    if (rich) for (const sx of [-0.75, 0.75]) { B.add(new THREE.CylinderGeometry(0.2, 0.2, 0.08, 8), c2 === "#FFFFFF" ? c1 : c2, { p: [x + sx, 0.46, z + 0.1] }); B.add(new THREE.CylinderGeometry(0.04, 0.04, 0.44, 4), P.pole, { p: [x + sx, 0.22, z + 0.1] }); }
+    circles.push({ x, z, r: 0.95 }); blobs.push({ x, z, rx: 1.1 });
+  };
+  /** Wooden crate of fruit (market). */
+  const crate = (x: number, z: number, fruit: string, y = 0) => {
+    B.add(rbox(0.8, 0.42, 0.6, 0.04), "#D9A066", { p: [x, y + 0.21, z] });
+    B.add(new THREE.BoxGeometry(0.82, 0.06, 0.62), "#B97F4C", { p: [x, y + 0.3, z] });
+    if (rich) for (let i = 0; i < 6; i++) B.add(new THREE.IcosahedronGeometry(0.12, 0), fruit, { p: [x - 0.24 + (i % 3) * 0.24, y + 0.46, z - 0.12 + Math.floor(i / 3) * 0.24] }, 0, 0.08);
+    else B.add(new THREE.BoxGeometry(0.7, 0.1, 0.5), fruit, { p: [x, y + 0.44, z] });
+  };
+  /** Low clipped hedge with a few flowers (frames the road without hiding the player). */
+  const hedge = (x0: number, x1: number, z: number) => {
+    B.add(rbox(x1 - x0, 0.6, 0.75, 0.25, 2), P.leaf2, { p: [(x0 + x1) / 2, 0.3, z] }, 0.15);
+    posy((x0 + x1) / 2, z, 0.5, FLW[Math.floor(rnd() * FLW.length)], Math.round((x1 - x0) * 1.2), x1 - x0 - 0.4, 0.5);
+    boxes.push({ x0, z0: z - 0.4, x1, z1: z + 0.4 }); blobs.push({ x: (x0 + x1) / 2, z: z + 0.2, rx: (x1 - x0) / 2 + 0.3, rz: 0.7 });
+  };
+  const lamp = (x: number, z: number) => extraLamps.push([x, z]);
+
+  // ① your home: flower beds behind the fence, vegetable patch beside the house, stepping stones
+  bed(home.x - 4.1, fz1 - 0.75, 2.8, 0.7, "#FF8FA3"); bed(home.x + 4.4, fz1 - 0.75, 2.0, 0.7, "#FFC93C");
+  {
+    const vx = home.x - 4.5, vz = hz - 0.4;
+    B.add(rbox(2.2, 0.16, 3.4, 0.06), "#8A6248", { p: [vx, 0.08, vz] }, 0, 0.05);
+    for (let r = 0; r < 3; r++) for (let i = 0; i < 5; i++) B.add(new THREE.IcosahedronGeometry(rich ? 0.17 : 0.2, 0), r === 1 ? "#E5484D" : P.leaf, { p: [vx - 0.65 + r * 0.65, 0.25, vz - 1.3 + i * 0.65] }, 0.4);
+    boxes.push({ x0: vx - 1.1, z0: vz - 1.7, x1: vx + 1.1, z1: vz + 1.7 });
+    if (rich) for (let i = 0; i < 4; i++) B.add(new THREE.CylinderGeometry(0.28, 0.3, 0.06, 7), "#D8D2E3", { p: [home.x + 3.2 + (i % 2) * 0.2, 0.03, hz + home.d / 2 - 0.2 - i * 0.75] });
+  }
+  // the first job: potted shrubs by the door, bike rack, post box, bench & signpost at the corner
+  {
+    const o = BUILDINGS.find((b) => b.id === "office")!, fz = o.road - 3.3;
+    pot(o.x - 2.1, fz + 0.75); pot(o.x + 2.1, fz + 0.75);
+    const bx = o.x - o.w / 2 - 1.3;
+    for (let i = 0; i < 3; i++) B.add(new THREE.TorusGeometry(0.32, 0.04, 4, 10, Math.PI), "#8C93A8", { p: [bx - 0.6 + i * 0.6, 0, fz + 1.1] });
+    B.add(new THREE.BoxGeometry(1.6, 0.05, 0.05), "#8C93A8", { p: [bx, 0.15, fz + 1.1] });
+    boxes.push({ x0: bx - 0.9, z0: fz + 0.95, x1: bx + 0.9, z1: fz + 1.25 });
+    mailbox(o.x + o.w / 2 + 0.7, fz + 1.4, "#3D7BF5");
+    lamp(o.x + o.w / 2 + 2.6, fz + 1.7);
+    bench(-38.6, fz + 1.1, 0); signpost(-34.1, fz + 1.4, "#F7867A", "#5B5BD6");
+    rock(-33.2, fz + 0.4, 1); rock(-32.7, fz + 0.9, 0.6);
+  }
+  // the bank: topiary pots, a cash machine, bench + lamp towards the market
+  {
+    const b = BUILDINGS.find((x) => x.id === "bank")!, fz = b.road - 3.3;
+    pot(b.x - b.w / 2 - 0.75, fz + 0.9, "#4FA84A"); pot(b.x + b.w / 2 + 0.75, fz + 0.9, "#4FA84A");
+    const ax = b.x - b.w / 2 - 1.1;
+    B.add(rbox(0.8, 1.5, 0.55, 0.08), "#5B5BD6", { p: [ax, 0.75, fz - 0.5] });
+    W.add(new THREE.BoxGeometry(0.5, 0.36, 0.05), "#BFD8FF", { p: [ax, 1.12, fz - 0.21] }, 0, 0.02);
+    B.add(new THREE.BoxGeometry(0.5, 0.06, 0.2), "#FFC93C", { p: [ax, 0.8, fz - 0.15] });
+    boxes.push({ x0: ax - 0.45, z0: fz - 0.8, x1: ax + 0.45, z1: fz - 0.2 });
+    bench(b.x - b.w / 2 - 3.1, fz + 1.0, 0); lamp(b.x - b.w / 2 - 4.8, fz + 1.4);
+  }
+  // the market: fruit crates either side of the door, a produce cart
+  {
+    const m = BUILDINGS.find((x) => x.id === "market")!, fz = m.road - 3.3;
+    for (const [dx, f1, f2] of [[-2.2, "#FF9F5A", "#E5484D"], [2.2, "#8BD35A", "#FFC93C"]] as [number, string, string][]) {
+      crate(m.x + dx - 0.3, fz + 0.75, f1); crate(m.x + dx + 0.5, fz + 0.75, f2); crate(m.x + dx + 0.1, fz + 0.75, f1, 0.43);
+      boxes.push({ x0: m.x + dx - 0.75, z0: fz + 0.4, x1: m.x + dx + 0.95, z1: fz + 1.1 });
+    }
+    const cx = m.x - m.w / 2 - 1.5, cz = fz + 0.9;
+    B.add(rbox(1.5, 0.5, 0.9, 0.05), "#C98B5E", { p: [cx, 0.65, cz] });
+    for (const sx of [-0.5, 0.5]) B.add(new THREE.CylinderGeometry(0.3, 0.3, 0.08, 10), P.pole, { p: [cx + sx, 0.3, cz + 0.48], r: [Math.PI / 2, 0, 0] });
+    B.add(new THREE.CylinderGeometry(0.04, 0.04, 1.4, 4), P.trunk, { p: [cx - 0.95, 0.5, cz], r: [0, 0, 1.1] });
+    for (let i = 0; i < (rich ? 8 : 3); i++) B.add(new THREE.IcosahedronGeometry(0.16, 0), ["#E5484D", "#FFC93C", "#8BD35A", "#FF9F5A"][i % 4], { p: [cx - 0.5 + (i % 4) * 0.33, 0.98, cz - 0.18 + Math.floor(i / 4) * 0.36] }, 0, 0.08);
+    boxes.push({ x0: cx - 1.1, z0: cz - 0.5, x1: cx + 0.8, z1: cz + 0.6 });
+  }
+  // the crisis museum: a bronze bull on a plinth, queue posts with a red rope
+  {
+    const m = BUILDINGS.find((x) => x.id === "museum")!, fz = m.road - 3.3, sx = m.x + m.w / 2 + 1.25, sz = fz + 0.8;
+    B.add(rbox(1.3, 0.8, 1.3, 0.06), "#E9E1D2", { p: [sx, 0.4, sz] });
+    B.add(rbox(1.4, 0.1, 1.4, 0.04), "#C9B8A3", { p: [sx, 0.82, sz] });
+    const br = "#9C6A36", th = -0.9, dx = Math.cos(th), dz = -Math.sin(th), px = Math.sin(th), pz = Math.cos(th); // bronze bull (the stock market's symbol), head towards the camera
+    const along = (k: number, side: number, y: number): V3 => [sx + dx * k + px * side, y, sz + dz * k + pz * side];
+    B.add(rbox(1.25, 0.6, 0.66, 0.24, 2), br, { p: along(0, 0, 1.42), r: [0, th, 0.08] });
+    B.add(rbox(0.5, 0.46, 0.46, 0.18, 2), br, { p: along(0.72, 0, 1.6), r: [0, th, -0.25] });
+    for (const sd of [-1, 1]) B.add(new THREE.ConeGeometry(0.07, 0.5, 5), "#F3E2B3", { p: along(0.78, sd * 0.3, 1.92), r: [sd * 0.9 * pz, 0, -sd * 0.9 * px] });
+    B.add(new THREE.CylinderGeometry(0.04, 0.02, 0.5, 4), br, { p: along(-0.75, 0, 1.45), r: [0, th, 0.9] }); // tail
+    for (const [k, sd] of [[-0.42, -0.2], [-0.42, 0.2], [0.42, -0.2], [0.42, 0.2]]) B.add(new THREE.CylinderGeometry(0.09, 0.07, 0.48, 5), br, { p: along(k, sd, 1.06) });
+    circles.push({ x: sx, z: sz, r: 0.8 }); blobs.push({ x: sx, z: sz + 0.2, rx: 1 });
+    for (const side of [-1, 1]) {
+      const x0 = m.x + side * 1.3, x1 = m.x + side * 2.9, z = fz + 1.95;
+      for (const x of [x0, x1]) { B.add(new THREE.CylinderGeometry(0.05, 0.08, 0.85, 6), "#D4A72C", { p: [x, 0.42, z] }); B.add(new THREE.SphereGeometry(0.08, 6, 4), "#D4A72C", { p: [x, 0.88, z] }); }
+      B.add(new THREE.CylinderGeometry(0.03, 0.03, Math.abs(x1 - x0), 4), "#C0392B", { p: [(x0 + x1) / 2, 0.72, z], r: [0, 0, Math.PI / 2] });
+      boxes.push({ x0: Math.min(x0, x1) - 0.1, z0: z - 0.1, x1: Math.max(x0, x1) + 0.1, z1: z + 0.1 });
+    }
+  }
+  // your milk-tea shop: café tables, menu board, bin, bench + signpost towards the plaza
+  {
+    const sh = BUILDINGS.find((x) => x.id === "shop")!, fz = sh.road - 3.3;
+    cafe(sh.x - sh.w / 2 - 1.4, fz + 1.0, "#F5A524", "#FFFFFF"); cafe(sh.x + sh.w / 2 + 1.6, fz + 1.0, "#FF8FA3", "#FFFFFF");
+    const mx = sh.x + 1.9, mz = fz + 1.55; // A-frame menu board
+    for (const t of [-0.22, 0.22]) B.add(rbox(0.6, 0.8, 0.06, 0.02), "#C98B5E", { p: [mx, 0.4, mz + t * 0.5], r: [t, 0, 0] });
+    B.add(new THREE.BoxGeometry(0.48, 0.62, 0.02), "#3E4A45", { p: [mx, 0.42, mz + 0.15], r: [0.22, 0, 0] }, 0, 0.01); // chalkboard
+    B.add(new THREE.BoxGeometry(0.34, 0.05, 0.02), "#FFFFFF", { p: [mx, 0.58, mz + 0.13], r: [0.22, 0, 0] }, 0, 0.01);
+    B.add(new THREE.BoxGeometry(0.26, 0.05, 0.02), "#FFC93C", { p: [mx, 0.44, mz + 0.16], r: [0.22, 0, 0] }, 0, 0.01);
+    B.add(new THREE.BoxGeometry(0.3, 0.05, 0.02), "#FF8FA3", { p: [mx, 0.3, mz + 0.19], r: [0.22, 0, 0] }, 0, 0.01);
+    circles.push({ x: mx, z: mz, r: 0.3 });
+    bin(sh.x + sh.w / 2 + 3.3, fz + 1.7);
+    bench(3.4, fz + 1.1, 0); lamp(5.4, fz + 1.6); signpost(1.9, fz + 1.4, "#F5A524", "#2FAE73");
+    pot(sh.x - 1.6, fz + 0.75, P.leaf);
+  }
+  // low hedges, flower beds and rocks along the roadside south of the two demo streets (open meadow stays open)
+  for (const [x0, x1] of [[-45, -40], [-33, -27.5], [-24, -18.5], [-11, -6], [4, 8.5], [15.5, 21]] as [number, number][]) hedge(x0, x1, ROADS[2][1] + 2.1);
+  for (const [x0, x1] of [[-45.5, -40.5], [-33, -29], [-22, -17.5], [-12.5, -8.5]] as [number, number][]) hedge(x0, x1, ROADS[0][1] + 2.4);
+  if (rich) for (const [x, z] of [[-37.5, 26.2], [-25.5, 26.6], [-15.6, 26.3], [-4.4, 26.4], [11.5, 26.1], [23.5, 26.4], [-38.5, 7.1], [-26.8, 7.3], [-14.8, 7.0], [-6.5, 7.2]] as [number, number][]) { rock(x, z, 0.9 + rnd() * 0.5); rock(x + 0.6, z + 0.3, 0.5); posy(x + 0.4, z - 0.3, 0, FLW[Math.floor(rnd() * 5)], 4, 1, 0.6); }
+
   /* ---- harbour: pier, cranes, containers, a ship, buoys ---- */
   {
     const pz = SEA_Z; // pier from the beach into the sea
@@ -351,7 +588,7 @@ export function buildWorld(potato: boolean): World {
   }
 
   /* ---- street lamps along the roads (glass heads glow at night) ---- */
-  const lamps: [number, number][] = [];
+  const lamps: [number, number][] = [...extraLamps];
   for (const [x0, z0, x1, z1, w] of ROADS) {
     const len = Math.hypot(x1 - x0, z1 - z0), n = Math.floor(len / 13), ux = (x1 - x0) / len, uz = (z1 - z0) / len;
     for (let i = 1; i < n; i++) {
@@ -369,7 +606,9 @@ export function buildWorld(potato: boolean): World {
     circles.push({ x, z, r: 0.25 });
   }
 
-  /* ---- trees, bushes, flowers, grass (kept off roads, buildings, the plaza and the beach) ---- */
+  /* ---- trees, bushes, flowers, grass (kept off roads, buildings, the plaza and the beach) ----
+   * Faces the high camera never sees (trunk caps, the undersides of pine tiers and grass blades) are left open:
+   * there are hundreds of each, and the triangles go to the street details instead. */
   const nearRoad = (x: number, z: number, r: number) => {
     for (const [ax, az, bx, bz, w] of allPaths) {
       const vx = bx - ax, vz = bz - az, L = vx * vx + vz * vz || 1, k = Math.max(0, Math.min(1, ((x - ax) * vx + (z - az) * vz) / L));
@@ -394,14 +633,14 @@ export function buildWorld(potato: boolean): World {
   const tree = (x: number, z: number, kind: number, s: number) => {
     const y0 = cliffTop(x, z);
     if (kind === 0) { // round, tiered crown
-      B.add(new THREE.CylinderGeometry(0.2 * s, 0.28 * s, 1.3 * s, 6), P.trunk, { p: [x, y0 + 0.65 * s, z] });
+      B.add(new THREE.CylinderGeometry(0.2 * s, 0.28 * s, 1.3 * s, 6, 1, true), P.trunk, { p: [x, y0 + 0.65 * s, z] });
       const leaf = [P.leaf, P.leaf2, P.leaf3][Math.floor(rnd() * 3)];
       B.add(new THREE.IcosahedronGeometry(1.25 * s, 1), leaf, { p: [x, y0 + 2.0 * s, z], s: [1, 0.92, 1] }, 1);
       B.add(new THREE.IcosahedronGeometry(0.8 * s, 1), leaf, { p: [x + 0.25 * s, y0 + 2.85 * s, z - 0.1 * s] }, 1.2);
       if (rnd() < 0.35) for (let i = 0; i < 4; i++) { const a = rnd() * 6.28; B.add(new THREE.IcosahedronGeometry(0.12 * s, 0), "#FF7A6B", { p: [x + Math.cos(a) * 1.05 * s, y0 + 2 * s + (rnd() - 0.3) * 0.8 * s, z + Math.sin(a) * 1.05 * s] }, 1); }
     } else if (kind === 1) { // pine, stacked cones
-      B.add(new THREE.CylinderGeometry(0.16 * s, 0.22 * s, 0.9 * s, 6), P.trunk, { p: [x, y0 + 0.45 * s, z] });
-      for (let i = 0; i < 3; i++) B.add(new THREE.ConeGeometry((1.3 - i * 0.32) * s, 1.3 * s, 7), P.pine, { p: [x, y0 + (1.25 + i * 0.75) * s, z], r: [0, rnd(), 0] }, 0.6 + i * 0.4);
+      B.add(new THREE.CylinderGeometry(0.16 * s, 0.22 * s, 0.9 * s, 6, 1, true), P.trunk, { p: [x, y0 + 0.45 * s, z] });
+      for (let i = 0; i < 3; i++) B.add(new THREE.ConeGeometry((1.3 - i * 0.32) * s, 1.3 * s, 7, 1, true), P.pine, { p: [x, y0 + (1.25 + i * 0.75) * s, z], r: [0, rnd(), 0] }, 0.6 + i * 0.4);
     } else { // palm on the beach side
       for (let i = 0; i < 4; i++) B.add(new THREE.CylinderGeometry(0.14 * s, 0.17 * s, 0.75 * s, 6), P.trunk, { p: [x + i * 0.08 * s, y0 + (0.37 + i * 0.72) * s, z], r: [0, 0, -0.08 * i] });
       for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; B.add(new THREE.BoxGeometry(1.7 * s, 0.06, 0.45 * s), P.leaf2, { p: [x + 0.3 * s + Math.cos(a) * 0.75 * s, y0 + 3 * s - 0.2 * s, z + Math.sin(a) * 0.75 * s], r: [0, -a, -0.35] }, 1.2); }
@@ -435,14 +674,13 @@ export function buildWorld(potato: boolean): World {
     p++;
     for (let i = 0; i < 9; i++) {
       const x = cx + (rnd() - 0.5) * 2.6, z = cz + (rnd() - 0.5) * 2.6;
-      B.add(new THREE.CylinderGeometry(0.02, 0.02, 0.3, 3), P.leaf2, { p: [x, 0.15, z] }, 0.5);
-      B.add(new THREE.IcosahedronGeometry(0.11, 0), col, { p: [x, 0.33, z] }, 0.6);
+      flower(x, 0.02, z, col);
     }
   }
   for (let i = 0; i < (potato ? 140 : 520); i++) {
     const x = (rnd() * 2 - 1) * 52, z = SEA_Z + 5 + rnd() * 40;
     if (!free(x, z, 0.2)) continue;
-    for (let k = 0; k < 3; k++) B.add(new THREE.ConeGeometry(0.07, 0.38, 3), rnd() < 0.5 ? P.grass2 : P.leaf2, { p: [x + (k - 1) * 0.12, 0.17, z + (rnd() - 0.5) * 0.15], r: [(k - 1) * 0.3, 0, (k - 1) * 0.35] }, 0.8);
+    for (let k = 0; k < 3; k++) B.add(new THREE.ConeGeometry(0.07, 0.38, 3, 1, true), rnd() < 0.5 ? P.grass2 : P.leaf2, { p: [x + (k - 1) * 0.12, 0.17, z + (rnd() - 0.5) * 0.15], r: [(k - 1) * 0.3, 0, (k - 1) * 0.35] }, 0.8);
   }
 
   /* ---- sea: one subdivided plane, gentle waves in the vertex shader ---- */

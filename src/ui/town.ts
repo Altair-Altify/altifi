@@ -2,7 +2,9 @@
  * Opened from the Play tab after the dive from the home planet. The 5-tab nav is covered (full-screen overlay),
  * there is an exit button, the Alti Lion button moves to the top-right corner (.phone.ingame) so it never sits on
  * the action button. Joystick bottom-left (touch/mouse), WASD / arrow keys on a computer (Shift = run,
- * E / Space / Enter = action, M = map). No tap-to-walk (13.5-4). */
+ * E / Space / Enter = action, M = map). No tap-to-walk (13.5-4).
+ * Top-left HUD = one row (back · net worth, or in "My Life" one card: month · mood · net worth · next step, tap =
+ * the in-game phone) + the minimap under the back button. */
 import { $, esc, shortVnd } from "../core/util";
 import { S, save, PO, noMotion, lessonsDone } from "../core/state";
 import { reg } from "../core/actions";
@@ -49,9 +51,8 @@ function hud() {
   return `<div class="tw-top">
       <button class="tw-btn" onclick="A.exitTown()" aria-label="${esc(t("tw.exit"))}">${icon("back", { size: 22 })}</button>
       <div class="tw-nw" title="${esc(t("top.netWorth"))}">${icon("wallet", { size: 20, color: IC.wallet })}<span class="tw-nwk">${t("top.netWorth")}</span><b data-ck="twnw" data-to="${g.netWorth}" data-fmt="vnd">${shortVnd(g.netWorth, lang())}</b></div>
+      <button class="tw-life" id="twLife" hidden onclick="A.lifePhone()"></button>
     </div>
-    <div class="tw-life" id="twLife" hidden></div>
-    <button class="tw-phone" id="twPhone" hidden onclick="A.lifePhone()" aria-label="${esc(t("lf.phone"))}">${icon("chart", { size: 24, color: "#5B4636" })}</button>
     <button class="tw-map" id="twMap" onclick="A.townMap()" aria-label="${esc(t("tw.map"))}"><canvas width="184" height="144"></canvas></button>
     <div class="tw-zone" id="twZone" aria-live="polite"></div>`;
 }

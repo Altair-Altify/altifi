@@ -37,7 +37,7 @@
 body.potato .tw-act,body.potato .tw-talk{animation:none}
 @media (prefers-reduced-motion:reduce){.tw-act,.tw-talk{animation:none}}
 /* minimap (top-left, under the HUD) + district banner */
-.tw-map{position:absolute;left:12px;top:66px;z-index:3;width:96px;height:75px;padding:0;border:3px solid #FFF8EC;border-radius:16px;overflow:hidden;background:#A9DB82;box-shadow:0 3px 0 #E8D9C2,0 6px 14px rgba(58,47,40,.18)}
+.tw-map{position:absolute;left:12px;top:72px;z-index:3;width:96px;height:75px;padding:0;border:3px solid #FFF8EC;border-radius:16px;overflow:hidden;background:#A9DB82;box-shadow:0 3px 0 #E8D9C2,0 6px 14px rgba(58,47,40,.18)}
 .tw-map canvas{display:block;width:100%;height:100%}
 .tw-zone{position:absolute;left:50%;top:152px;z-index:3;display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;background:#FFF8EC;color:#3A2F28;font-weight:900;font-size:15px;white-space:nowrap;box-shadow:0 3px 0 #E8D9C2,0 6px 14px rgba(58,47,40,.18);transform:translate(-50%,-8px);opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
 .tw-zone.on{opacity:1;transform:translate(-50%,0)}
@@ -64,12 +64,15 @@ body.potato .tw-act,body.potato .tw-talk{animation:none}
 .tw-zl{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;background:rgba(255,248,236,.92);font-size:11px;font-weight:900;white-space:nowrap;color:#3A2F28}
 .tw-hint{top:200px}
 /* ===== Personal mode (src/ui/life.ts) ===== */
-.tw-life{position:absolute;left:116px;right:76px;top:66px;z-index:3;display:flex;flex-direction:column;gap:2px;padding:7px 10px;border-radius:14px;background:#FFF8EC;color:#3A2F28;box-shadow:0 3px 0 #E8D9C2,0 6px 14px rgba(58,47,40,.18);font-size:12px;font-weight:800;line-height:1.25}
-.tw-life[hidden],.tw-phone[hidden]{display:none}
-.tw-life b{font-size:14px;font-weight:900}
-.tw-life span{color:#6B5847}
-.lf-mood{position:absolute;right:8px;top:6px;display:flex;align-items:center;gap:3px;font-style:normal;font-weight:900;font-size:12px;color:#3A2F28}
-.tw-phone{position:absolute;left:12px;top:150px;z-index:3;width:46px;height:46px;border-radius:50%;border:none;background:#FFF8EC;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 #E8D9C2,0 6px 14px rgba(58,47,40,.18)}
+.tw-life{flex:1;min-width:0;height:50px;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:4px 12px;border:none;border-radius:18px;background:#FFF8EC;color:#3A2F28;font:inherit;text-align:left;box-shadow:0 3px 0 #E8D9C2,0 6px 14px rgba(58,47,40,.18)}
+.tw-life:active{transform:translateY(2px);box-shadow:0 1px 0 #E8D9C2}
+.tw-life[hidden],.tw-nw[hidden]{display:none}
+.lf-r1{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+.lf-r1 b{font-size:14.5px;font-weight:900}
+.lf-r1>svg{flex:none;margin-left:2px}
+.lf-mood{display:flex;align-items:center;gap:2px;font-style:normal;font-weight:900;font-size:12px;color:#7A6656}
+.lf-nw{display:flex;align-items:center;gap:3px;margin-left:auto;min-width:0;overflow:hidden;font-style:normal;font-weight:900;font-size:14.5px;color:#2E7D32;font-variant-numeric:tabular-nums}
+.lf-r2{font-size:12px;font-weight:800;color:#6B5847;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tw-sheet{max-height:72%;overflow-y:auto;overscroll-behavior:contain}
 .lf-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin:0 0 8px;padding-right:40px;position:relative} /* a long date wraps under the title instead of squeezing it */
 .lf-h h3{margin:0;font-size:18px}

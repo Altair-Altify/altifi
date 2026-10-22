@@ -19,8 +19,15 @@ export interface TownHooks {
   frame?(): void;
 }
 const SPEED = 4.6, RUN = 7, R = 0.42, NPC_SPEED = 1.9;
-const CAM = new THREE.Vector3(0, 14, 14.5); // offset from the player: ~44° down
-const LEAD = 2.2; // look a little ahead (north) so the player sits just below the centre
+/* Camera rig by screen shape (offset from the player + how far ahead (north) it looks). On a tall phone the camera
+ * sits higher and further back and looks well ahead, so the player stands in the lower third and the street in
+ * front fills the screen instead of empty grass behind them. */
+const RIGS = [
+  { maxAspect: 0.6, cam: new THREE.Vector3(0, 18.5, 17.5), lead: 8, fov: 50 }, // portrait phone (390×844)
+  { maxAspect: 1, cam: new THREE.Vector3(0, 16, 16), lead: 5, fov: 46 },
+  { maxAspect: Infinity, cam: new THREE.Vector3(0, 15, 15.5), lead: 3.5, fov: 38 }, // landscape / desktop
+];
+const LIFT = 4.8; // with a sheet open (lift = 1) the camera aims this far south of the player → player in the top half
 const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 
 /* Sky keyframes by hour: [hour, sky, hemi sky, hemi ground, hemi intensity, sun colour, sun intensity, window glow 0..1] */
@@ -43,7 +50,8 @@ export class Town {
   readonly canvas: HTMLCanvasElement;
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
-  readonly camera = new THREE.PerspectiveCamera(38, 1, 0.5, 160);
+  readonly camera = new THREE.PerspectiveCamera(38, 1, 0.5, 180);
+  private rig = RIGS[0];
   private world: World;
   private player!: Avatar;
   readonly pos = new THREE.Vector2();
@@ -77,7 +85,7 @@ export class Town {
     this.canvas.className = "tw-canvas";
     this.canvas.setAttribute("aria-hidden", "true");
     this.scene.background = new THREE.Color("#BFE6FF");
-    this.scene.fog = new THREE.Fog("#FFF6E5", 40, 86);
+    this.scene.fog = new THREE.Fog("#FFF6E5", 46, 100);
     this.hemi = new THREE.HemisphereLight("#FFF6E5", "#8FB7A0", 1.9); this.scene.add(this.hemi);
     this.sun = new THREE.DirectionalLight("#FFF1D6", 1.7); this.sun.position.set(-6, 10, 7); this.scene.add(this.sun);
     this.world = buildWorld(potato);
@@ -138,7 +146,8 @@ export class Town {
     const r = this.host.getBoundingClientRect(), w = Math.max(1, r.width), h = Math.max(1, r.height);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-    this.camera.fov = w / h < 0.6 ? 52 : w / h < 1 ? 46 : 38; // narrow phones need a wider view to see the street
+    this.rig = RIGS.find((r) => w / h < r.maxAspect)!;
+    this.camera.fov = this.rig.fov; // narrow phones need a wider view to see the street
     this.camera.updateProjectionMatrix();
   }
   start() {
@@ -151,7 +160,7 @@ export class Town {
   /** Arriving from the home planet: the camera drops from high above onto the player (~0.9 s). */
   arrive() { this.applySky(true); if (this.motion) this.intro0 = performance.now(); else this.snapCamera(); }
   dispose() { this.stop(); this.renderer.dispose(); this.renderer.forceContextLoss(); }
-  private snapCamera() { this.camPos.set(this.pos.x, 0, this.pos.y).add(CAM); }
+  private snapCamera() { this.camPos.set(this.pos.x, 0, this.pos.y).add(this.rig.cam); }
 
   /* ---- time of day ---- */
   hour() { if (this.hourOverride != null) return this.hourOverride; const d = new Date(); return d.getHours() + d.getMinutes() / 60; }
@@ -367,7 +376,7 @@ export class Town {
     const zn = this.world.zones.find((z) => this.pos.x >= z.x0 && this.pos.x < z.x1 && this.pos.y >= z.z0 && this.pos.y < z.z1) || null;
     if (zn !== this.zoneNow) { this.zoneNow = zn; this.hooks.zone(zn); }
     // camera: smooth follow (+ arrival drop)
-    const want = new THREE.Vector3(this.pos.x, 0, this.pos.y).add(CAM);
+    const CAM = this.rig.cam, want = new THREE.Vector3(this.pos.x, 0, this.pos.y).add(CAM);
     this.camPos.lerp(want, this.motion ? Math.min(1, dt * 5) : 1);
     const cam = this.camera.position.copy(this.camPos);
     let lookY = 0.6;
@@ -377,7 +386,7 @@ export class Town {
       if (k >= 1) this.intro0 = 0;
     }
     this.liftK += (this.lift - this.liftK) * (this.motion ? Math.min(1, dt * 6) : 1);
-    this.camera.lookAt(this.camPos.x - CAM.x, lookY, this.camPos.z - CAM.z - LEAD + this.liftK * 7);
+    this.camera.lookAt(this.camPos.x - CAM.x, lookY, this.camPos.z - CAM.z - this.rig.lead + this.liftK * (this.rig.lead + LIFT));
     this.renderer.render(this.scene, this.camera);
     this.hooks.frame?.();
   }
