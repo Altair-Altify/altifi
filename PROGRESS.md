@@ -45,6 +45,65 @@
 - **(Phiên 6) Viết lại P1/P3/M2 theo giọng "người mới đi làm"** — trái với 13.2b-3 ("đời teen trước") nhưng theo yêu cầu mới của nhóm. Nhân vật P1 là **Minh, 23 tuổi, thực nhận 9 triệu** (làm tròn để chia hũ 50/30/20 dễ; game và P5 dùng 8,95 triệu). Số khảo sát (46 bạn 14–17 tuổi) giữ nguyên vì là số thật. Câu thoại Alti Lion trong bài (`lion:`) giữ nguyên, kể cả ẩn dụ "vòi nước" của M2 dù tiêu đề đã đổi.
 - **(Phiên 6) Thuật ngữ:** bản VI in đậm + giải thích 1 câu + tên tiếng Anh trong ngoặc; bản EN in đậm + giải thích, không ngoặc. "Lần đầu" tính **trong từng bài** (người học không bắt buộc học theo thứ tự). Mức độ: P1 4 thuật ngữ (+3 ở Đào sâu), M2 ~8 (+4), P3 ~11 (+4).
 
+- **(Phiên 8) `?demo=1` chỉ để quay video** (`src/core/demo.ts`): tắt thời tiết, giờ thị trấn = **17,6 h** (hoàng hôn) nếu URL không có `?hour=`, ẩn ghi chú bằng class `dnote` (`html.demo .dnote{display:none}` trong `base.css`). Ghi chú bị ẩn: "Demo chấm theo từ khóa" (bài giải thích), "Demo: đánh giá soạn sẵn…" (Cuộc sống của tôi, Bảo tàng), "Câu trả lời demo soạn sẵn…" (khung chat Alti Lion), "Bài do AI tổng hợp… đang kiểm chứng" (Khám phá), đuôi "— cần kiểm chứng / to be verified" sau nguồn biểu đồ (X1, X2, G2, I2) và câu "(Đây là mô hình đơn giản để minh họa…)" ở núm Thống đốc M2. **Giữ lại** (không phải ghi chú demo): câu "Kết quả 'nếu như' theo một mô hình đơn giản…" của Bảo tàng, câu "(Bản đầy đủ: AI tạo tình huống…)" khi tháng không có case, và câu trả lời dự phòng của Alti Lion. Muốn ẩn thêm chỗ nào: thêm class `dnote`.
+- **(Phiên 8) Camera "ghé thăm" một địa điểm** (`Town.focusOn` / `focusDoor`, chỉ là trình diễn, không đổi luật chơi): bước vào Bảo tàng → camera lướt tới mặt tiền; trong phòng khủng hoảng camera theo cảnh: **bùng nổ / sụp đổ → bảng giá Sàn giao dịch**, **rút tiền → hàng người trước Ngân hàng**, **suy thoái → Chợ tắt đèn** (`SCENE_AT` trong `src/ui/crisis.ts`). Khi đó sheet thấp hơn (tối đa 58% thay vì 72%) để thấy cảnh. Mua xe → sheet đóng, camera ghé vườn ~2,8 s rồi về (trước đây xe xuất hiện ngoài màn hình).
+- **(Phiên 8) Biển tên trên mặt tiền** theo ngôn ngữ app (VI/EN), vẽ bằng canvas vào 1 texture + 1 mesh (`SIGN` trong `src/game/world.ts`); nhà mình dùng bảng gỗ cạnh cổng vì mái hiên che biển trên tường. Chi tiết mặt tiền (song cửa sổ, bồn hoa dưới cửa sổ, cửa chớp nhà mình, mái hiên nhỏ trên cửa) chỉ làm cho 8 nơi lên video (`SHOWCASE`).
+- **(Phiên 8) Sửa `autoLvl()`**: `S.game.rank` từ phiên 5 là **thứ hạng trong lớp** (#1 tốt nhất) chứ không phải "cấp game" như phiên 1 giả định, nên người mới học 1 bài mà xếp #5/8 bị Alti Lion nói chuyện như "giáo sư". Nay chỉ hạng #1–#4 được cộng điểm (#1 +6 … #4 +1,5). Đổi trong `src/assistant/assistant.ts` nếu nhóm muốn khác.
+- **(Phiên 8) Đề xuất câu hỏi Alti Lion khi quay video:** "Fixed or floating rate: which is safer?" (khớp M2, kho trả lời có sẵn). Câu "Why did my net worth go down?" rơi vào câu trả lời dự phòng.
+
+## ⭐ Việc nhóm cần quyết khi thi xong (gộp từ phiên 4–8, cập nhật 23/10)
+
+1. **Duyệt giọng P1 / P3 / M2** (bản "người mới đi làm", phiên 6) → ưng thì giao làm 17 bài còn lại theo cùng cách; tiêu đề mới có cần đưa vào bảng 13.2d của `ALTIFI_DESIGN.md` không.
+2. **Đi hết `VERIFY.md`** (ưu tiên phần A — vòng demo: M2, phòng 1929, 5 case tháng, Alti Lion), ghi nguồn/link, sửa số sai trong code. Mọi ghi chú "cần kiểm chứng" vẫn hiện ở chế độ thường.
+3. **Quay video:** dùng `?demo=1` (xem mục Phiên 8). Quyết: giờ hoàng hôn 17,6 h có ưng không (đổi `DEMO_HOUR` trong `src/core/demo.ts`, hoặc thêm `&hour=…`); câu hỏi Alti Lion (đề xuất "Fixed or floating rate: which is safer?"); có ẩn thêm câu "nếu như… mô hình đơn giản" của Bảo tàng không.
+4. **Thử trên điện thoại thật** (chưa ai thử): kéo nút Alti Lion, chuyển cảnh, hiệu năng thị trấn (số đo headless không đại diện cho máy thật), camera lướt khi vào Bảo tàng / mua xe có gây chóng mặt không.
+5. **Hai việc còn treo từ phiên 6:** avatar / gộp Intelligence với Alti Lion; có cần cách mở Alti Lion trong bài học khi **tắt** Intelligence không (hiện không có).
+6. **Cân bằng game:** mua xe máy trả góp 100% ở tháng 1 rồi kết thúc tháng làm net worth −4,6 triệu (xe mất giá + chi phí nuôi) — đúng tinh thần 13.4 nhưng nhóm xem số có quá nặng không. Thông số trong `src/game/life.ts`.
+7. **Chọn chủ đề Khám phá 4–5** (SpaceX, doanh nghiệp VN) nếu muốn thêm; chỉnh 12 câu nhắc `as.nudge`.
+8. **Ở theme Light** vẫn còn vài chỗ tương phản thấp (chữ trắng trên nút xanh lá, chip màu mảng sáng — phiên 4c); demo dùng Night nên chưa sửa.
+9. Xem ảnh `dev/screens/round2/compare-*.jpg`; muốn bớt chi tiết thì xóa dòng trong khối "street furniture" / `SHOWCASE` (`world.ts`).
+
+## Tóm tắt các phiên 21–23/10 (tuần thi)
+
+- **Việc của lịch 21–23/10 (làm sớm, xong từ 18/10):** chế độ **Cuộc sống của tôi** (vòng lặp tháng, 5 case chấm kiểu cờ vua, ngân hàng/điểm tín dụng, nhà & xe, báo cáo + xếp hạng 8 bạn), bài P1–P3 theo khung 6 nhịp (21/10); **Doanh nghiệp** (quầy trà sữa, huy động vốn, lãi/lỗ + dòng tiền, phá sản), M2 với núm Thống đốc, B1/B3/B4 (22/10); **Bảo tàng 1929** đổi vai người dân / Thống đốc Fed, thị trấn nhuộm sepia, M1/M3 (23/10). Sau đó cả 20/20 bài, 3 bài Khám phá, phòng 1997.
+- **Phiên 6 (20/10):** chuyển cảnh fade-through thống nhất, câu nhắc Intelligence khi sai, nút Alti Lion kéo được, `VERIFY.md`, kiểm thử vòng demo EN ở 375/412, viết lại giọng P1/P3/M2.
+- **Phiên 7 (22/10):** đồ họa đợt 1 cho thị trấn — camera dọc rộng hơn, đồ trang trí quanh 6 nơi quay video, mặt đất có chiều sâu, HUD 1 hàng.
+- **Phiên 8 (23/10):** sửa lỗi còn ghi, đồ họa đợt 2, `?demo=1`, chạy vòng demo — chi tiết ngay dưới.
+
+## Phiên 8 — 23/10 (nhóm đang thi): sửa lỗi, đồ họa đợt 2, chế độ quay video ✅ (đã push)
+
+Không thêm gameplay. Ảnh trước/sau (390×844, hoàng hôn, thời tiết tắt) ở **`dev/screens/round2/`**: `compare-sunset.jpg` (6 nơi), `compare-effects.jpg` (vào bảo tàng, 1929 bùng nổ, xếp hàng rút tiền, mua xe, net worth giảm), `compare-bugs.jpg` (4 lỗi) — hàng trên = trước, hàng dưới = sau; từng ảnh `before-*/after-*.jpg`. Chụp lại: `npm run dev` rồi `node scripts/demoshots.cjs dev/screens/round2 after` (bản không có `?demo=1` thì thêm tham số `"?hour=17.75"`).
+
+**1. Lỗi còn ghi từ các phiên trước**
+- Bong bóng thoại Alti Lion trống khi thu nhỏ lên tầng 1 ngân hà (phiên 4d/4e) → `onLevel` (`src/ui/learn.ts`) khởi động lời thoại ngay.
+- Nút "NEXT LESSON ·" chỉ có icon (phiên 6) → thêm mã bài: "NEXT LESSON · P1".
+- Nút Alti Lion đè chữ thẻ chế độ ở tab Chơi (phiên 6) → thẻ chừa lề phải 52px (`app.css`).
+- Nền nhẹ không vẽ lại khi đổi theme (phiên 4) → đã kiểm: Cài đặt › Light rồi sang Khám phá vẽ đúng; không còn lỗi.
+- **Lỗi mới tìm thấy khi chạy vòng demo:** pop-up mẹo Intelligence (5,5 s) không tắt khi sang bước → đè câu hỏi kế tiếp và **cả màn kết quả** → tắt khi chuyển bước / thoát bài (`hideTipPop`). Alti Lion tự lên mức "giáo sư" sai (xem quyết định `autoLvl`).
+- Chưa sửa (không phải lỗi, ghi lại): pinch-zoom ngân hà zoom quanh tâm màn hình; thẻ "Tiếp tục" không tính lại điểm các câu trước; tương phản theme Light (việc 8 ở trên).
+
+**2. Đồ họa đợt 2** (chỉ nơi lên video)
+- **Mặt tiền** (`world.ts`): song cửa sổ chữ thập, bồn hoa dưới cửa sổ tầng trệt, cửa chớp nhà mình, mái hiên nhỏ trên cửa (nhà, công ty, phòng khám), **biển tên** HOME / OFFICE / BANK / MARKET / MILK TEA / CRISIS MUSEUM / HOMES & RIDES… (VI khi app tiếng Việt), biển sáng nhẹ ban đêm. Bảo tàng: thảm đỏ, 2 đèn lồng đồng (sáng lúc hoàng hôn/đêm), chậu thông, giá áp phích "1929 · ROOMS OPEN · 1997".
+- **Trời & ánh sáng** (`town.ts`, bảng `SKY` thêm màu chân trời + độ cao mặt trời): hoàng hôn 17–18,3 h = trời hồng tím tan dần sang cam ở chân trời, sương mù ấm, nắng thấp từ phía tây chiếu xiên mặt tiền, cửa sổ bắt đầu sáng. Trời vẽ bằng 1 dải gradient trong clip-space (¼ trên màn hình) thay vì texture toàn màn hình (texture tốn +30 ms/khung trên SwiftShader).
+- **Net worth tăng/giảm** (`nwFx` trong `src/ui/town.ts`): thẻ HUD nhói xanh/đỏ (giảm thì rung nhẹ), số chạy tới giá trị mới, chip "▲ +1,5Mđ" (kèm đồng xu bay) / "▼ −4,6Mđ" nổi lên rồi mờ. Mua bằng tiền mặt/trả góp không đổi net worth nên không có hiệu ứng (đúng 13.4).
+- **Mua xe**: camera ghé vườn, xe rơi xuống, nảy, bắn hạt lấp lánh + vòng sáng trên cỏ, camera quay về.
+- **Bảo tàng 1929**: vào cửa → camera lướt lên mặt tiền + viền sáng ấm; chọn phòng → chữ **"1929 · THE GREAT CRASH OF 1929"** hiện trên thị trấn trong lúc ảnh chuyển dần sang sepia (0,9 s); mỗi mốc camera tới đúng nơi có chuyện (xem quyết định).
+- Potato Mode / giảm chuyển động: không bồn hoa nhỏ, không hạt lấp lánh, camera cắt thẳng, chip chỉ hiện rồi mờ.
+
+**3. `?demo=1`** — xem quyết định ở đầu file. Đã kiểm chế độ thường: không có class `demo`, thời tiết vẫn hiện, giờ theo đồng hồ thật, ghi chú vẫn hiện.
+
+**4. Vòng demo mục 8, tiếng Anh, `?demo=1`, 375×812 và 412×915** (`node scripts/demoloop.cjs <thư-mục>`, 48 ảnh mỗi cỡ): M2 đủ 9 bước + kết quả → tab Chơi › Bảo tàng › 1929 vai người dân (4 mốc + kết thúc) → Cuộc sống của tôi 2 tháng (Công ty → Chợ → Ngân hàng → Nhà → báo cáo) → hỏi Alti Lion trong thị trấn. **Kết quả sau khi sửa: 0 phần tử tràn ngang, 0 ghi chú demo hiện, 0 lỗi console** ở cả 2 cỡ. Lỗi hiển thị đã sửa: 2 lỗi ở mục 1 (pop-up mẹo, mức Alti Lion). Ảnh vòng demo không commit (≈ 40 MB), chạy lại script để xem.
+
+**Hiệu năng** (Chromium headless, SwiftShader, 390×844, đứng ở cửa nhà ban ngày; chạy xen kẽ 3 lượt bản cũ (HEAD phiên 7) / bản mới — chỉ so tương đối):
+| | Trước | Sau |
+|---|---|---|
+| Thời gian vẽ 1 khung (trung vị) | 116,1 / 119,7 / 119,1 ms | 121,7 / 123,5 / 119,6 ms (≈ +3%) |
+| fps đứng yên | 8,2 / 8,3 / 8,8 | 8,3 / 7,7 / 7,9 |
+| Draw call / tam giác | 248–249 / 185.587 | 250 / 191.079 (+3%) |
+| Potato: thời gian vẽ / fps đứng yên | 38,3 & 36,7 ms / 27,9 & 25,3 | 36,9 & 43,2 ms / 24,4 & 24,4 |
+
+Build sạch; `node scripts/playthrough.cjs vi` và `en`: 148/148 bước chấm điểm đúng (19 bước `predict` không chấm, đúng thiết kế); lỗi console duy nhất là ảnh Wikimedia bị mạng phiên chặn.
+
 ## Phiên 7 — 22/10 (nhóm đang thi): làm đẹp thị trấn cho video demo ✅ (đã push)
 
 Không thêm gameplay. Ảnh trước/sau ở 390×844, ban ngày (`?hour=10`) và ban đêm (`?hour=20`), thời tiết tắt để so đúng thị trấn: **`dev/screens/compare-day.jpg`, `dev/screens/compare-night.jpg`** (hàng trên = trước, hàng dưới = sau) + từng ảnh `before-*/after-*-{day,night}.png` cho 6 nơi. Chụp lại: `npm run dev` rồi `node scripts/townshots.cjs dev/screens after` (in kèm số đo hiệu năng).
@@ -393,7 +452,7 @@ Nhóm đo trên altifi.vercel.app ở khung 375×812 và gửi đúng diff sửa
 - Ảnh Wikimedia vẫn chưa test được vì mạng phiên bị chặn (như phiên 2).
 
 ## ▶️ Việc đầu tiên của phiên sau (cập nhật 18/10 tối, giờ VN)
-> **Cập nhật phiên 6:** xem mục "Phiên 6 → Việc nhóm cần làm sau khi thi xong" ở đầu file. Phiên Claude tiếp theo: chỉ làm 17 bài còn lại **sau khi** nhóm duyệt giọng P1/P3/M2.
+> **Cập nhật phiên 8 (23/10):** danh sách gộp ở mục "⭐ Việc nhóm cần quyết khi thi xong" đầu file (thay cho danh sách phiên 6). Phiên Claude tiếp theo: chỉ làm 17 bài còn lại **sau khi** nhóm duyệt giọng P1/P3/M2.
 
 **Trạng thái:** mọi việc trong lịch 13.6 tới **23/10 đã xong và đã deploy**; dòng **24–26/10**: đủ **20/20 bài** và **3 bài Khám phá** đã xong, đã deploy. Còn: sửa lỗi/đánh bóng, thử điện thoại (nhóm).
 1. `git pull`, đọc mục "Quyết định Claude Code tự đưa ra" ở đầu file + các mục Phiên 5. `npm install && npm run dev`, `node scripts/playthrough.cjs vi` (đã gồm 20 bài; bước `predict` báo WRONG là đúng thiết kế).
