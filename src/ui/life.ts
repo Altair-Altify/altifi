@@ -132,7 +132,7 @@ function lifeChoose(i: number) {
     <h4>${t("lf.views")}</h4>
     <div class="lf-views">${c.views.map(([w, s]) => `<div><b>${esc(tx(w))}</b><span>${esc(tx(s))}</span></div>`).join("")}</div>
     <h4>${t("lf.story")}</h4><p class="lf-story">${esc(tx(c.story))}</p>
-    <p class="tw-note">${t("lf.aiNote")}</p>
+    <p class="tw-note dnote">${t("lf.aiNote")}</p>
     <button class="btn good" onclick="A.townSheetClose()">${t("lf.cont")}</button>`);
 }
 
@@ -217,11 +217,31 @@ function lifeBuy(id: string, loan: string, sure = false) {
   confirmFor = "";
   const err = buy(L, id, (loan || null) as any);
   if (err) { minitoast(t("lf.err." + err)); dealer(); return; }
-  if (it.kind === "ride") getTown()?.setRide(L.vehicle);
   persist();
   minitoast(t("lf.bought", { what: t("lf.it." + id) }));
+  if (it.kind === "ride" && showRide(L.vehicle)) return;
   dealer();
 }
+/** A new ride: the sheet closes, the camera visits your garden, the ride drops in with sparkles, then the camera
+ * comes back to you (~2.8 s). Walking / bus pass: nothing to show. */
+let rideTimer: ReturnType<typeof setTimeout> | undefined;
+function showRide(id: string) {
+  const tw = getTown(); if (!tw) return false;
+  if (id === "walk") { tw.setRide(id); return false; }
+  townSheetClose();
+  const g = tw.garden;
+  tw.frozen = true; tw.input.set(0, 0);
+  tw.focusOn({ x: g.x, z: g.z, y: 0.6 }, false);
+  clearTimeout(rideTimer);
+  rideTimer = setTimeout(() => { tw.setRide(id, true); rideTimer = setTimeout(() => { rideTimer = undefined; tw.focusOn(null); tw.frozen = false; }, 1900); }, noMotion() ? 200 : 750);
+  return true;
+}
+townHooks.leave.push(() => { // left the town mid-visit: park the ride, camera back on you
+  if (!rideTimer) return;
+  clearTimeout(rideTimer); rideTimer = undefined;
+  const tw = getTown(), L = life(); tw?.focusOn(null); if (tw && L) tw.setRide(L.vehicle);
+});
+
 function lifeSell(kind: "home" | "ride") { const L = life(); if (!L) return; sell(L, kind); if (kind === "ride") getTown()?.setRide(L.vehicle); persist(); dealer(); }
 
 /* ---- Home: end the month ---- */
@@ -372,7 +392,7 @@ function bizChoose(i: number) {
     <h4>${t("lf.views")}</h4>
     <div class="lf-views">${c.views.map(([w, s2]) => `<div><b>${esc(tx(w))}</b><span>${esc(tx(s2))}</span></div>`).join("")}</div>
     <h4>${t("lf.story")}</h4><p class="lf-story">${esc(tx(c.story))}</p>
-    <p class="tw-note">${t("lf.aiNote")}</p>
+    <p class="tw-note dnote">${t("lf.aiNote")}</p>
     <button class="btn good" onclick="A.bizShop()">${t("lf.cont")}</button>`);
 }
 /** Play tab → "My Business": a ready-made start — 3 years into work with 30M saved — in front of the shop. */

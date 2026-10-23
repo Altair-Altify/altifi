@@ -16,9 +16,12 @@ import { minitoast } from "../ui/fx";
 
 /* ---------- level ---------- */
 export function autoLvl(): Lvl {
+  // S.game.rank is your place in the class ranking (#1 = best of 8, set by "My Life"), not a level: only the top
+  // places count (#1 → +6, #4 → +1.5, #5 or lower → 0)
   const rank = typeof (S.game as any)?.rank === "number" ? (S.game as any).rank : 0;
+  const game = rank > 0 ? Math.max(0, 5 - rank) : 0;
   const place = S.placement ? { n: 0, l: 3, p: 6 }[S.placement.lvl] : 0;
-  const sc = lessonsDone() + rank * 1.5 + place;
+  const sc = lessonsDone() + game * 1.5 + place;
   return sc >= 8 ? "p" : sc >= 3 ? "l" : "n";
 }
 export const curLvl = (): Lvl => (S.set.lvl !== "auto" ? S.set.lvl : autoLvl());
@@ -205,6 +208,11 @@ export function showTipPop() {
   setTimeout(() => { p.classList.add("out"); setTimeout(() => p.remove(), 400); }, 5500);
 }
 
+/** The tip / nudge belongs to the step it was shown on: gone when the step changes or the lesson ends. */
+export function hideTipPop() {
+  document.querySelectorAll(".phone .infopop.fabpop").forEach((p) => { p.classList.add("out"); setTimeout(() => p.remove(), 250); });
+}
+
 /** After a wrong answer (Intelligence setting): a calm, serious nudge — no jokes, no blame.
  * From the 2nd wrong answer in a row it also carries the question's hint. Shown even when the lesson has no tip text. */
 export function showNudgePop(hint?: string) {
@@ -249,7 +257,7 @@ export function openAssistant() {
       ${card ? `<div class="ifcard"><div class="muted ifsub" style="margin-bottom:6px">📍 ${esc(ctx.title)}</div>${card}</div>` : ""}
       <div class="chatlog" id="ifchat"></div>
       <div class="chips" style="margin-top:12px">${chips.map((ch) => `<button class="chip" onclick="A.askLion(this.textContent)">${esc(ch)}</button>`).join("")}</div>
-      <p class="muted center" style="font-size:11px;font-weight:700">🤖 ${t("as.demoNote")}</p>
+      <p class="muted center dnote" style="font-size:11px;font-weight:700">🤖 ${t("as.demoNote")}</p>
     </div>
     <div class="chatbar"><input id="ifin" placeholder="${tip ? t("as.phHint") : ctx.long ? t("as.phCtx", { name: S.m.name }) : t("as.ph", { name: S.m.name })}" onkeydown="if(event.key==='Enter')A.askLion()"><button onclick="A.askLion()">${t("c.send")}</button></div>`;
   phone.appendChild(f);

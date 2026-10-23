@@ -14,8 +14,8 @@ import { realImage } from "../ui/realimage";
 import { openO, closeO, resultPopup, setOvRerender } from "../ui/shell";
 import { bud, emote, react, startTalk, stopTalk, paintTalk, confetti, sheet, closeSheet, LINES, REACT, minitoast } from "../ui/fx";
 import { setCtx } from "../assistant/context";
-import { showTipPop, showNudgePop } from "../assistant/assistant";
-import { findLesson, ALL_LESSONS } from "../content/domains";
+import { showTipPop, showNudgePop, hideTipPop } from "../assistant/assistant";
+import { findLesson, findNode, ALL_LESSONS } from "../content/domains";
 
 type St = Record<string, any>;
 let L: null | {
@@ -134,7 +134,7 @@ export function chartSVG(c: ChartDef, w = 320, h = 190) {
   }
   const legend = c.series.map((s) => `<span><i style="background:${s.color}"></i>${esc(tx(s.name))}</span>`).join("");
   return `<div class="chart"><svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="${esc(c.series.map((s) => tx(s.name)).join(", "))}">${g}</svg>
-    <div class="ch-legend">${legend}${c.y ? `<span class="muted">· ${esc(tx(c.y))}</span>` : ""}</div>${c.source ? `<div class="ch-src">${esc(tx(c.source))}</div>` : ""}</div>`;
+    <div class="ch-legend">${legend}${c.y ? `<span class="muted">· ${esc(tx(c.y))}</span>` : ""}</div>${c.source ? `<div class="ch-src">${srcHTML(tx(c.source))}</div>` : ""}</div>`;
 }
 
 function sheetHTML(sh: Sheet, tappable: boolean) {
@@ -160,6 +160,12 @@ function optList(st: { o: TL[]; a: number }) {
     if (L!.checked) { if (k === st.a) c += " right"; else if (s.sel === pos) c += " wrong"; }
     return `<button class="${c}" onclick="A.lsSet('sel',${pos})">${tx(st.o[k])}</button>`;
   }).join("");
+}
+
+/** Chart source: a trailing "— to be verified" is a note, hidden on the demo video (?demo=1, html.demo .dnote). */
+function srcHTML(src: string) {
+  const m = /\s*—\s*(cần kiểm chứng|to be verified).*$/i.exec(src);
+  return m ? esc(src.slice(0, m.index)) + `<span class="dnote">${esc(m[0])}</span>` : esc(src);
 }
 
 /* ---------- the Governor's dial (M2) ---------- */
@@ -316,7 +322,7 @@ export function lessonRender(fx?: string) {
       ready = true;
       break;
     case "explain": {
-      body = `<div class="q">${tx(st.q)}</div><textarea id="exin" maxlength="300" placeholder="${t("lp.typeHere")}" oninput="A.lsExplain(this.value)" ${L.checked ? "disabled" : ""}>${esc(s.text)}</textarea><div class="count"><span id="excnt">${s.text.length}</span>/300</div><p class="muted" style="font-size:12px;font-weight:800">🤖 ${t("lp.keywordNote")}</p>`;
+      body = `<div class="q">${tx(st.q)}</div><textarea id="exin" maxlength="300" placeholder="${t("lp.typeHere")}" oninput="A.lsExplain(this.value)" ${L.checked ? "disabled" : ""}>${esc(s.text)}</textarea><div class="count"><span id="excnt">${s.text.length}</span>/300</div><p class="muted dnote" style="font-size:12px;font-weight:800">🤖 ${t("lp.keywordNote")}</p>`;
       if (L.checked) {
         const got = st.keys.map((k) => s.hits.includes(k));
         body += `<div class="card"><div class="exkeys">${st.keys.map((k, i) => `<span class="${got[i] ? "hit" : "miss"}">${got[i] ? "✓" : "○"} ${tx(k.label)}</span>`).join("")}</div><div class="muted" style="font-size:12px;font-weight:900;margin-top:10px">${t("lp.modelAnswer").toUpperCase()}</div><p style="font-weight:700;margin:4px 0 0">${tx(st.model)}</p></div>`;
@@ -464,6 +470,7 @@ function matchTap(side: "l" | "r", k: number) {
 function nextStep() {
   if (!L) return;
   stopVideo();
+  hideTipPop(); // last step's tip must not cover the next question or the result
   // out of hearts → refresher first
   if (S.hearts <= 0 && !L.outShown) { L.outShown = true; return outOfHearts(); }
   L.s++;
@@ -506,7 +513,7 @@ function lessonDone() {
   const title = L.deep ? t("res.deepDone") : pct === 1 ? t("res.perfect") : pct >= 0.66 ? t("res.complete") : pct > 0 ? t("res.madeIt") : t("res.tough");
   const buttons: Array<[string, string, string?]> = [];
   if (!L.deep && les.deep) buttons.push([`${icon("deep", { size: 20, tint: 0.3 })} ${t("res.deep")}`, `A.startLesson('${les.id}',true)`, "sun"]);
-  if (nextLes) buttons.push([`${t("res.next")} · ${icon(nextLes.ic, { size: 20, color: "#fff", tint: 0.35 })}`, `A.startLesson('${nextLes.id}')`, "good"]);
+  if (nextLes) buttons.push([`${t("res.next")} · ${icon(nextLes.ic, { size: 20, color: "#fff", tint: 0.35 })} ${esc(findNode(nextLes.id)?.code || "")}`, `A.startLesson('${nextLes.id}')`, "good"]);
   else if (pct < 0.66) buttons.push([t("res.retry"), `A.startLesson('${les.id}',${L.deep})`, "good"]);
   buttons.push([t("c.backHome"), "A.backHome()", "ghost"]);
   const wasDeep = L.deep;
@@ -536,6 +543,7 @@ function placementDone(pct: number, xp: number) {
 }
 
 function quitLesson() {
+  hideTipPop();
   if (!L) return closeO();
   if (L.s === 0 && !L.checked) { stopVideo(); stopTalk(); L = null; return closeO(); }
   sheet(`<div style="display:inline-block">${lion(80, "sad")}</div><h2>${t("lp.quitQ")}</h2><p class="muted" style="font-weight:700">${t("lp.quitSub")}</p>`,

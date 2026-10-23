@@ -182,3 +182,5 @@ body.night .post .pbody{color:var(--ink)}
 /* base used var(--ink) here, which turns light-on-light in Night theme */
 .minitoast{background:#1E1B3A;color:#fff}
 body.night .minitoast{background:#ECEDF6;color:#1E1B3A}
+/* Play tab: the floating Alti Lion button rests on the right edge — keep mode-card text clear of it (PROGRESS phiên 6) */
+.modecard{padding-right:52px}

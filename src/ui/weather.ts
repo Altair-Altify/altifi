@@ -1,4 +1,5 @@
 /* ---------- Country weather (from altifi-base.html) — shown only inside the town since 13.1b-6 ---------- */
+import { DEMO } from "../core/demo";
 import { $, rand } from "../core/util";
 import { S } from "../core/state";
 import { t, lang } from "../i18n/i18n";
@@ -31,5 +32,5 @@ function buildWx(kind: string) {
   return `<div class="wx wx-${kind}" aria-hidden="true">${h}</div>`;
 }
 export function wxHTML() { return wxCache[wxNow] || (wxCache[wxNow] = buildWx(wxNow)); }
-export function wxOverlay() { return S.set.wx ? wxHTML() : ""; }
+export function wxOverlay() { return S.set.wx && !DEMO ? wxHTML() : ""; } // ?demo=1: no weather on the video
 export function updateWeather() { const m = $("#wxTown"); if (m) m.innerHTML = wxOverlay(); }

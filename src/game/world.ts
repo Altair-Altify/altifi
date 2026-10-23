@@ -5,6 +5,7 @@
  * Coordinates: x → east, z → south (towards the camera), y up. 1 unit ≈ 1 m. All doors face south (the camera). */
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { Builder, sceneryMat, blobMesh, bend, type V3 } from "./kit";
 import { fbm, seeded } from "../galaxy/planet";
 import { glowTex } from "../galaxy/sky";
@@ -40,9 +41,11 @@ export interface World {
   lampGlow: THREE.MeshBasicMaterial; // pools of light under street lamps, opacity follows the night
   fall: THREE.Texture | null; // waterfall texture (scrolled by the town)
   ticker: { tex: THREE.CanvasTexture; ctx: CanvasRenderingContext2D } | null;
+  signs: { mat: THREE.MeshLambertMaterial; draw(lang: "vi" | "en"): void }; // name boards on the façades
 }
 
 const T2 = (vi: string, en: string) => ({ vi, en });
+const tx2 = (v: T, lg: "vi" | "en") => (typeof v === "string" ? v : (v as Record<string, string>)[lg]);
 /* Roads [x0, z0, x1, z1, width]. Rows of buildings sit just north of R1 (z 23.5), R0 (z 4), R2 (z −18), R3 (z −31). */
 export const ROADS: [number, number, number, number, number][] = [
   [-46, 4, 46, 4, 2.8], [0, -31, 0, 23.5, 2.6], [-40, 23.5, 42, 23.5, 2.4], [-46, -18, 46, -18, 2.6],
@@ -98,6 +101,17 @@ export const BUILDINGS: BuildingSpec[] = [
 ];
 for (const b of BUILDINGS) b.z = b.road - 3.3 - b.d / 2;
 
+/** Short names painted on the façade boards (the full name is on the action button). */
+const SIGN: Record<string, T> = {
+  home: T2("NHÀ MÌNH", "HOME"), office: T2("CÔNG TY", "OFFICE"), bank: T2("NGÂN HÀNG", "BANK"), dealer: T2("NHÀ & XE", "HOMES & RIDES"),
+  market: T2("CHỢ", "MARKET"), museum: T2("BẢO TÀNG KHỦNG HOẢNG", "CRISIS MUSEUM"), shop: T2("TRÀ SỮA", "MILK TEA"),
+  warehouse: T2("KHO HÀNG", "WAREHOUSE"), exchange: T2("SÀN GIAO DỊCH", "STOCK EXCHANGE"), gold: T2("VÀNG · NGOẠI TỆ", "GOLD · FX"),
+  fund: T2("QUỸ ĐẦU TƯ", "FUND"), cbank: T2("NGÂN HÀNG TRUNG ƯƠNG", "CENTRAL BANK"), cityhall: T2("TÒA THỊ CHÍNH", "CITY HALL"),
+  treasury: T2("BỘ TÀI CHÍNH", "FINANCE MINISTRY"), school: T2("TRƯỜNG HỌC", "SCHOOL"),
+};
+/** Places the demo video walks past get the richer façade (window boxes, shutters, door canopy). */
+const SHOWCASE = new Set(["home", "office", "bank", "market", "shop", "museum", "dealer", "clinic"]);
+
 const P = {
   grass: "#9ED46F", grass2: "#86C65A", grass3: "#B5E07E", sand: "#F3E2B3", sandW: "#BFD9C9", path: "#EED9A8", plaza: "#E9E1D2", plaza2: "#D9CFBD",
   trunk: "#9A6B4A", leaf: "#6CC15A", leaf2: "#4FA84A", leaf3: "#8AD36A", pine: "#3E9A5C", fence: "#E7C79A", stone: "#C9C3D9", water: "#7FD3F0",
@@ -114,6 +128,7 @@ const rbox = (w: number, h: number, d: number, r = 0.12, seg = 1) => new Rounded
 
 let fallTex: THREE.Texture | null = null;
 export function buildWorld(potato: boolean): World {
+  const rich0 = !potato;
   const rnd = seeded(2024), B = new Builder(rnd), W = new Builder(rnd), group = new THREE.Group();
   const boxes: Box[] = [], circles: Circle[] = [], doors: Door[] = [], blobs: { x: number; z: number; rx: number; rz?: number }[] = [];
   const GX = 64, GZ0 = -64, GZ1 = 46; // ground extent: beyond the walkable area so the curved horizon is green / blue
@@ -269,6 +284,7 @@ export function buildWorld(potato: boolean): World {
 
   /* ---- buildings ---- */
   let ticker: World["ticker"] = null;
+  const signs: { id: string; x: number; y: number; z: number; w: number; h: number; bg: string; fg: string; rx?: number }[] = [];
   for (const b of BUILDINGS) {
     const { x, w, d, h } = b, z = b.z!, front = z + d / 2;
     const at = (lx: number, ly: number, lz: number): V3 => [x + lx, ly, z + lz];
@@ -304,7 +320,9 @@ export function buildWorld(potato: boolean): World {
     }
     if (deco.has("columns")) {
       const n = Math.max(2, Math.round(w / 1.9)), cw = w - 1.2;
-      B.add(rbox(w + 0.4, 0.35, 0.3, 0.06), b.trim || "#FFFFFF", { p: [x, h - 0.1, front + 0.85] });
+      const eh = SIGN[b.id] ? 0.62 : 0.35; // a taller entablature carries the name
+      B.add(rbox(w + 0.4, eh, 0.3, 0.06), b.trim || "#FFFFFF", { p: [x, h - 0.1, front + 0.85] });
+      if (SIGN[b.id]) signs.push({ id: b.id, x, y: h - 0.1, z: front + 1.012, w: Math.min(w - 0.6, 5.2), h: 0.5, bg: new THREE.Color(b.roof).multiplyScalar(0.62).getStyle(), fg: "#FFE6A3" });
       for (let i = 0; i < n; i++) { const cx = -cw / 2 + (cw * i) / (n - 1); if (Math.abs(cx) < 0.9) continue; B.add(new THREE.CylinderGeometry(0.2, 0.24, h - 0.5, 8), "#FFFFFF", { p: at(cx, (h - 0.5) / 2 + 0.3, d / 2 + 0.85) }); circles.push({ x: x + cx, z: front + 0.85, r: 0.3 }); }
       B.add(rbox(w + 0.4, 0.3, 1.2, 0.08), b.trim || "#D9CFBD", { p: [x, 0.15, front + 0.6] });
     }
@@ -364,7 +382,17 @@ export function buildWorld(potato: boolean): World {
       B.add(new THREE.SphereGeometry(0.07, 6, 4), "#FFC93C", { p: [x + 0.35, 1.2, front + 0.16] });
     }
     B.add(rbox(1.9, 0.18, 0.9, 0.06), "#D9CFBD", { p: [x, 0.09, front + 0.6] });
-    if (!deco.has("columns") && !deco.has("antenna") && !deco.has("cross") && !deco.has("fxboard")) B.add(rbox(Math.min(w - 0.6, 3), 0.55, 0.12, 0.05), b.roof, { p: [x, Math.min(h - 0.35, 2.75) + (deco.has("awning") ? 0.25 : 0), front + 0.08] });
+    if (!deco.has("columns") && !deco.has("antenna") && !deco.has("cross") && !deco.has("fxboard") && b.id !== "home") { // the house's name is on a board by the gate (the eave would hide it)
+      const sy = Math.min(h - 0.35, 2.75) + (deco.has("awning") ? 0.25 : 0), sw = Math.min(w - 0.6, 3);
+      B.add(rbox(sw, 0.55, 0.12, 0.05), b.roof, { p: [x, sy, front + 0.08] });
+      if (SIGN[b.id]) signs.push({ id: b.id, x, y: sy, z: front + 0.145, w: sw - 0.14, h: 0.42, bg: b.roof, fg: "#FFF8EC" });
+    }
+    if (SHOWCASE.has(b.id) && !deco.has("awning") && !deco.has("columns") && !deco.has("arch")) { // little canopy over the door on two brackets
+      const cy = 2.17, roofDark = new THREE.Color(b.roof).multiplyScalar(0.85).getStyle();
+      B.add(rbox(1.9, 0.1, 0.95, 0.04), roofDark, { p: [x, cy, front + 0.42], r: [0.32, 0, 0] });
+      B.add(rbox(1.94, 0.06, 0.12, 0.03), b.trim || "#FFFFFF", { p: [x, cy - 0.14, front + 0.86], r: [0.32, 0, 0] });
+      for (const sx of [-0.8, 0.8]) B.add(new THREE.BoxGeometry(0.07, 0.07, 0.6), b.trim || "#C98B5E", { p: [x + sx, cy - 0.28, front + 0.3], r: [-0.6, 0, 0] });
+    }
     // windows (warm glass + white frame) either side of the door, per floor
     const floors = deco.has("glass") ? 0 : Math.max(1, Math.floor((h - 0.4) / 2.6));
     for (let f = 0; f < floors; f++) {
@@ -374,6 +402,17 @@ export function buildWorld(potato: boolean): World {
         B.add(rbox(1.15, 1.05, 0.14, 0.05), "#FFFFFF", { p: [x + wx, y, front + 0.03] });
         W.add(new THREE.BoxGeometry(0.9, 0.8, 0.1), P.glass, { p: [x + wx, y, front + 0.07] }, 0, 0.02);
         if (f === 0) B.add(new THREE.BoxGeometry(1.25, 0.12, 0.3), b.trim || "#C98B5E", { p: [x + wx, y - 0.57, front + 0.12] });
+        if (SHOWCASE.has(b.id)) { // window cross bars; ground floor: a flower box (and shutters on the house)
+          B.add(new THREE.BoxGeometry(0.07, 0.8, 0.04), "#FFFFFF", { p: [x + wx, y, front + 0.135] }, 0, 0.02);
+          B.add(new THREE.BoxGeometry(0.9, 0.07, 0.04), "#FFFFFF", { p: [x + wx, y + 0.05, front + 0.135] }, 0, 0.02);
+          if (f === 0) {
+            B.add(rbox(1.08, 0.26, 0.3, 0.05), b.id === "home" ? "#C98B5E" : b.trim || "#C98B5E", { p: [x + wx, y - 0.72, front + 0.24] });
+            B.add(new THREE.IcosahedronGeometry(0.17, 0), P.leaf, { p: [x + wx - 0.35, y - 0.55, front + 0.26], s: [1.3, 0.8, 1] }, 0.3);
+            B.add(new THREE.IcosahedronGeometry(0.17, 0), P.leaf2, { p: [x + wx + 0.35, y - 0.55, front + 0.26], s: [1.3, 0.8, 1] }, 0.3);
+            if (rich0) for (let k = 0; k < 4; k++) flower(x + wx - 0.33 + k * 0.22, y - 0.86, front + 0.24 + (k % 2) * 0.05, ["#FF8FA3", "#FFC93C", "#FFFFFF", "#FF7A6B"][(k + i) % 4]);
+          }
+          if (b.id === "home") for (const ss of [-1, 1]) B.add(rbox(0.36, 1.0, 0.07, 0.03), b.roof, { p: [x + wx + ss * 0.78, y, front + 0.1] });
+        }
       }
       if (f > 0) { // upper-floor window above the door
         B.add(rbox(1.15, 1.05, 0.14, 0.05), "#FFFFFF", { p: [x, y, front + 0.03] });
@@ -394,6 +433,14 @@ export function buildWorld(potato: boolean): World {
   };
   const fz0 = hz - 3.5, fz1 = hz + home.d / 2 + 2;
   fence(home.x - 6, fz0, home.x - 6, fz1); fence(home.x - 6, fz1, home.x - 1.3, fz1); fence(home.x + 1.3, fz1, home.x + 6, fz1); fence(home.x + 6, fz1, home.x + 6, fz0);
+  // a wooden name board by the gate
+  {
+    const sx = home.x - 1.95, sz = fz1 + 0.5;
+    for (const dx of [-0.55, 0.55]) B.add(new THREE.CylinderGeometry(0.05, 0.06, 1.15, 5), P.trunk, { p: [sx + dx, 0.58, sz] });
+    B.add(rbox(1.4, 0.55, 0.1, 0.04), "#C98B5E", { p: [sx, 0.98, sz] });
+    signs.push({ id: "home", x: sx, y: 0.98, z: sz + 0.056, w: 1.26, h: 0.42, bg: "#B97F4C", fg: "#FFF8EC" });
+    circles.push({ x: sx, z: sz, r: 0.3 });
+  }
   // mailbox + flower bed in the garden
   B.add(new THREE.CylinderGeometry(0.06, 0.06, 1, 5), P.pole, { p: [home.x + 2.2, 0.5, fz1 - 0.6] });
   B.add(rbox(0.5, 0.36, 0.34, 0.08), "#E5484D", { p: [home.x + 2.2, 1.1, fz1 - 0.6] });
@@ -532,6 +579,22 @@ export function buildWorld(potato: boolean): World {
     B.add(new THREE.CylinderGeometry(0.04, 0.02, 0.5, 4), br, { p: along(-0.75, 0, 1.45), r: [0, th, 0.9] }); // tail
     for (const [k, sd] of [[-0.42, -0.2], [-0.42, 0.2], [0.42, -0.2], [0.42, 0.2]]) B.add(new THREE.CylinderGeometry(0.09, 0.07, 0.48, 5), br, { p: along(k, sd, 1.06) });
     circles.push({ x: sx, z: sz, r: 0.8 }); blobs.push({ x: sx, z: sz + 0.2, rx: 1 });
+    // a red carpet to the door, brass lanterns either side, a potted palm and a poster easel for the open rooms
+    const front = m.z! + m.d / 2, cp = new THREE.PlaneGeometry(1.25, 2.3, 1, 3); cp.rotateX(-Math.PI / 2);
+    B.add(cp, "#B8323A", { p: [m.x, 0.3, front + 1.2] }, 0, 0.02);
+    for (const side of [-1, 1]) {
+      const lx = m.x + side * (m.w / 2 + 0.45), lz = front + 1.55;
+      B.add(new THREE.CylinderGeometry(0.06, 0.09, 1.9, 6), "#4A3A30", { p: [lx, 0.95, lz] });
+      B.add(new THREE.CylinderGeometry(0.2, 0.16, 0.08, 6), "#D4A72C", { p: [lx, 1.92, lz] });
+      W.add(rbox(0.3, 0.38, 0.3, 0.05), P.lamp, { p: [lx, 2.15, lz] }, 0, 0.02);
+      B.add(new THREE.ConeGeometry(0.26, 0.2, 6), "#D4A72C", { p: [lx, 2.44, lz] });
+      circles.push({ x: lx, z: lz, r: 0.22 }); extraLamps.push([lx, lz + 0.05]);
+    }
+    pot(m.x - m.w / 2 - 1.2, fz + 0.75, P.pine);
+    const ex = m.x - 2.1, ez = fz + 1.45; // poster easel
+    for (const t of [-0.22, 0.22]) B.add(rbox(0.9, 1.25, 0.06, 0.02), "#6B4A36", { p: [ex, 0.62, ez + t * 0.6], r: [t, 0, 0] });
+    signs.push({ id: "poster", x: ex, y: 0.78, z: ez + 0.175, w: 0.76, h: 0.95, bg: "#F4ECDD", fg: "#5A3A2C", rx: 0.22 });
+    circles.push({ x: ex, z: ez, r: 0.4 });
     for (const side of [-1, 1]) {
       const x0 = m.x + side * 1.3, x1 = m.x + side * 2.9, z = fz + 1.95;
       for (const x of [x0, x1]) { B.add(new THREE.CylinderGeometry(0.05, 0.08, 0.85, 6), "#D4A72C", { p: [x, 0.42, z] }); B.add(new THREE.SphereGeometry(0.08, 6, 4), "#D4A72C", { p: [x, 0.88, z] }); }
@@ -722,6 +785,43 @@ export function buildWorld(potato: boolean): World {
   }
 
 
+  /* ---- name boards: one canvas atlas (64-px rows) + one mesh; repainted when the language changes ---- */
+  const atlas = document.createElement("canvas"); atlas.width = 512; atlas.height = 64 * signs.length;
+  const signTex = new THREE.CanvasTexture(atlas); signTex.colorSpace = THREE.SRGBColorSpace; signTex.anisotropy = 4;
+  const signMat = bend(new THREE.MeshLambertMaterial({ map: signTex, emissive: new THREE.Color("#FFFFFF"), emissiveMap: signTex, emissiveIntensity: 0 }));
+  {
+    const parts = signs.map((sg, i) => {
+      const g = new THREE.PlaneGeometry(sg.w, sg.h, 3, 1), uv = g.getAttribute("uv") as THREE.BufferAttribute;
+      for (let k = 0; k < uv.count; k++) uv.setY(k, 1 - (i + 1 - uv.getY(k)) / signs.length);
+      if (sg.rx) g.rotateX(-sg.rx);
+      g.translate(sg.x, sg.y, sg.z); return g;
+    });
+    const m = new THREE.Mesh(mergeGeometries(parts, false)!, signMat); m.frustumCulled = false; group.add(m);
+    parts.forEach((g) => g.dispose());
+  }
+  const drawSigns = (lg: "vi" | "en") => {
+    const x = atlas.getContext("2d")!;
+    signs.forEach((sg, i) => {
+      const y0 = i * 64, stretch = (sg.w / sg.h) / 8; // the row is 8:1; the board may be wider/narrower — draw text pre-squeezed
+      x.save(); x.beginPath(); x.rect(0, y0, 512, 64); x.clip();
+      x.fillStyle = sg.bg; x.fillRect(0, y0, 512, 64);
+      if (sg.id === "poster") { // museum poster: "1929 · 1997", the rooms you can play
+        x.translate(256, y0 + 32); x.scale(1 / stretch, 1); x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = sg.fg;
+        x.font = "900 26px Nunito, sans-serif"; x.fillText("1929", 0, -12); x.font = "900 13px Nunito, sans-serif"; x.fillText(lg === "vi" ? "PHÒNG MỞ CỬA" : "ROOMS OPEN", 0, 6); x.fillText("1997", 0, 20);
+      } else {
+        x.strokeStyle = "rgba(255,255,255,.55)"; x.lineWidth = 3; x.strokeRect(5, y0 + 5, 502, 54);
+        const txt = tx2(SIGN[sg.id], lg);
+        x.translate(256, y0 + 33); x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = sg.fg;
+        let fs = 50; x.font = `900 ${fs}px Nunito, sans-serif`;
+        const maxW = 470 * stretch; // measured in squeezed units
+        while (x.measureText(txt).width > maxW && fs > 16) { fs -= 2; x.font = `900 ${fs}px Nunito, sans-serif`; }
+        x.scale(1 / stretch, 1); x.fillText(txt, 0, 0);
+      }
+      x.restore();
+    });
+    signTex.needsUpdate = true;
+  };
+
   /* ---- assemble ---- */
   group.add(B.build(sceneryMat()));
   const windows = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, emissive: new THREE.Color("#000000") });
@@ -737,5 +837,5 @@ export function buildWorld(potato: boolean): World {
   const addN = (x: number, z: number) => { if (Math.hypot(x - PLAZA[0], z - PLAZA[1]) < 6) { for (const [dx, dz] of [[6.8, 0], [-6.8, 0], [0, 6.8], [0, -6.8]]) addN(PLAZA[0] + dx, PLAZA[1] + dz); return; } if (inside(x, z) && !nodes.some(([a, b]) => Math.hypot(a - x, b - z) < 3)) nodes.push([x, z]); };
   for (const [x0, z0, x1, z1] of ROADS) { addN(x0, z0); addN(x1, z1); addN((x0 + x1) / 2, (z0 + z1) / 2); }
   for (const xs of [-36, 0, 32]) for (const zs of [-31, -18, 4, 23.5]) addN(xs, zs);
-  return { group, boxes, circles, doors, bounds, spawn: [home.x, home.z! + home.d / 2 + 1.6], nodes, roads: allPaths, buildings: BUILDINGS, zones: ZONES, seaZ: SEA_Z, windows, water, ticker, lampGlow, fall: fallTex };
+  return { group, boxes, circles, doors, bounds, spawn: [home.x, home.z! + home.d / 2 + 1.6], nodes, roads: allPaths, buildings: BUILDINGS, zones: ZONES, seaZ: SEA_Z, windows, water, ticker, lampGlow, fall: fallTex, signs: { mat: signMat, draw: drawSigns } };
 }

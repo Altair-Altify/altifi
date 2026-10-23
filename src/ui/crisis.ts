@@ -29,6 +29,9 @@ const wealth = (s: Saver) => s.cash + s.stock + s.bank - s.debt;
 
 /* ---- the museum ---- */
 function museum() {
+  // stepping in: the camera glides up to the façade (banners, lanterns, the poster), warm light around the edges
+  getTown()?.focusDoor("museum");
+  document.getElementById("twRoot")?.classList.add("museum-in");
   townSheet(`${head(t("cr.museum"))}
     <div class="lf-tip">${lion(44, "wow")}<p>${t("cr.museumText")}</p></div>
     <div class="cr-room"><div class="cr-yr" style="background:#8A5A44">1929</div><div><b>${tx(CRISIS_1929.title)}</b><p>${tx(CRISIS_1929.intro)}</p>
@@ -40,16 +43,31 @@ function museum() {
 }
 townHooks.doors.push((b) => { if (b.id !== "museum") return false; museum(); return true; });
 
+/** Where the camera looks during each moment: the stock board in a boom or crash, the queue at the bank in a bank
+ * run, the dark shops in the slump. */
+const SCENE_AT: Record<string, [string, number]> = { boom: ["exchange", 0], crash: ["exchange", 0], run: ["bank", 2.6], slump: ["market", 0.5] };
 function setScene() {
   const st = steps()[run!.i], tw = getTown();
   tw?.setEra({ year: crisis().year, scene: st.scene, index: st.index });
+  const at = SCENE_AT[st.scene]; tw?.focusDoor(at ? at[0] : "museum", at ? at[1] : 0);
   document.getElementById("twRoot")?.classList.toggle("era-old", run!.room === "1929"); // old-photo vignette
 }
-const clearEra = () => { getTown()?.setEra(null); document.getElementById("twRoot")?.classList.remove("era-old"); };
+const clearEra = () => { getTown()?.setEra(null); document.getElementById("twRoot")?.classList.remove("era-old", "museum-in"); };
 function crisisStart(role: Role, room: Room = "1929") {
+  yearCard(room, tx(room === "1997" ? CRISIS_1997.title : CRISIS_1929.title));
   run = { room, role, i: 0, g97: {}, moves: [], sv: { cash: 1000, stock: 1000, debt: 0, bank: 0, income: 0, called: false, bankFailed: false }, gov: {}, notes: [] };
   setScene();
   showStep();
+}
+/** "1929" fades in over the town while it turns sepia — you're stepping back in time. */
+function yearCard(year: string, title: string) {
+  const root = document.getElementById("twRoot"); if (!root) return;
+  root.querySelector(".tw-year")?.remove();
+  const el = document.createElement("div");
+  el.className = "tw-year"; el.setAttribute("aria-hidden", "true");
+  el.innerHTML = `<b>${year}</b><span>${esc(title)}</span>`;
+  root.appendChild(el);
+  setTimeout(() => el.remove(), noMotion() ? 1200 : 2100);
 }
 function showStep() {
   if (!run) return;
@@ -134,7 +152,7 @@ function finish() {
     ${result}
     <h4>${t("lf.story")}</h4><p class="lf-story">${esc(tx(C.story))}</p>
     <h4>${t("lf.views")}</h4><div class="lf-views">${C.views.map(([w, s]) => `<div><b>${esc(tx(w))}</b><span>${esc(tx(s))}</span></div>`).join("")}</div>
-    <p class="tw-note">${t("lf.aiNote")}</p>
+    <p class="tw-note dnote">${t("lf.aiNote")}</p>
     <div class="lf-btns"><button class="btn ghost" onclick="${again}">${t(run.room === "1997" ? "cr.again" : run.role === "gov" ? "cr.againSaver" : "cr.againGov")}</button><button class="btn good" onclick="A.crisisQuit()">${t("cr.back")}</button></div>`);
 }
 function crisisQuit() {

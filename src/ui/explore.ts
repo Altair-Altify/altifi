@@ -51,7 +51,7 @@ function readHTML(a: Article) {
     <h3>${t("ex.sides")}</h3><div class="exsides">${a.sides.map(([e, who, view]) => `<div class="card exside"><span class="e">${e}</span><div><b>${tx(who)}</b><p>${tx(view)}</p></div></div>`).join("")}</div>
     <h3>${t("ex.quiz")}</h3>${quiz}
     <h3>${t("ex.sources")}</h3><ul class="exsrc">${a.sources.map((s) => `<li>${tx(s)}</li>`).join("")}</ul>
-    <p class="muted exdraft">${t("ex.draft")}</p>
+    <p class="muted exdraft dnote">${t("ex.draft")}</p>
     <div class="exbtns"><button class="btn good" onclick="A.openAssistant()">${t("ex.ask")}</button>${a.lesson ? `<button class="btn" onclick="A.exLesson()">${t("ex.lesson")}</button>` : ""}</div>
   </div>`;
 }

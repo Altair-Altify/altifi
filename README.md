@@ -13,6 +13,9 @@ npm run preview    # chạy bản build (có service worker → "Thêm vào màn
 ```
 
 Kiểm thử tự động (cần `npm run dev` đang chạy và Playwright): `node scripts/playthrough.cjs vi` (hoặc `en`) — chơi hết mọi bài, in RIGHT/WRONG từng bước.
+`node scripts/demoloop.cjs` — chạy vòng demo mục 8 (tiếng Anh, `?demo=1`) ở 375×812 và 412×915, báo tràn ngang / lỗi console. `node scripts/demoshots.cjs <thư-mục> <nhãn>` — ảnh hoàng hôn 6 nơi quay video + bảo tàng + mua xe + net worth. `node scripts/townshots.cjs` — ảnh ngày/đêm + đo hiệu năng.
+
+**Quay video:** mở app với `?demo=1` (tắt thời tiết, thị trấn ở giờ hoàng hôn nếu không có `?hour=`, ẩn ghi chú "demo"/"cần kiểm chứng" trên màn hình — chữ vẫn còn trong code). Không có tham số này thì app chạy như thường.
 
 `dist/` là web tĩnh: deploy thẳng lên GitHub Pages / Netlify / Vercel (đã đặt `base: "./"` nên chạy được ở thư mục con).
 

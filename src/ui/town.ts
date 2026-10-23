@@ -87,6 +87,8 @@ export function openTown() {
   town.frozen = false;
   town.input.set(0, 0);
   near = null; mapStatic = null; lastZone = "";
+  town.setLang(lang());
+  lastNW = g.netWorth;
   town.resize();
   town.arrive();
   town.start();
@@ -173,7 +175,7 @@ export function townSheet(html: string, lift = true) {
   town.frozen = true; town.input.set(0, 0); $("#twAct")!.hidden = true; if (lift) town.lift = 1;
   sh.innerHTML = html; sh.hidden = false; sh.scrollTop = 0;
 }
-export function townSheetClose() { const sh = $("#twSheet"); if (sh) sh.hidden = true; if (town) { town.frozen = false; town.lift = 0; } onNear(near); townHooks.hud?.(); }
+export function townSheetClose() { const sh = $("#twSheet"); if (sh) sh.hidden = true; if (town) { town.frozen = false; town.lift = 0; town.focusOn(null); } $("#twRoot")?.classList.remove("museum-in"); onNear(near); townHooks.hud?.(); }
 
 /* ---- wardrobe at home: skin, hair colour & style, top, trousers (the outfit style follows your career stage) ---- */
 export function townWardrobe() {
@@ -317,10 +319,35 @@ function leaveTown() {
 }
 function exitTown() { leaveTown(); closeO(); }
 /** Re-draw the HUD numbers (net worth changes). */
+let lastNW: number | null = null;
 export function refreshTownHud() {
   const b = document.querySelector<HTMLElement>(".tw-nw b");
   if (b && S.game) { b.dataset.to = String(S.game.netWorth); runCounts($("#twRoot")!, fmtCount); }
   townHooks.hud?.();
+  const nw = S.game?.netWorth;
+  if (typeof nw === "number") { if (lastNW !== null && Math.abs(nw - lastNW) >= 1000) nwFx(lastNW, nw); lastNW = nw; }
+}
+/** Net worth went up or down: the HUD card pulses green / red, the number rolls to the new value and a "+1.2M₫"
+ * chip floats up from it (gains also throw a few coins). Reduced motion: the chip just appears and fades. */
+function nwFx(from: number, to: number) {
+  const root = $("#twRoot"), life = $("#twLife");
+  const card = life && !life.hidden ? life : $(".tw-nw"), num = life && !life.hidden ? life.querySelector<HTMLElement>(".lf-nw") : $(".tw-nw b");
+  if (!root || !card || !num) return;
+  const up = to > from, d = Math.abs(to - from), r0 = root.getBoundingClientRect(), r = num.getBoundingClientRect();
+  card.classList.remove("nw-up", "nw-down"); void card.offsetWidth; card.classList.add(up ? "nw-up" : "nw-down");
+  setTimeout(() => card.classList.remove("nw-up", "nw-down"), 900);
+  const chip = document.createElement("div");
+  chip.className = "tw-delta " + (up ? "up" : "down");
+  chip.innerHTML = `${up ? "▲ +" : "▼ −"}${esc(shortVnd(d, lang()))}${up ? '<i></i><i></i><i></i><i></i>' : ""}`;
+  chip.style.left = `${r.left - r0.left + r.width / 2}px`; chip.style.top = `${r.bottom - r0.top + 4}px`;
+  root.appendChild(chip);
+  setTimeout(() => chip.remove(), 2200);
+  if (noMotion() || life?.hidden !== false) return;
+  const tn = [...num.childNodes].reverse().find((n) => n.nodeType === 3); // roll the number in the life card
+  if (!tn) return;
+  const t0 = performance.now();
+  const step = (now: number) => { const k = Math.min(1, (now - t0) / 700), e = 1 - Math.pow(1 - k, 3); tn.textContent = shortVnd(from + (to - from) * e, lang()); if (k < 1 && tn.isConnected) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
 }
 
 reg({ exitTown, townAct, townTalkClose, townLearn, townWardrobe, townLook, townWardrobeClose, townMap });

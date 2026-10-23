@@ -160,3 +160,34 @@ body.potato .tw-act,body.potato .tw-talk{animation:none}
 .cr-vs b{font-size:24px;font-weight:900}
 .cr-vs em{font-style:normal;font-size:12px;font-weight:800;color:#9A3412}
 .tw.era-old .tw-stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(60,40,20,.45) 100%)}
+/* ===== Demo polish, round 2 ===== */
+/* net worth changed: the HUD card pulses, a chip floats up from the number (src/ui/town.ts nwFx) */
+.nw-up{animation:nwPulse .9s ease-out;--nwc:rgba(43,182,115,.55)}
+.nw-down{animation:nwPulse .9s ease-out,nwShake .4s ease-in-out;--nwc:rgba(239,78,78,.55)}
+@keyframes nwPulse{0%{box-shadow:0 3px 0 #E8D9C2,0 0 0 0 var(--nwc)}35%{transform:scale(1.04);box-shadow:0 3px 0 #E8D9C2,0 0 0 8px var(--nwc)}100%{transform:none;box-shadow:0 3px 0 #E8D9C2,0 6px 14px rgba(58,47,40,.18)}}
+@keyframes nwShake{0%,100%{translate:0}25%{translate:-3px}75%{translate:3px}}
+.tw-delta{position:absolute;z-index:4;transform:translateX(-50%);padding:5px 12px;border-radius:14px;font-weight:900;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none;box-shadow:0 3px 0 rgba(0,0,0,.12),0 6px 14px rgba(58,47,40,.2);animation:nwChip 2.1s ease-out forwards}
+.tw-delta.up{background:#2BB673;color:#fff}
+.tw-delta.down{background:#EF4E4E;color:#fff}
+@keyframes nwChip{0%{opacity:0;transform:translate(-50%,6px) scale(.8)}12%{opacity:1;transform:translate(-50%,0) scale(1.08)}22%{transform:translate(-50%,0) scale(1)}75%{opacity:1;transform:translate(-50%,10px)}100%{opacity:0;transform:translate(-50%,16px)}}
+.tw-delta i{position:absolute;left:50%;top:50%;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFF1B8,#F5B700);box-shadow:0 0 0 1.5px #D99A00;opacity:0;animation:nwCoin .9s ease-out forwards}
+.tw-delta i:nth-child(1){--dx:-34px;--dy:-26px}.tw-delta i:nth-child(2){--dx:-12px;--dy:-38px;animation-delay:.06s}.tw-delta i:nth-child(3){--dx:14px;--dy:-34px;animation-delay:.12s}.tw-delta i:nth-child(4){--dx:36px;--dy:-22px;animation-delay:.03s}
+@keyframes nwCoin{0%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.7)}}
+body.potato .tw-delta,body.potato .tw-delta i,body.potato .nw-up,body.potato .nw-down{animation-duration:0s}
+body.potato .tw-delta{animation:nwFade 2.1s forwards}
+@media (prefers-reduced-motion:reduce){.nw-up,.nw-down,.tw-delta i{animation:none}.tw-delta{animation:nwFade 2.1s forwards}}
+@keyframes nwFade{0%,80%{opacity:1}100%{opacity:0}}
+/* crisis museum: warm light at the edges while you're inside; the town fades to sepia instead of switching */
+.tw-canvas{transition:filter .9s ease}
+.tw .tw-stage::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .8s;background:radial-gradient(ellipse 85% 55% at 50% 18%,rgba(255,214,140,0) 45%,rgba(120,70,30,.42) 100%),linear-gradient(180deg,rgba(255,196,110,.22),rgba(255,196,110,0) 40%)}
+.tw.museum-in .tw-stage::before{opacity:1}
+.tw.museum-in .tw-sheet .lf-h h3{color:#7A3E22}
+.tw-year{position:absolute;left:0;right:0;top:22%;z-index:4;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;color:#FFF4DE;text-shadow:0 2px 0 rgba(90,58,44,.6),0 6px 22px rgba(60,35,15,.55);animation:yearIn 2.1s ease-out forwards}
+.tw-year b{font-family:Georgia,"Times New Roman",serif;font-size:76px;line-height:1;letter-spacing:4px}
+.tw-year span{font-weight:900;font-size:16px;letter-spacing:.5px;text-transform:uppercase}
+@keyframes yearIn{0%{opacity:0;transform:scale(1.15);filter:blur(4px)}18%{opacity:1;transform:scale(1);filter:none}70%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+body.potato .tw-year{animation:nwFade 1.2s forwards}
+@media (prefers-reduced-motion:reduce){.tw-year{animation:nwFade 1.2s forwards}.tw-canvas{transition:none}}
+body.potato .tw-canvas{transition:none}
+/* while the camera visits the museum / the crisis scene, sheets stay lower so the place is visible above them */
+.tw.museum-in .tw-sheet,.tw.era-old .tw-sheet{max-height:58%}

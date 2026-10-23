@@ -314,3 +314,5 @@ textarea.biobox{height:84px;margin-bottom:16px}
 .wxnote{font-size:13px;font-weight:700;margin-top:14px}
 .budcard{display:flex;align-items:center;gap:12px}
 .btn.sm{width:auto;padding:10px 14px;font-size:14px;flex:none}
+/* ?demo=1 (src/core/demo.ts): "demo" / "to be verified" notes are hidden on the video, kept in the code */
+html.demo .dnote{display:none!important}

@@ -10,6 +10,7 @@ import { buildWorld, POND, type World, type Door, type Zone } from "./world";
 import { makeAvatar, type Avatar, type Look, type Stage } from "./avatar";
 import { makeNpcs, graph, type Npc } from "./npc";
 import { makeRide } from "./rides";
+import { DEMO, DEMO_HOUR } from "../core/demo";
 
 export type Target = { kind: "door"; door: Door; x: number; z: number } | { kind: "npc"; npc: Npc; x: number; z: number };
 export interface TownHooks {
@@ -30,19 +31,45 @@ const RIGS = [
 const LIFT = 4.8; // with a sheet open (lift = 1) the camera aims this far south of the player → player in the top half
 const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 
-/* Sky keyframes by hour: [hour, sky, hemi sky, hemi ground, hemi intensity, sun colour, sun intensity, window glow 0..1] */
-type Key = [number, string, string, string, number, string, number, number];
+/* Sky keyframes by hour: [hour, sky (top of the screen), horizon (+ fog), hemi sky, hemi ground, hemi intensity, sun colour,
+ * sun intensity, window glow 0..1, sun height 0..1]. Golden hour (≈17–18.3h) is the demo video's look: a pink-mauve sky
+ * melting into an orange horizon, a low warm sun from the west raking across the façades, windows starting to glow. */
+type Key = [number, string, string, string, string, number, string, number, number, number];
 const SKY: Key[] = [
-  [0, "#22305E", "#8C9BE0", "#3B4A6B", 0.85, "#9FB0FF", 0.35, 1],
-  [5, "#2C3A6E", "#9AA6E6", "#45557A", 0.9, "#AFC0FF", 0.4, 1],
-  [6.5, "#FFC9B5", "#FFE3C9", "#A7B98F", 1.5, "#FFC69A", 1.2, 0.5],
-  [8, "#BFE6FF", "#FFF6E5", "#8FB7A0", 1.9, "#FFF1D6", 1.7, 0],
-  [16, "#BFE6FF", "#FFF6E5", "#8FB7A0", 1.9, "#FFF1D6", 1.7, 0],
-  [17.5, "#FFB49A", "#FFD7C2", "#B79A8F", 1.6, "#FF9F7A", 1.4, 0.35],
-  [18.6, "#8E7BD6", "#C9B6F0", "#6B5E8F", 1.15, "#C69AFF", 0.7, 0.85],
-  [20, "#22305E", "#8C9BE0", "#3B4A6B", 0.85, "#9FB0FF", 0.35, 1],
-  [24, "#22305E", "#8C9BE0", "#3B4A6B", 0.85, "#9FB0FF", 0.35, 1],
+  [0, "#1E2A58", "#2E3C70", "#8C9BE0", "#3B4A6B", 0.85, "#9FB0FF", 0.35, 1, 0.6],
+  [5, "#2C3A6E", "#3E4C80", "#9AA6E6", "#45557A", 0.9, "#AFC0FF", 0.4, 1, 0.5],
+  [6.5, "#FFC9B5", "#FFE0C2", "#FFE3C9", "#A7B98F", 1.5, "#FFC69A", 1.2, 0.5, 0.25],
+  [8, "#A9DDFF", "#DDF2FF", "#FFF6E5", "#8FB7A0", 1.9, "#FFF1D6", 1.7, 0, 1],
+  [16, "#A9DDFF", "#DDF2FF", "#FFF6E5", "#8FB7A0", 1.9, "#FFF1D6", 1.7, 0, 1],
+  [17, "#F6B39C", "#FFD9A0", "#FFE4C2", "#BFA285", 1.8, "#FFC27A", 1.7, 0.1, 0.45],
+  [17.6, "#E79BB4", "#FFB57A", "#FFD6B0", "#BE9878", 1.65, "#FFA45E", 1.7, 0.45, 0.22],
+  [18.3, "#B28AD0", "#FF9F86", "#E6C2D8", "#7E6D93", 1.3, "#E896B8", 0.95, 0.75, 0.1],
+  [19.2, "#3A3F78", "#6E5C9C", "#A6A8E6", "#4A4F78", 0.95, "#AFA6FF", 0.45, 1, 0.5],
+  [24, "#1E2A58", "#2E3C70", "#8C9BE0", "#3B4A6B", 0.85, "#9FB0FF", 0.35, 1, 0.6],
 ];
+/** The sky is a gradient band over the top quarter of the screen (sky colour at the top → horizon colour), drawn
+ * first in clip space with vertex colours; below it the clear colour is the horizon, where the curved ground meets
+ * it. Cheaper than a full-screen background texture (≈ 25% of the pixels, no texture reads). */
+function makeSkyBand() {
+  const ys = [1, 0.86, 0.66, 0.5], g = new THREE.BufferGeometry(), pos: number[] = [], idx: number[] = [];
+  ys.forEach((y) => pos.push(-1, y, 0, 1, y, 0));
+  for (let i = 0; i < ys.length - 1; i++) { const a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("color", new THREE.Float32BufferAttribute(new Float32Array(ys.length * 6), 3));
+  g.setIndex(idx);
+  const m = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    vertexColors: true, depthTest: false, depthWrite: false,
+    vertexShader: "varying vec3 vC; void main() { vC = color; gl_Position = vec4(position.xy, 1.0, 1.0); }",
+    fragmentShader: "varying vec3 vC;\nvoid main() {\n  gl_FragColor = vec4(vC, 1.0);\n  #include <colorspace_fragment>\n}",
+  }));
+  m.frustumCulled = false; m.renderOrder = -10;
+  return m;
+}
+function paintSkyBand(m: THREE.Mesh, top: THREE.Color, horizon: THREE.Color) {
+  const c = m.geometry.getAttribute("color") as THREE.BufferAttribute, mid = top.clone().lerp(horizon, 0.55), low = top.clone().lerp(horizon, 0.88);
+  [top, mid, low, horizon].forEach((col, i) => { for (const k of [i * 2, i * 2 + 1]) c.setXYZ(k, col.r, col.g, col.b); });
+  c.needsUpdate = true;
+}
 const cA = new THREE.Color(), cB = new THREE.Color();
 const mix = (a: string, b: string, k: number) => cA.set(a).lerp(cB.set(b), k).clone();
 
@@ -51,7 +78,8 @@ export class Town {
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
   readonly camera = new THREE.PerspectiveCamera(38, 1, 0.5, 180);
-  private rig = RIGS[0];
+  private rig = RIGS[0]; private vw = 1; private vh = 1;
+  private skyBand = makeSkyBand();
   private world: World;
   private player!: Avatar;
   readonly pos = new THREE.Vector2();
@@ -84,7 +112,8 @@ export class Town {
     this.canvas = this.renderer.domElement;
     this.canvas.className = "tw-canvas";
     this.canvas.setAttribute("aria-hidden", "true");
-    this.scene.background = new THREE.Color("#BFE6FF");
+    this.scene.background = new THREE.Color("#DDF2FF");
+    this.scene.add(this.skyBand);
     this.scene.fog = new THREE.Fog("#FFF6E5", 46, 100);
     this.hemi = new THREE.HemisphereLight("#FFF6E5", "#8FB7A0", 1.9); this.scene.add(this.hemi);
     this.sun = new THREE.DirectionalLight("#FFF1D6", 1.7); this.sun.position.set(-6, 10, 7); this.scene.add(this.sun);
@@ -98,6 +127,7 @@ export class Town {
     if (!potato) this.makeButterflies();
     const q = /[?&]hour=(\d+(?:\.\d+)?)/.exec(location.search); // ?hour=20 → night (demo video / testing)
     if (q) this.hourOverride = +q[1] % 24;
+    else if (DEMO) this.hourOverride = DEMO_HOUR; // ?demo=1 → golden hour for the video
     this.applySky(true);
     this.snapCamera();
   }
@@ -112,7 +142,7 @@ export class Town {
   get map() { return this.world; }
   /** Park what you ride in your garden (13.4); its collider moves with it. */
   private ride: THREE.Group | null = null; private rideId = ""; private rideC: { x: number; z: number; r: number }[] = [];
-  setRide(id: string) {
+  setRide(id: string, fx = false) {
     if (id === this.rideId) return;
     this.rideId = id;
     if (this.ride) { this.scene.remove(this.ride); this.ride.traverse((o) => (o as THREE.Mesh).geometry?.dispose()); this.ride = null; }
@@ -120,10 +150,73 @@ export class Town {
     const g = makeRide(id); if (!g) return;
     const home = this.world.buildings.find((b) => b.id === "home")!, x = home.x + home.w / 2 + 1.55, z = home.z! + 0.9;
     g.position.set(x, 0, z); g.rotation.y = 0.12; this.scene.add(g); this.ride = g;
+    if (fx && this.motion) { this.drop = { g, t: 0, landed: false }; g.position.y = 3.2; g.scale.setScalar(0.6); }
     this.rideC = id.startsWith("car") ? [{ x, z, r: 1 }, { x, z: z - 1.2, r: 0.9 }, { x, z: z + 1.2, r: 0.9 }] : [{ x, z, r: 0.6 }];
     this.world.circles.push(...this.rideC);
   }
+  /** Where your ride parks (the garden beside the house) — the camera visits it after a purchase. */
+  get garden() { const h = this.world.buildings.find((b) => b.id === "home")!; return { x: h.x + h.w / 2 + 1.55, z: h.z! + 0.9 }; }
   get zone() { return this.zoneNow; }
+  /* ---- camera visits (presentation only): glide to look at a place, then back to the player ----
+   * high = a sheet covers the bottom of the screen, so the place is framed in the top part (view offset). */
+  private focus: { p: THREE.Vector3; high: boolean } | null = null; private focusK = 0; private focusHigh = false; private focusP = new THREE.Vector3();
+  focusOn(p: { x: number; z: number; y?: number } | null, high = true) {
+    this.focus = p ? { p: new THREE.Vector3(p.x, p.y ?? 1.8, p.z), high } : null;
+    if (p) { this.focusP.copy(this.focus!.p); this.focusHigh = high; }
+    if (!this.motion) this.focusK = p ? 1 : 0;
+  }
+  /** Look at a door's façade (dz moves the point south, e.g. to include a queue). */
+  focusDoor(id: string | null, dz = 0, high = true) {
+    const d = id ? this.world.doors.find((x) => x.id === id) : null;
+    this.focusOn(d ? { x: d.x, z: d.z - 1.4 + dz, y: 2 } : null, high);
+  }
+  /** Name boards on the façades follow the app language. */
+  private signLang = "";
+  setLang(lg: "vi" | "en") { if (lg !== this.signLang) { this.signLang = lg; this.world.signs.draw(lg); } }
+  /* ---- a new ride drops into the garden: fall, squash, sparkles and a ring on the grass ---- */
+  private drop: { g: THREE.Group; t: number; landed: boolean } | null = null;
+  private sparks: { m: THREE.Mesh; v: THREE.Vector3; life: number; spin: number }[] = [];
+  private ring: { m: THREE.Mesh; t: number } | null = null;
+  private updateDrop(dt: number) {
+    const d = this.drop;
+    if (d) {
+      d.t += dt;
+      if (!d.landed) {
+        const k = Math.min(1, d.t / 0.55);
+        d.g.position.y = 3.2 * (1 - k * k); d.g.scale.setScalar(0.6 + 0.4 * k); d.g.rotation.y = 0.12 + (1 - k) * 1.4;
+        if (k >= 1) { d.landed = true; d.t = 0; this.burst(d.g.position.x, d.g.position.z); }
+      } else {
+        const q = Math.min(1, d.t / 0.32), w = Math.sin(q * Math.PI) * (1 - q * 0.5);
+        d.g.scale.set(1 + w * 0.16, 1 - w * 0.22, 1 + w * 0.16);
+        if (q >= 1) { d.g.scale.setScalar(1); this.drop = null; }
+      }
+    }
+    for (let i = this.sparks.length - 1; i >= 0; i--) {
+      const s = this.sparks[i]; s.life -= dt;
+      s.v.y -= 9 * dt; s.m.position.addScaledVector(s.v, dt); s.m.rotation.x += s.spin * dt; s.m.rotation.y += s.spin * dt;
+      if (s.m.position.y < 0.05) { s.m.position.y = 0.05; s.v.multiplyScalar(0.4); s.v.y = Math.abs(s.v.y) * 0.3; }
+      (s.m.material as THREE.MeshBasicMaterial).opacity = Math.min(1, s.life * 1.6);
+      if (s.life <= 0) { this.scene.remove(s.m); s.m.geometry.dispose(); (s.m.material as THREE.Material).dispose(); this.sparks.splice(i, 1); }
+    }
+    if (this.ring) {
+      const r = this.ring; r.t += dt; const k = r.t / 0.8;
+      r.m.scale.setScalar(0.4 + k * 2.6); (r.m.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.75 * (1 - k));
+      if (k >= 1) { this.scene.remove(r.m); r.m.geometry.dispose(); (r.m.material as THREE.Material).dispose(); this.ring = null; }
+    }
+  }
+  private burst(x: number, z: number) {
+    const cols = ["#FFC93C", "#FF8FA3", "#FFFFFF", "#7FE0B0", "#B39DFF"];
+    for (let i = 0; i < 22; i++) {
+      const a = (i / 22) * Math.PI * 2 + Math.random() * 0.3, sp = 2 + Math.random() * 2.2;
+      const m = new THREE.Mesh(i % 3 ? new THREE.OctahedronGeometry(0.09, 0) : new THREE.TetrahedronGeometry(0.12, 0), new THREE.MeshBasicMaterial({ color: cols[i % cols.length], transparent: true }));
+      m.position.set(x, 0.6, z); m.frustumCulled = false; this.scene.add(m);
+      this.sparks.push({ m, v: new THREE.Vector3(Math.cos(a) * sp, 3 + Math.random() * 2.5, Math.sin(a) * sp), life: 1.1 + Math.random() * 0.4, spin: 4 + Math.random() * 6 });
+    }
+    if (this.ring) { this.scene.remove(this.ring.m); this.ring = null; }
+    const g = new THREE.RingGeometry(0.8, 1, 32); g.rotateX(-Math.PI / 2);
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: "#FFF1B8", transparent: true, depthWrite: false }));
+    m.position.set(x, 0.06, z); m.frustumCulled = false; this.scene.add(m); this.ring = { m, t: 0 };
+  }
   /** Put the player somewhere (e.g. in front of the shop when Business mode starts). */
   teleport(x: number, z: number) { this.pos.set(x, z); this.heading = Math.PI; this.snapCamera(); }
   setEra(e: { year: number; scene: string; index: number } | null) {
@@ -144,7 +237,7 @@ export class Town {
 
   resize() {
     const r = this.host.getBoundingClientRect(), w = Math.max(1, r.width), h = Math.max(1, r.height);
-    this.renderer.setSize(w, h, false);
+    this.renderer.setSize(w, h, false); this.vw = w; this.vh = h;
     this.camera.aspect = w / h;
     this.rig = RIGS.find((r) => w / h < r.maxAspect)!;
     this.camera.fov = this.rig.fov; // narrow phones need a wider view to see the street
@@ -170,23 +263,27 @@ export class Town {
     if (!force && Math.abs(h - this.lastSky) < 0.02) return;
     this.lastSky = h;
     let i = 0; while (i < SKY.length - 2 && SKY[i + 1][0] <= h) i++;
-    const a = SKY[i], b = SKY[i + 1], k = THREE.MathUtils.clamp((h - a[0]) / (b[0] - a[0]), 0, 1);
-    const sky = mix(a[1], b[1], k);
-    (this.scene.background as THREE.Color).copy(sky);
-    (this.scene.fog as THREE.Fog).color.copy(sky).lerp(mix(a[2], b[2], k), 0.35);
-    this.hemi.color.copy(mix(a[2], b[2], k));
-    this.hemi.groundColor.copy(mix(a[3], b[3], k));
-    this.hemi.intensity = a[4] + (b[4] - a[4]) * k;
-    this.sun.color.copy(mix(a[5], b[5], k));
-    this.sun.intensity = a[6] + (b[6] - a[6]) * k;
-    this.glow = a[7] + (b[7] - a[7]) * k;
+    const a = SKY[i], b = SKY[i + 1], k = THREE.MathUtils.clamp((h - a[0]) / (b[0] - a[0]), 0, 1), f = (j: number) => (a[j] as number) + ((b[j] as number) - (a[j] as number)) * k;
+    const sky = mix(a[1], b[1], k), horizon = mix(a[2], b[2], k);
+    (this.scene.fog as THREE.Fog).color.copy(horizon).lerp(mix(a[3], b[3], k), 0.25);
+    this.hemi.color.copy(mix(a[3], b[3], k));
+    this.hemi.groundColor.copy(mix(a[4], b[4], k));
+    this.hemi.intensity = f(5);
+    this.sun.color.copy(mix(a[6], b[6], k));
+    this.sun.intensity = f(7);
+    this.glow = f(8);
+    const up = f(9); // low sun in the west at golden hour: long warm light on the façades facing the camera
+    this.sun.position.set(-6 - (1 - up) * 7, 3 + up * 7, 7 + (1 - up) * 2);
     if (this.era && this.era.scene !== "boom") { // grey skies; in the slump the shops are dark
-      (this.scene.background as THREE.Color).set(this.era.scene === "slump" ? "#9E9A92" : "#B8B3A8");
+      sky.set(this.era.scene === "slump" ? "#9E9A92" : "#B8B3A8"); horizon.set("#C9C3B6");
       (this.scene.fog as THREE.Fog).color.set("#B8B3A8");
       if (this.era.scene === "slump") this.glow = 0;
     }
+    (this.scene.background as THREE.Color).copy(horizon);
+    paintSkyBand(this.skyBand, sky, horizon);
     this.world.windows.emissive.set("#FFC46B").multiplyScalar(this.glow * 0.95);
     this.world.lampGlow.opacity = this.glow * 0.55;
+    this.world.signs.mat.emissiveIntensity = this.glow * 0.5; // name boards stay readable after dark
   }
 
   /* ---- movement ---- */
@@ -366,6 +463,7 @@ export class Town {
     this.player.update(dt, speed, this.motion);
     if (this.motion) { this.updateNpcs(dt); this.updateLife(dt, speed > 0.8); this.updateTicker(dt); }
     else { this.updateNpcs(0); if (this.t < 0.2) this.updateTicker(0.016); } // reduced motion: classmates stand still
+    this.updateDrop(dt);
     // nearest door / person → action button
     let best: Target | null = null, bd = 2.0;
     for (const d of this.world.doors) { const dd = Math.hypot(d.x - this.pos.x, d.z - this.pos.y); if (dd < bd) { bd = dd; best = { kind: "door", door: d, x: d.x, z: d.z }; } }
@@ -386,7 +484,20 @@ export class Town {
       if (k >= 1) this.intro0 = 0;
     }
     this.liftK += (this.lift - this.liftK) * (this.motion ? Math.min(1, dt * 6) : 1);
-    this.camera.lookAt(this.camPos.x - CAM.x, lookY, this.camPos.z - CAM.z - this.rig.lead + this.liftK * (this.rig.lead + LIFT));
+    const look = new THREE.Vector3(this.camPos.x - CAM.x, lookY, this.camPos.z - CAM.z - this.rig.lead + this.liftK * (this.rig.lead + LIFT));
+    // camera visit: glide to a closer, lower view of the place; with a sheet open the place sits in the top part
+    if (this.motion) this.focusK += ((this.focus ? 1 : 0) - this.focusK) * Math.min(1, dt * 2.4);
+    if (this.focusK > 0.002) {
+      const e = ease(Math.min(1, this.focusK)), fp = this.focusP;
+      cam.lerp(this.focusHigh ? new THREE.Vector3(fp.x, fp.y + 11.5, fp.z + 17) : new THREE.Vector3(fp.x, fp.y + 7.2, fp.z + 11), e);
+      look.lerp(fp, e);
+      this.camera.lookAt(look);
+      if (this.focusHigh) this.camera.setViewOffset(this.vw, this.vh, 0, this.vh * 0.27 * e, this.vw, this.vh);
+      else this.camera.clearViewOffset();
+    } else {
+      if (this.camera.view?.enabled) this.camera.clearViewOffset();
+      this.camera.lookAt(look);
+    }
     this.renderer.render(this.scene, this.camera);
     this.hooks.frame?.();
   }

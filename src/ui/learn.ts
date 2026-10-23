@@ -11,7 +11,7 @@ import { t, tx } from "../i18n/i18n";
 import { lion } from "../mascot/lion";
 import { DOMAINS, NODES, isReal, findLesson, findNode, domainOf, ALL_LESSONS, type Domain } from "../content/domains";
 import { checkBadges, domainDone } from "../content/badges";
-import { sheet, closeSheet, minitoast, confetti } from "./fx";
+import { sheet, closeSheet, minitoast, confetti, startTalk, paintTalk, talkId, LINES } from "./fx";
 import { setCtx } from "../assistant/context";
 import { reviewCard } from "../lesson/player";
 import { icon, IC } from "./icons";
@@ -267,6 +267,9 @@ function onLevel(lv: Level) {
   if (lv !== 3) ui.deep = false;
   refreshUI();
   learnCtx();
+  // zooming out to level 1 re-creates the speech bubble: start (or repaint) Alti Lion's lines in it right away,
+  // instead of leaving it empty until the next full render of the tab
+  if (lv === 1 && document.getElementById("homeTalk")) { if (talkId() === "homeTalk") paintTalk(false); else startTalk("homeTalk", LINES.home, homeFirst(false)); }
 }
 
 function mount() {
