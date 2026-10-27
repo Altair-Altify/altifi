@@ -259,3 +259,12 @@ body.night .mestat{border:1px solid var(--line)}
 .exbtns{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .exbtns .btn{flex:1 1 140px}
 .obody.exread{padding-bottom:84px}
+/* Today's news card (top of Explore) + "Explain like a pro" under Alti Lion's answer */
+.exnews{border-color:var(--pri)}
+.exnews-k{font-size:12px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:var(--pri)}
+.exnews h3{margin:6px 0 6px;font-size:19px;line-height:1.25}
+.exnews p{margin:0 0 8px;font-weight:700;line-height:1.5}
+.exnews .exnews-src{font-size:12px;color:var(--muted)}
+.exnews .btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px}
+.exnews .btn svg{flex:none}
+.chip.lionpro{margin:6px 0 0 42px}

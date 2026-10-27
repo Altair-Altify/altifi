@@ -75,6 +75,26 @@
 - **Phiên 7 (22/10):** đồ họa đợt 1 cho thị trấn — camera dọc rộng hơn, đồ trang trí quanh 6 nơi quay video, mặt đất có chiều sâu, HUD 1 hàng.
 - **Phiên 8 (23/10):** sửa lỗi còn ghi, đồ họa đợt 2, `?demo=1`, chạy vòng demo — chi tiết ngay dưới.
 
+## Phiên 9 — 27/10: 4 màn cho video dự thi RMIT BPC ✅ (mỗi việc 1 commit, đã push)
+
+Mỗi việc: `npm run build` sạch → `node scripts/playthrough.cjs vi` và `en` 148/148 bước chấm điểm đúng (19 bước `predict` không chấm, đúng thiết kế), lỗi console duy nhất là ảnh Wikimedia bị mạng phiên chặn → thử ở 390×844 (và 375×812 / 412×915, theme Night + Light) với `?demo=1`: không tràn ngang, 0 lỗi console.
+
+**Mở thẳng từng màn khi quay** (thêm vào sau địa chỉ app, vd `http://localhost:5173/` hoặc bản Vercel; mỗi lần mở là một "cuộc sống" mới — ghi đè save "Cuộc sống của tôi" trên máy đó):
+| Màn | Đường dẫn |
+|---|---|
+| 1. Thẻ "Your first job: Office worker" | `?demo=1&lang=en&scene=job` |
+| 2. Tình huống xe 5 lựa chọn + ô tự nhập | `?demo=1&lang=en&scene=car` |
+| 3. Thẻ "PROMOTED · Senior staff · Rank #n of 8" | `?demo=1&lang=en&scene=promo` |
+| 4. "Today's news" → Hỏi Alti Lion → Explain like a pro | `?demo=1&lang=en&scene=news` |
+`lang=vi` cho bản tiếng Việt; `lang=` cũng dùng được riêng (đổi ngôn ngữ app và lưu lại). Danh sách ở đầu `src/core/demo.ts`.
+
+1. **Thẻ nghề đầu tiên** (`f06dc24`): bấm "Bắt đầu" ở lời mời của Alti Lion (hoặc `?scene=job`) → thẻ "Your first job: Office worker / Salary: 10M ₫/month" (VI: "Công việc đầu tiên: Nhân viên văn phòng / Lương: 10 triệu/tháng") phía trên thị trấn, nhân vật quay mặt về camera trong bộ sơ mi + cà vạt; "Start" → câu "đi tới Công ty" như cũ. Các script `demoloop/demoshots/townshots` đóng thẻ bằng `A.lifeJobGo()`.
+2. **5 lựa chọn + ô tự nhập** (`0608018`): tình huống xe (tháng 4) giờ có A thả nổi (đưa lên đầu để video chọn) · B cố định · C **mượn bạn bè** (?!, 0% nhưng trả trong 12 tháng ≈ 2,9tr/tháng) · D **thuê xe theo tháng** (!?, xe mới `rent` 1,8tr/tháng, không nợ, không mất giá) · E xe đạp. Ô thứ 6 "✎ Type your own idea" (≤ 200 ký tự + Gửi). Chấm theo từ khóa → "!" (giống B, Alti Lion vui: "Smart move: your cash flow can survive higher rates.") / "?!" (giống A, Alti Lion giải thích vì sao thả nổi rủi ro khi lãi suất tăng) / trung tính (gợi ý mở bài M2 hoặc viết lại, không mất lượt). Nhãn "🤖 AI simulated in demo" luôn hiện dưới ô nhập và góc bong bóng Alti Lion (chỉ với câu trả lời từ ô tự nhập).
+3. **Thăng chức** (`c549f67`): thẻ toàn màn hình đè lên báo cáo tháng; cân bằng ghi ở mục "Quyết định" đầu file. Đi đúng tháng 1–3 + chọn tốt ở tình huống xe → thăng chức cuối tháng 4; chọn thả nổi → thấy lãi suất tăng ở báo cáo tháng 5 (dòng trả góp đỏ, "Tin nóng") và thăng chức cuối tháng 5 sau case BNPL.
+4. **Tin hôm nay + Explain like a pro** (commit Việc 4): thẻ đầu tab Khám phá "State Bank raises interest rates", 2 câu tóm tắt, nút "Ask Alti Lion" mở trợ lý và tự hỏi "What does this mean for me?" ở mức 🌱 Newbie; dưới câu trả lời có nút "🎓 Explain like a pro" → chuyển Alti Lion sang mức Pro (đội mũ tốt nghiệp) và trả lời sâu hơn: lãi suất điều hành (tái cấp vốn 4 → 5%, tái chiết khấu 2,5 → 3,5%), chi phí vay (+1 điểm % ≈ +630k/tháng với khoản vay 1 tỷ/20 năm), tiết kiệm (lãi suất thực), tỷ giá, và đánh đổi. Câu trả lời soạn sẵn nằm trong `ex.news.*` (`src/i18n/strings.ts`), gắn vào ngữ cảnh trợ lý qua `answers` (`src/assistant/context.ts`).
+
+**⚠️ Nhóm kiểm:** số liệu NHNN 22/9/2022 (tái cấp vốn 4% → 5%, tái chiết khấu 2,5% → 3,5%) theo trí nhớ của Claude — dòng "cần kiểm chứng" dưới thẻ tin bị ẩn ở `?demo=1`. Nút "Explain like a pro" **đổi hẳn mức Alti Lion sang Pro** (lưu trong Cài đặt); muốn về Tự động: bấm nút mức trong khung chat. Đọc lời các lựa chọn mới C/D và câu phản hồi ô tự nhập (`lf.own.*`).
+
 ## Phiên 8 — 23/10 (nhóm đang thi): sửa lỗi, đồ họa đợt 2, chế độ quay video ✅ (đã push)
 
 Không thêm gameplay. Ảnh trước/sau (390×844, hoàng hôn, thời tiết tắt) ở **`dev/screens/round2/`**: `compare-sunset.jpg` (6 nơi), `compare-effects.jpg` (vào bảo tàng, 1929 bùng nổ, xếp hàng rút tiền, mua xe, net worth giảm), `compare-bugs.jpg` (4 lỗi) — hàng trên = trước, hàng dưới = sau; từng ảnh `before-*/after-*.jpg`. Chụp lại: `npm run dev` rồi `node scripts/demoshots.cjs dev/screens/round2 after` (bản không có `?demo=1` thì thêm tham số `"?hour=17.75"`).

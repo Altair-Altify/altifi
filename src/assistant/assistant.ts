@@ -34,12 +34,17 @@ const hasKey = (low: string, k: string) => (k.length <= 3 ? new RegExp(`(^|[^a-z
 export const findTopic = (q: string): Topic | undefined => { const low = norm(q); return KB.find((tp) => tp.keys.some((k) => hasKey(low, k))); };
 export const topicById = (id: string) => KB.find((tp) => tp.id === id);
 
-export interface Reply { t: string; lv: Lvl; bumped?: boolean }
+export interface Reply { t: string; lv: Lvl; bumped?: boolean; more?: boolean } // more: offer "Explain like a pro"
 /** Swap this for a real AI call later (same inputs: question, level, screen context). */
 export type AnswerEngine = (q: string, lv: Lvl, ctx: Ctx | null) => Reply;
 
 const demoEngine: AnswerEngine = (q, lv0, ctx) => {
   const low = norm(q);
+  // a screen with ready answers (Today's news): answer at the asked level, then offer the Pro version
+  if (ctx?.answers && (!ctx.answerKeys || ctx.answerKeys.some((k) => low.includes(k)))) {
+    const a = ctx.answers[lv0] || ctx.answers.n;
+    return { t: a, lv: ctx.answers[lv0] ? lv0 : "n", more: lv0 !== "p" };
+  }
   let lv = lv0, bumped = false;
   if (lv !== "p" && ADV.some((w) => hasKey(low, w))) { lv = "p"; bumped = true; }
   // Tip mode: an exercise is on screen and not answered yet → hints only (base demo's rule).
@@ -68,7 +73,7 @@ let engine: AnswerEngine = demoEngine;
 export function setAnswerEngine(e: AnswerEngine) { engine = e; }
 
 /* ---------- chats, one per screen context ---------- */
-type Msg = { me?: boolean; t: string; lv?: Lvl; bumped?: boolean; typing?: boolean };
+type Msg = { me?: boolean; t: string; lv?: Lvl; bumped?: boolean; typing?: boolean; more?: boolean };
 const chats: Record<string, { answered: boolean; msgs: Msg[] }> = {};
 function chatFor(c: Ctx) {
   let ch = chats[c.key];
@@ -78,6 +83,12 @@ function chatFor(c: Ctx) {
   return ch;
 }
 export function clearChats() { for (const k of Object.keys(chats)) delete chats[k]; }
+/** Open the panel on the current screen and ask q once (at level lv) — e.g. "Ask Alti Lion" on Today's news. */
+export function askOnce(q: string, lv?: Lvl) {
+  openAssistant();
+  const c = getCtx(); if (!c) return;
+  if (!chatFor(c).msgs.some((m) => m.me)) askLion(q, lv);
+}
 
 /* ---------- floating button ----------
  * Hold and drag it anywhere; on release it glides to the nearest edge of the free area (never over the top bar,
@@ -281,13 +292,22 @@ function drawChat() {
     const lv = m.lv || curLvl();
     const txt = m.typing ? '<span class="typing"><i></i><i></i><i></i></span>' : esc(m.t);
     const tag = m.lv && !m.typing ? `<div class="mtag">${t("as.mode", { l: t("as.lvl." + m.lv) })}${m.bumped ? " · " + t("as.bumped") : ""}</div>` : "";
-    return `<div><div style="display:flex;gap:8px;align-items:flex-end">${lionFor(lv, 34)}<div class="msg bot ${lv === "p" ? "pro" : ""}">${txt}</div></div>${tag}</div>`;
+    const more = m.more && !m.typing ? `<button class="chip lionpro" onclick="A.lionPro()">🎓 ${t("as.proBtn")}</button>` : "";
+    return `<div><div style="display:flex;gap:8px;align-items:flex-end">${lionFor(lv, 34)}<div class="msg bot ${lv === "p" ? "pro" : ""}">${txt}</div></div>${tag}${more}</div>`;
   }).join("");
   const b = $("#ifbody");
   if (b) b.scrollTop = b.scrollHeight;
 }
 
-function askLion(q?: string) {
+/** "Explain like a pro": switch Alti Lion to the Pro level (graduation cap) and answer the same question again, deeper. */
+function lionPro() {
+  const c = getCtx(); if (!c) return;
+  chatFor(c).msgs.forEach((m) => (m.more = false));
+  S.set.lvl = "p"; save(); refreshFab();
+  openAssistant(); // header lion now wears the cap
+  askLion(t("as.proBtn"), "p");
+}
+export function askLion(q?: string, lvAsk?: Lvl) {
   const inp = $("#ifin") as HTMLInputElement | null;
   const text = (q || inp?.value || "").trim();
   if (!text) return;
@@ -299,14 +319,14 @@ function askLion(q?: string) {
   drawChat();
   setTimeout(() => {
     ch.msgs.pop();
-    const r = engine(text, curLvl(), c);
-    ch.msgs.push({ t: r.t, lv: r.lv, bumped: r.bumped });
+    const r = engine(text, lvAsk || curLvl(), c);
+    ch.msgs.push({ t: r.t, lv: r.lv, bumped: r.bumped, more: r.more });
     if (getCtx()?.key === key) drawChat();
   }, 700);
 }
 
 reg({
-  openAssistant, closeAssistant, askLion,
+  openAssistant, closeAssistant, askLion: (q?: string) => askLion(q), lionPro,
   cycleLvl() {
     const order = ["auto", "n", "l", "p"] as const;
     S.set.lvl = order[(order.indexOf(S.set.lvl) + 1) % order.length];

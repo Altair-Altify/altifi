@@ -11,6 +11,8 @@ export interface Ctx {
   answered: boolean; // false → tip mode (no spoilers)
   question?: boolean; // true while a graded exercise is on screen
   kb?: string[]; // knowledge-base topics that fit this screen
+  answers?: { n: string; l?: string; p: string }; // ready answers about this screen by level (e.g. Today's news)
+  answerKeys?: string[]; // words that mean "a question about this screen" (accent-free, lower case)
 }
 let ctx: Ctx | null = null;
 const subs: Array<(c: Ctx | null) => void> = [];

@@ -9,6 +9,7 @@ import { realImage } from "./realimage";
 import { reg } from "../core/actions";
 import { openO, closeO, setOvRerender } from "./shell";
 import { setCtx } from "../assistant/context";
+import { askOnce } from "../assistant/assistant";
 import { ARTICLES, PLANNED_EX, type Article } from "../content/explore";
 
 type Card = { ic: string; c: string; imageQuery: string; imageFile?: string; title: TL; tag: TL };
@@ -23,9 +24,25 @@ export function exploreView() {
   const card = (a: Article) => `<article class="card exsmall tap" role="button" tabindex="0" onclick="A.exOpen('${a.id}')">${photo(a, "4/3")}<div class="exbody"><span class="pill">${tx(a.tag)}</span><h3>${tx(a.title)}</h3>${meta(a)}</div></article>`;
   const soon = (a: Card) => `<article class="card exsmall exsoon">${photo(a, "4/3")}<div class="exbody"><span class="pill">${tx(a.tag)}</span><h3>${tx(a.title)}</h3><span class="soonpill">${icon("clock", { size: 13 })} ${t("c.soon")}</span></div></article>`;
   return `<h2 class="title">${t("ex.title")}</h2><p class="muted" style="font-weight:700">${t("ex.sub")}</p>
+  ${newsCard()}
   <div class="hello" style="margin:12px 0 14px">${lion(56, "wow")}<div class="bubble">${t("ex.hello")} 🗞️</div></div>
   <article class="card exhero tap" role="button" tabindex="0" onclick="A.exOpen('${first.id}')">${photo(first, "16/10")}<div class="exbody"><span class="pill">${tx(first.tag)}</span><h3>${tx(first.title)}</h3><p class="exsumm">${tx(first.summary)}</p>${meta(first)}</div></article>
   <div class="exgrid">${rest.map(card).join("")}${PLANNED_EX.map(soon).join("")}</div>`;
+}
+
+/* ---------- Today's news: one headline Alti Lion explains (Newbie first, then "Explain like a pro") ---------- */
+function newsCard() {
+  return `<article class="card exnews"><div class="exnews-k">${t("ex.news.k")}</div><h3>${t("ex.news.t")}</h3><p>${t("ex.news.s")}</p>
+    <p class="exnews-src">${t("ex.news.src")}<span class="dnote"> · ${t("ex.news.verify")}</span></p>
+    <button class="btn good" onclick="A.newsAsk()">${lion(28, "happy")} ${t("ex.ask")}</button></article>`;
+}
+function newsAsk() {
+  setCtx({
+    key: "news:sbv-rates", where: t("as.whereExplore"), title: t("ex.news.t"), short: t("ex.news.s"), answered: true, kb: ["fixedfloat", "realrate", "fx"],
+    answers: { n: t("ex.news.a.n"), p: t("ex.news.a.p") },
+    answerKeys: ["mean", "affect", "for me", "anh huong", "minh", "pro", "chuyen gia", "tin nay", "news"],
+  });
+  askOnce(t("ex.news.q"), "n");
 }
 
 /* ---------- reading an article ---------- */
@@ -74,8 +91,11 @@ function exOpen(id: string) {
   setCtx({ key: "ex:" + a.id, where: t("as.whereExplore"), title: tx(a.title), short: tx(a.summary), long: [...a.happened, ...a.matters].map((p) => tx(p)).join(" "), answered: true, kb: a.kb });
 }
 
+/** ?scene=news (recording shortcut): the Explore tab with Today's news on top. */
+function sceneNews() { (window as any).A.go("explore"); }
+
 reg({
-  exOpen,
+  exOpen, newsAsk, sceneNews,
   exAns(qi: number, oi: number) { if (!cur || picks[qi] !== undefined) return; picks[qi] = oi; show(); },
   exClose() { cur = null; closeO(); },
   exLesson() { const id = cur?.lesson; if (!id) return; cur = null; (window as any).A.startLesson(id); },
