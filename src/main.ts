@@ -5,7 +5,7 @@ import "./styles/app.css";
 import "./styles/ui2.css";
 import "./styles/galaxy.css";
 import "./styles/town.css";
-import "./core/demo";
+import { SCENE } from "./core/demo";
 import "./core/actions";
 import { S } from "./core/state";
 import { onLangChange } from "./i18n/i18n";
@@ -40,6 +40,9 @@ window.addEventListener("unhandledrejection", () => { try { minitoast("⚠️ " 
 pickWx();
 applyTheme();
 render();
+// ?scene=… recording shortcuts (src/core/demo.ts): each module registers A.scene<Name>
+const scene = SCENE && (window as any).A["scene" + SCENE[0].toUpperCase() + SCENE.slice(1)];
+if (scene) setTimeout(scene, 300);
 // paint the light-galaxy background while the app is idle, so the first switch to Explore/Me/Settings/Play is instant
 const idle = (window as any).requestIdleCallback || ((f: () => void) => setTimeout(f, 600));
 idle(() => prewarmSky());

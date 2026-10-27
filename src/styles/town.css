@@ -191,3 +191,11 @@ body.potato .tw-year{animation:nwFade 1.2s forwards}
 body.potato .tw-canvas{transition:none}
 /* while the camera visits the museum / the crisis scene, sheets stay lower so the place is visible above them */
 .tw.museum-in .tw-sheet,.tw.era-old .tw-sheet{max-height:58%}
+/* ---- full-screen cards over the town: first job, promotion (src/ui/life.ts) ---- */
+.lf-cov{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:88px 16px 0;background:linear-gradient(180deg,rgba(30,27,58,.55) 0,rgba(30,27,58,.25) 48%,rgba(30,27,58,0) 66%)}
+.lf-card{position:relative;width:100%;max-width:340px;background:#FFF8EC;color:#3A2F28;border-radius:28px;padding:20px 18px 16px;text-align:center;box-shadow:0 5px 0 #E8D9C2,0 14px 32px rgba(30,27,58,.35)}
+.lf-card h2{margin:10px 0 4px;font-size:21px;line-height:1.25;font-weight:900}
+.lf-card-ic{width:58px;height:58px;margin:0 auto;border-radius:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+.lf-card-sub{margin:0;font-size:17px;font-weight:900;color:#2B8A57}
+.lf-card-note{margin:6px 0 14px;font-size:13px;font-weight:800;color:#6B5847}
+.lf-card .btn{margin:0}

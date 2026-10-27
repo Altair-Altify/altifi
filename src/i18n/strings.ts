@@ -290,6 +290,8 @@ export const STRINGS = {
   "lf.next.home": ["Việc tiếp: về Nhà kết thúc tháng", "Next: go Home to end the month"],
   "lf.intro": ["Chào bạn! Trong chế độ “Cuộc sống của tôi”, bạn là chính mình năm 22 tuổi, vừa nhận việc ở Công ty đầu tiên với lương 10 triệu (thực nhận 8,95 triệu). Mỗi tháng: đến Công ty ra 1 quyết định → ra Chợ chọn mức chi tiêu → ghé Ngân hàng → về Nhà kết thúc tháng. Xếp hạng theo TÀI SẢN RÒNG, không theo đồ đạc!", "Hi! In “My Life” you are yourself at 22, just hired at your first job: 10M gross (8.95M take-home). Each month: make 1 decision at the Office → pick a spending plan at the Market → visit the Bank → go Home to end the month. You're ranked by NET WORTH, not by your stuff!"],
   "lf.start": ["Bắt đầu", "Start"],
+  "lf.job.title": ["Công việc đầu tiên: Nhân viên văn phòng", "Your first job: Office worker"],
+  "lf.job.salary": ["Lương: 10 triệu/tháng", "Salary: 10M ₫/month"],
   "lf.started": ["Bạn đã có việc làm! Trang phục đổi sang sơ mi + cà vạt. Đi tới Công ty (khu dân cư, hàng nhà phía nam) để bắt đầu tháng 1. Bấm nút biểu đồ ở góc trái để xem tài sản và xếp hạng.", "You've got a job! Your outfit is now shirt + tie. Walk to the Office (neighbourhood, southern row) to start month 1. Tap the chart button on the left to see your assets and ranking."],
   "lf.office": ["Công ty đầu tiên", "Your first job"],
   "lf.worked": ["Tháng này bạn đã làm việc rồi. Ra Chợ chọn mức chi tiêu, rồi về Nhà để kết thúc tháng.", "You've already worked this month. Pick a spending plan at the Market, then go Home to end the month."],

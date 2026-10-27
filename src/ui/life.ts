@@ -68,16 +68,48 @@ function lifeStart() {
   getTown()?.setLook(g.look, g.stage);
   persist();
   townTalkClose();
-  say("Alti Lion", t("lf.started"), [], "#5B5BD6");
+  jobCard();
 }
+
+/* ---- cards over the whole town: the first job (month 1) and a promotion ---- */
+function townCard(html: string, cls = "") {
+  const root = $("#twRoot"), tw = getTown(); if (!root) return;
+  $("#lfCard")?.remove();
+  if (tw) { tw.frozen = true; tw.input.set(0, 0); tw.lift = 0; tw.heading = 0; } // you face the camera, outfit in view
+  const act = $("#twAct"); if (act) act.hidden = true;
+  root.insertAdjacentHTML("beforeend", `<div class="lf-cov ${cls}" id="lfCard" role="dialog" aria-modal="true">${html}</div>`);
+}
+function closeCard() { $("#lfCard")?.remove(); const tw = getTown(); if (tw) tw.frozen = false; }
+/** Month 1: the game hands you your first job — Office worker, 10M a month, shirt + tie. */
+function jobCard() {
+  townCard(`<div class="lf-card ft-in">
+    <div class="lf-card-ic" style="background:#3D7BF5">${icon("doc", { size: 30, color: "#fff", tint: 0.3 })}</div>
+    <h2>${t("lf.job.title")}</h2>
+    <p class="lf-card-sub">${t("lf.job.salary")}</p>
+    <p class="lf-card-note">${t("tw.st.staff")}</p>
+    <button class="btn good" onclick="A.lifeJobGo()">${t("lf.start")}</button>
+  </div>`, "job");
+}
+function lifeJobGo() { closeCard(); say("Alti Lion", t("lf.started"), [], "#5B5BD6"); }
+townHooks.leave.push(() => $("#lfCard")?.remove());
+
 /** Play tab → "My Life": open the town (and offer to start if needed). */
-let pendingIntro = false;
+let pendingIntro = false, pendingScene: (() => void) | null = null;
 function playLife() { pendingIntro = !life(); (window as any).A.goTown(); }
 townHooks.arrive.push(() => {
   const tw = getTown(); if (tw && life()) tw.setRide(life()!.vehicle);
+  if (pendingScene) { const f = pendingScene; pendingScene = null; setTimeout(f, noMotion() ? 0 : 900); return; }
   if (pendingBiz) { pendingBiz = false; setTimeout(startBizScenario, noMotion() ? 0 : 1000); return; }
   if (pendingIntro) { pendingIntro = false; setTimeout(intro, noMotion() ? 0 : 1000); }
 });
+/* ---- ?scene=… shortcuts for recording the video (src/core/demo.ts) — a fresh life each time ---- */
+function freshLife() {
+  const g = ensureGame();
+  g.cash = 2_000_000; g.life = newLife(g.cash); g.stage = "staff"; g.history = [netWorth(g.life)];
+  return g.life;
+}
+function goScene(f: () => void) { pendingScene = f; (window as any).A.goTown(); }
+function sceneJob() { goScene(() => { freshLife(); lifeStart(); }); }
 
 /* ---- doors ---- */
 townHooks.doors.push((b) => {
@@ -434,4 +466,4 @@ function lifePhone(tab: "nw" | "rank" = "nw") {
 }
 function lifeDealer() { confirmFor = ""; dealer(); }
 
-reg({ bizOpen, bizPrice, bizCase, bizChoose, playBiz, bizShop, lifeStart, lifeChoose, lifePlan, lifeBank, lifeAuto, lifeCard, lifeIns, lifeBuy, lifeSell, lifeEnd, lifePhone, lifeDealer, playLife, townSheetClose, townWardrobe });
+reg({ sceneJob, lifeJobGo, bizOpen, bizPrice, bizCase, bizChoose, playBiz, bizShop, lifeStart, lifeChoose, lifePlan, lifeBank, lifeAuto, lifeCard, lifeIns, lifeBuy, lifeSell, lifeEnd, lifePhone, lifeDealer, playLife, townSheetClose, townWardrobe });
