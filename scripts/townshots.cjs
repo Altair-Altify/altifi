@@ -25,7 +25,7 @@ const SPOTS = process.env.SPOTS ? process.env.SPOTS.split(',') : ['home', 'bank'
     await p.evaluate(() => A.playLife());
     await p.waitForFunction(() => !!window.__town, null, { timeout: 15000 });
     await p.waitForTimeout(2600);
-    await p.evaluate(() => { A.lifeStart(); A.townTalkClose(); });
+    await p.evaluate(() => { A.lifeStart(); A.lifeJobGo(); A.townTalkClose(); });
     await p.waitForTimeout(600);
     for (const id of SPOTS) {
       await p.evaluate((id) => { const t = window.__town, d = t.map.doors.find((x) => x.id === id); t.teleport(d.x, d.z + 0.6); }, id);

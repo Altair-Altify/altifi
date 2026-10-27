@@ -18,7 +18,7 @@ export function makeRide(id: string): THREE.Group | null {
     add(g, new RoundedBoxGeometry(0.16, 0.06, 0.26, 1, 0.03), "#3A2F28", [0, 0.9, -0.3]);
     add(g, new THREE.CylinderGeometry(0.03, 0.03, 0.5, 5), "#5B5470", [0, 0.92, 0.48], [0, 0, Math.PI / 2]);
     add(g, new RoundedBoxGeometry(0.3, 0.16, 0.22, 1, 0.04), "#FFC93C", [0, 0.82, 0.62]); // basket
-  } else if (id === "scooter") {
+  } else if (id === "scooter" || id === "rent") { // a rented one looks the same
     wheel(g, 0.26, 0.09, 0, -0.6); wheel(g, 0.26, 0.09, 0, 0.6);
     add(g, new RoundedBoxGeometry(0.5, 0.42, 1.0, 2, 0.15), "#FF8FA3", [0, 0.58, -0.15]);
     add(g, new RoundedBoxGeometry(0.42, 0.12, 0.6, 1, 0.05), "#3A2F28", [0, 0.86, -0.25]);

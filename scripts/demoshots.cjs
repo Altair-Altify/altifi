@@ -21,7 +21,7 @@ const BASE = process.env.BASE_URL || 'http://localhost:5173/';
   await p.evaluate(() => A.playLife());
   await p.waitForFunction(() => !!window.__town, null, { timeout: 15000 });
   await p.waitForTimeout(2600);
-  await p.evaluate(() => { A.lifeStart(); A.townTalkClose(); });
+  await p.evaluate(() => { A.lifeStart(); A.lifeJobGo(); A.townTalkClose(); });
   await p.waitForTimeout(600);
   const hide = (on) => p.evaluate((on) => { for (const s of ['#twHint', '#twZone']) { const e = document.querySelector(s); if (e) e.style.visibility = on ? 'hidden' : ''; } }, on);
   const go = (id, dz = 0.6) => p.evaluate(([id, dz]) => { const t = window.__town, d = t.map.doors.find((x) => x.id === id); t.teleport(d.x, d.z + dz); }, [id, dz]);

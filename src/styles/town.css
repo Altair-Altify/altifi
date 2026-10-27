@@ -199,3 +199,18 @@ body.potato .tw-canvas{transition:none}
 .lf-card-sub{margin:0;font-size:17px;font-weight:900;color:#2B8A57}
 .lf-card-note{margin:6px 0 14px;font-size:13px;font-weight:800;color:#6B5847}
 .lf-card .btn{margin:0}
+/* ---- "type your own idea" (6th box of a case) + the "AI simulated in demo" label — always visible, also in ?demo=1 ---- */
+.lf-own{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:16px;border:2px dashed #C9B8A0;background:#FFFDF8}
+.lf-own label{font-weight:900;font-size:14.5px;color:#3A2F28}
+.lf-own textarea{height:76px;padding:10px 12px;font-size:15px;border-radius:12px;background:#fff;color:#3A2F28;border:2px solid #E8D9C2}
+.lf-own textarea:focus{border-color:#8B6CF0}
+.lf-own-f{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lf-own-f #lfOwnN{font-size:12px;font-weight:800;color:#8A7562}
+.lf-own-f .btn{width:auto;padding:9px 18px;font-size:15px;margin:0 0 0 auto}
+.ai-pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:800;line-height:16px;white-space:nowrap;background:#EEE9FF;color:#3B2A9E;border:1px solid #C9BDFF}
+.lf-tip.own{position:relative;padding-top:32px}
+.lf-tip.own .ai-pill{position:absolute;top:8px;right:8px}
+.lf-you{margin:8px 0 0;padding:8px 12px;border-radius:14px;background:#F3EDE3}
+.lf-you b{font-size:12px;color:#6B5847}
+.lf-you p{margin:2px 0 0;font-size:14px;font-weight:700;font-style:italic;color:#3A2F28;overflow-wrap:anywhere}
+.tw-sheet .btn.ghost,.lf-card .btn.ghost{background:#fff;color:#4B4BB8;border:2px solid #E8D9C2;box-shadow:0 4px 0 #E8D9C2} /* cream sheets look the same in Night and Light */

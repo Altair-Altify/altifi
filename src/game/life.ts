@@ -53,6 +53,7 @@ export const ITEMS: Item[] = [
   { id: "walk", kind: "ride", price: 0, upkeep: 200_000, dep: 0, mood: -3, stage: 0 }, // bus pass
   { id: "bike", kind: "ride", price: 3_000_000, upkeep: 50_000, dep: -0.012, mood: 1, stage: 0 },
   { id: "scooter", kind: "ride", price: 35_000_000, upkeep: 900_000, dep: -0.015, mood: 5, stage: 0 },
+  { id: "rent", kind: "ride", price: 0, upkeep: 1_800_000, dep: 0, mood: 4, stage: 0 }, // rented scooter: 1.4M rent + fuel
   { id: "carSmall", kind: "ride", price: 550_000_000, upkeep: 6_000_000, dep: -0.012, mood: 9, stage: 1 },
   { id: "carSport", kind: "ride", price: 6_000_000_000, upkeep: 40_000_000, dep: -0.015, mood: 14, stage: 3 },
 ];

@@ -12,7 +12,7 @@ import { icon, IC } from "./icons";
 import { lion } from "../mascot/lion";
 import { minitoast, confetti } from "./fx";
 import { DOMAINS } from "../content/domains";
-import { CASES, BIZ_CASES, GOOD, type Case, type BizCase, type Rating } from "../content/cases";
+import { CASES, BIZ_CASES, GOOD, gradeOwn, type Case, type CaseOpt, type BizCase, type Rating } from "../content/cases";
 import { openBiz, bizValue, bizRate, bizPayment, breakEven, bizFloat, OPEN_COST, OWN_MIN, EQUIP, BIZ_FIXED, BIZ_FIXED_RATE, PRICES, type PL } from "../game/biz";
 import { PERSONAS } from "../game/npc";
 import {
@@ -79,7 +79,11 @@ function townCard(html: string, cls = "") {
   const act = $("#twAct"); if (act) act.hidden = true;
   root.insertAdjacentHTML("beforeend", `<div class="lf-cov ${cls}" id="lfCard" role="dialog" aria-modal="true">${html}</div>`);
 }
-function closeCard() { $("#lfCard")?.remove(); const tw = getTown(); if (tw) tw.frozen = false; }
+function closeCard() {
+  $("#lfCard")?.remove();
+  const tw = getTown(), open = !$("#twSheet")?.hidden; // the month report may still be open underneath
+  if (tw) { tw.frozen = open; tw.lift = open ? 1 : 0; }
+}
 /** Month 1: the game hands you your first job — Office worker, 10M a month, shirt + tie. */
 function jobCard() {
   townCard(`<div class="lf-card ft-in">
@@ -110,6 +114,17 @@ function freshLife() {
 }
 function goScene(f: () => void) { pendingScene = f; (window as any).A.goTown(); }
 function sceneJob() { goScene(() => { freshLife(); lifeStart(); }); }
+/** Months 1–3 already lived with good choices (auto-save 20%, said no to the scam and the bond), at the Office door. */
+function livedTo4() {
+  const L = freshLife(), g = ensureGame();
+  L.autoSave = 0.2;
+  for (const c of CASES.slice(0, 3)) { L.cases.push(c.id); L.good += 1; L.worked = true; L.plan = "balanced"; const rep = endMonth(L, () => 0.5); g.history.push(rep.nw); }
+  persist();
+  const tw = getTown(), d = tw?.map.doors.find((x) => x.id === "office");
+  if (tw && d) tw.teleport(d.x, d.z + 0.6);
+  return L;
+}
+function sceneCar() { goScene(() => { livedTo4(); office(); }); }
 
 /* ---- doors ---- */
 townHooks.doors.push((b) => {
@@ -129,6 +144,7 @@ townHooks.doors.push((b) => {
 
 /* ---- Office: this month's decision ---- */
 const nextCase = (L: Life): Case | undefined => CASES.find((c) => !L.cases.includes(c.id));
+const aiPill = () => `<span class="ai-pill">${t("lf.own.ai")}</span>`;
 function office() {
   const L = life()!;
   if (L.worked) { say(t("lf.office"), t("lf.worked"), [], "#3D7BF5"); return; }
@@ -137,29 +153,68 @@ function office() {
   townSheet(`${head(tx(c.title), `${t("lf.month", { m: L.month })} · ${c.year}`)}
     ${learnChip(c.lesson)}
     <p class="lf-setup">${esc(tx(c.setup))}</p>
-    <div class="lf-opts">${c.opts.map((o, i) => `<button class="lf-opt" onclick="A.lifeChoose(${i})"><b>${"ABC"[i]}</b><span>${esc(tx(o.t))}</span></button>`).join("")}</div>
+    <div class="lf-opts">${c.opts.map((o, i) => `<button class="lf-opt" onclick="A.lifeChoose(${i})"><b>${"ABCDE"[i]}</b><span>${esc(tx(o.t))}</span></button>`).join("")}
+    ${c.own ? `<div class="lf-own"><label for="lfOwn">${t("lf.own.t")}</label>
+      <textarea id="lfOwn" maxlength="200" rows="3" placeholder="${esc(t("lf.own.ph"))}" oninput="A.lifeOwnCount()"></textarea>
+      <div class="lf-own-f">${aiPill()}<span id="lfOwnN">0/200</span><button class="btn good" onclick="A.lifeOwn()">${t("lf.own.send")}</button></div></div>` : ""}</div>
     <p class="tw-note">${t("lf.chooseNote")}</p>`);
+}
+function lifeOwnCount() { const n = $("#lfOwnN"), v = ($("#lfOwn") as HTMLTextAreaElement | null)?.value || ""; if (n) n.textContent = `${v.length}/200`; }
+/** The 6th box: your own idea, graded by keywords in the demo (labelled "AI simulated in demo"). A plan that
+ * protects your cash flow plays like the best option, a bet on floating rates / more debt like the floating
+ * option; anything else gets a neutral nudge and you can try again. */
+function lifeOwn() {
+  const L = life(); if (!L) return;
+  const c = nextCase(L); if (!c?.own) return;
+  const box = $("#lfOwn") as HTMLTextAreaElement | null, text = (box?.value || "").trim().slice(0, 200);
+  if (!text) { box?.focus(); minitoast(t("lf.own.empty")); return; }
+  const kind = gradeOwn(text);
+  if (kind === "neutral") {
+    townSheet(`${head(tx(c.title), c.year)}
+      <div class="lf-you"><b>${t("lf.own.you")}</b><p>“${esc(text)}”</p></div>
+      <div class="lf-tip own">${aiPill()}${lion(52, "wow")}<p>${t("lf.own.neutral")}</p></div>
+      <div class="lf-btns"><button class="btn ghost" onclick="A.lifeOffice()">${t("lf.own.back")}</button><button class="btn good" onclick="A.townLearn('m-centralbank')">${t("lf.own.learn")}</button></div>`);
+    return;
+  }
+  const best = (["!!", "!", "★"] as Rating[]).map((r) => c.opts.find((o) => o.r === r)).find(Boolean)!;
+  const like = kind === "good" ? best : c.opts.find((o) => o.fx.loan === "float") || c.opts.find((o) => !GOOD.includes(o.r))!;
+  decide(L, c, { ...like, r: kind === "good" ? "!" : "?!" }, { text, kind });
 }
 function lifeChoose(i: number) {
   const L = life(); if (!L) return;
   const c = nextCase(L); if (!c) return;
-  const o = c.opts[i], fx = o.fx, notes: string[] = [];
+  decide(L, c, c.opts[i]);
+}
+function decide(L: Life, c: Case, o: CaseOpt, own?: { text: string; kind: "good" | "risky" }) {
+  const fx = o.fx, notes: string[] = [];
   if (fx.autoSave != null) L.autoSave = fx.autoSave;
   if (fx.mood) L.mood = clamp(L.mood + fx.mood, 0, 100);
   const take = (amt: number) => { const a = Math.min(amt, L.cash + L.savings); if (L.cash < a) withdraw(L, a - L.cash); L.cash -= a; return a; };
   if (fx.cash) { if (fx.cash < 0) take(-fx.cash); else L.cash += fx.cash; }
   if (fx.scam) L.scam = { amount: take(fx.scam), at: L.month };
   if (fx.bond) L.bond = { amount: take(fx.bond), at: L.month };
-  if (fx.buy) { const err = buy(L, fx.buy, fx.loan || null); if (err) notes.push(t("lf.err." + err)); else { getTown()?.setRide(L.vehicle); notes.push(t("lf.bought", { what: t("lf.it." + fx.buy) })); } }
+  if (fx.buy) {
+    const err = buy(L, fx.buy, fx.loan || null);
+    if (err) notes.push(t("lf.err." + err));
+    else {
+      // money from friends: no interest, but paid back within 12 months
+      if (fx.friends) { const l = L.loans.find((x) => x.what === fx.buy); if (l) { l.rate = 0; l.months = 12; } }
+      getTown()?.setRide(L.vehicle); notes.push(t("lf.bought", { what: t("lf.it." + fx.buy) }));
+    }
+  }
   if (fx.bnpl) L.loans.push({ id: "bnpl-" + L.month, what: "phone", left: fx.bnpl, kind: "fixed", rate: 0, months: 4 });
   const good = GOOD.includes(o.r);
   if (good) L.good += 1;
   L.cases.push(c.id); L.worked = true;
   persist();
-  if (good && !noMotion() && o.r === "!!") confetti();
+  if (good && !noMotion() && (o.r === "!!" || own)) confetti();
+  const why = own
+    ? `<div class="lf-you"><b>${t("lf.own.you")}</b><p>“${esc(own.text)}”</p></div>
+       <div class="lf-tip own">${aiPill()}${lion(52, own.kind === "good" ? "cheer" : "sad")}<p>${t(own.kind === "good" ? "lf.own.good" : "lf.own.risky", { f: floatRate(L.month).toFixed(1), r: policyRate(L.month).toFixed(0) })}</p></div>`
+    : `<p class="lf-why">${esc(tx(o.why))}</p>`;
   townSheet(`${head(tx(c.title), c.year)}
-    <div class="lf-rate"><span class="lf-badge" style="background:${RCOL[o.r]}">${o.r}</span><div><b>${t("lf.r." + o.r)}</b><p>${esc(tx(o.t))}</p></div></div>
-    <p class="lf-why">${esc(tx(o.why))}</p>
+    <div class="lf-rate"><span class="lf-badge" style="background:${RCOL[o.r]}">${o.r}</span><div><b>${t("lf.r." + o.r)}</b><p>${esc(own ? t("lf.own.like", { o: tx(o.t) }) : tx(o.t))}</p></div></div>
+    ${why}
     ${notes.map((n) => `<p class="lf-noteok">${esc(n)}</p>`).join("")}
     <h4>${t("lf.views")}</h4>
     <div class="lf-views">${c.views.map(([w, s]) => `<div><b>${esc(tx(w))}</b><span>${esc(tx(s))}</span></div>`).join("")}</div>
@@ -167,6 +222,7 @@ function lifeChoose(i: number) {
     <p class="tw-note dnote">${t("lf.aiNote")}</p>
     <button class="btn good" onclick="A.townSheetClose()">${t("lf.cont")}</button>`);
 }
+function lifeOffice() { office(); }
 
 /* ---- Market: the month's spending plan ---- */
 function market() {
@@ -466,4 +522,4 @@ function lifePhone(tab: "nw" | "rank" = "nw") {
 }
 function lifeDealer() { confirmFor = ""; dealer(); }
 
-reg({ sceneJob, lifeJobGo, bizOpen, bizPrice, bizCase, bizChoose, playBiz, bizShop, lifeStart, lifeChoose, lifePlan, lifeBank, lifeAuto, lifeCard, lifeIns, lifeBuy, lifeSell, lifeEnd, lifePhone, lifeDealer, playLife, townSheetClose, townWardrobe });
+reg({ sceneJob, sceneCar, lifeJobGo, lifeOwn, lifeOwnCount, lifeOffice, bizOpen, bizPrice, bizCase, bizChoose, playBiz, bizShop, lifeStart, lifeChoose, lifePlan, lifeBank, lifeAuto, lifeCard, lifeIns, lifeBuy, lifeSell, lifeEnd, lifePhone, lifeDealer, playLife, townSheetClose, townWardrobe });

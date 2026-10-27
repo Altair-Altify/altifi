@@ -97,7 +97,8 @@ require('fs').mkdirSync(OUT, { recursive: true });
     // 3 · My Life, 2 months
     await p.evaluate(() => { A.exitTown(); }); await p.waitForTimeout(600);
     await p.evaluate(() => A.playLife()); await p.waitForTimeout(2600); await shot('life-intro');
-    await p.evaluate(() => A.lifeStart()); await p.waitForTimeout(600); await shot('life-started');
+    await p.evaluate(() => A.lifeStart()); await p.waitForTimeout(600); await shot('life-first-job');
+    await p.evaluate(() => A.lifeJobGo()); await p.waitForTimeout(600); await shot('life-started');
     await p.evaluate(() => A.townTalkClose());
     const door = async (id) => { await p.evaluate((id) => { const t = window.__town, d = t.map.doors.find((x) => x.id === id); t.teleport(d.x, d.z + 0.4); }, id); await p.waitForTimeout(700); await p.evaluate(() => A.townAct()); await p.waitForTimeout(700); };
     for (let m = 1; m <= 2; m++) {

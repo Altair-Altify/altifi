@@ -8,10 +8,22 @@ import type { TL } from "../i18n/i18n";
 
 export type Rating = "!!" | "!" | "★" | "!?" | "?!" | "??";
 export const GOOD: Rating[] = ["!!", "!", "★"];
-export interface Fx { autoSave?: number; cash?: number; mood?: number; scam?: number; bond?: number; buy?: string; loan?: "fixed" | "float"; bnpl?: number }
+export interface Fx { autoSave?: number; cash?: number; mood?: number; scam?: number; bond?: number; buy?: string; loan?: "fixed" | "float"; bnpl?: number; friends?: boolean }
 export interface CaseOpt { t: TL; r: Rating; why: TL; fx: Fx }
-export interface Case { id: string; year: string; title: TL; lesson?: string; setup: TL; opts: CaseOpt[]; views: [TL, TL][]; story: TL }
+export interface Case { id: string; year: string; title: TL; lesson?: string; setup: TL; opts: CaseOpt[]; views: [TL, TL][]; story: TL; own?: boolean } // own: 6th box "type your own idea"
 const T = (vi: string, en: string) => ({ vi, en });
+
+/* ---- the 6th box "type your own idea" (demo: keyword grading, shown as "AI simulated in demo") ----
+ * Lower-case, accents removed, VI + EN. A plan that protects the cash flow → like the best option; a bet on
+ * floating / more debt → like the floating option; anything else → a neutral nudge towards the rates lesson. */
+const fold = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
+const OWN_GOOD = ["emergency fund", "quy du phong", "pay down debt", "pay off debt", "tra no", "fixed", "co dinh", "cash", "tien mat", "save", "saving", "tiet kiem"];
+const OWN_RISKY = ["floating", "tha noi", "borrow more", "vay them", "all in", "all-in"];
+const hits = (s: string, kws: string[]) => kws.filter((k) => new RegExp("(^|[^a-z])" + k.replace(/[-]/g, "\\-")).test(s)).length;
+export function gradeOwn(text: string): "good" | "risky" | "neutral" {
+  const s = fold(text), g = hits(s, OWN_GOOD), r = hits(s, OWN_RISKY);
+  return r > g ? "risky" : g > 0 ? "good" : "neutral";
+}
 
 export const CASES: Case[] = [
   {
@@ -75,14 +87,19 @@ export const CASES: Case[] = [
       "In Vietnam in 2022, many people who came to a commercial bank to save were sold bonds of a large real-estate group as if they were savings products. When the group got into trouble they couldn't get their money back on time; the central bank later put that bank under special control."),
   },
   {
-    id: "fixed-float", year: "2022", lesson: "m-centralbank", title: T("Trả góp xe máy: cố định hay thả nổi?", "A scooter on instalments: fixed or floating?"),
+    id: "fixed-float", year: "2022", lesson: "m-centralbank", own: true, title: T("Trả góp xe máy: cố định hay thả nổi?", "A scooter on instalments: fixed or floating?"),
     setup: T("Đi xe buýt mất 2 tiếng mỗi ngày. Đại lý cho trả góp xe máy 35 triệu trong 24 tháng: lãi CỐ ĐỊNH 12,5%/năm suốt kỳ, hoặc THẢ NỔI (bây giờ 10,5%/năm, đổi theo lãi suất của ngân hàng trung ương). Tin tức: lạm phát thế giới đang tăng.",
       "The bus takes 2 hours a day. A dealer offers a 35M scooter over 24 months: FIXED 12.5% a year for the whole term, or FLOATING (10.5% now, moving with the central bank's rate). In the news: inflation is rising around the world."),
     opts: [
-      { t: T("Vay lãi cố định 12,5%", "Borrow at a fixed 12.5%"), r: "!", fx: { buy: "scooter", loan: "fixed" },
-        why: T("Đắt hơn lúc đầu nhưng biết chắc khoản trả mỗi tháng. Khi lạm phát tăng, NHTW thường tăng lãi suất — lãi cố định là tấm khiên.", "Dearer at first, but your payment is certain. When inflation rises, central banks usually raise rates — fixed is your shield.") },
+      // floating first: the demo video picks it and watches the payment rise with the central bank (month 5)
       { t: T("Vay thả nổi — đang rẻ hơn 2%", "Borrow floating — 2% cheaper now"), r: "?!", fx: { buy: "scooter", loan: "float" },
         why: T("Rẻ hôm nay, nhưng khi NHTW tăng lãi suất thì khoản trả của bạn tăng theo. Bạn đang đặt cược rằng lãi suất sẽ không tăng.", "Cheaper today, but when the central bank raises rates, your payment rises too. You're betting rates won't go up.") },
+      { t: T("Vay lãi cố định 12,5%", "Borrow at a fixed 12.5%"), r: "!", fx: { buy: "scooter", loan: "fixed" },
+        why: T("Đắt hơn lúc đầu nhưng biết chắc khoản trả mỗi tháng. Khi lạm phát tăng, NHTW thường tăng lãi suất — lãi cố định là tấm khiên.", "Dearer at first, but your payment is certain. When inflation rises, central banks usually raise rates — fixed is your shield.") },
+      { t: T("Mượn tiền bạn bè để mua", "Borrow from friends to buy it"), r: "?!", fx: { buy: "scooter", loan: "fixed", friends: true, mood: -3 },
+        why: T("Không lãi, nhưng 35 triệu phải trả trong 12 tháng (~2,9 triệu/tháng) — nặng hơn cả trả góp. Trễ hẹn với bạn bè thì mất cả tiền lẫn tình bạn, và bạn vẫn sở hữu một tài sản mất giá mỗi tháng.", "No interest, but 35M must be paid back within 12 months (~2.9M a month) — heavier than the dealer's plan. Miss a payment and you risk the friendship too, and you still own something that loses value every month.") },
+      { t: T("Thuê xe theo tháng", "Rent a bike monthly"), r: "!?", fx: { buy: "rent" },
+        why: T("Không nợ, không mất giá, trả xe lúc nào cũng được — linh hoạt. Đổi lại ~1,8 triệu/tháng (thuê + xăng) là tiền đi luôn, không tích lại thành tài sản.", "No debt, no loss of value, hand it back any time — flexible. But ~1.8M a month (rent + fuel) is gone for good and never builds into an asset.") },
       { t: T("Chưa vay — mua xe đạp 3 triệu bằng tiền mặt trước", "No loan — buy a 3M bicycle with cash for now"), r: "★", fx: { buy: "bike" },
         why: T("Không nợ, không lãi, xe đạp còn rẻ để nuôi; đổi lại đi xa hơi mệt. Một tài sản nhỏ mất giá ít hơn.", "No debt, no interest and cheap to run; a bit tiring for long trips. A small thing that loses less value.") },
     ],
