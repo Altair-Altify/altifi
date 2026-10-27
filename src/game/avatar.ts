@@ -6,7 +6,7 @@
 import * as THREE from "three";
 import { mat, blobGeo, blobMat } from "./kit";
 
-export type Stage = "student" | "staff" | "owner" | "tycoon";
+export type Stage = "student" | "staff" | "senior" | "owner" | "tycoon";
 export interface Look { skin: string; hair: string; style: 0 | 1 | 2; top: string; bottom: string; shoes: string }
 export const SKINS = ["#FFE0C7", "#F5C9A3", "#E3A87C", "#C98B5E", "#9A6440", "#6E4630"];
 export const HAIRS = ["#2B2233", "#5A3A2A", "#A0522D", "#E8B04A", "#E86A92", "#5B5BD6"];
@@ -36,6 +36,7 @@ export function makeAvatar(look: Look, stage: Stage, scale = 1): Avatar {
   const outfit = {
     student: { top: look.top, bottom: look.bottom },
     staff: { top: "#F7F7FF", bottom: "#3B3F5C" },
+    senior: { top: "#34416B", bottom: "#3B3F5C" }, // promoted: navy blazer over the shirt + tie
     owner: { top: look.top, bottom: look.bottom },
     tycoon: { top: "#2E2A57", bottom: "#2E2A57" },
   }[stage];
@@ -53,6 +54,7 @@ export function makeAvatar(look: Look, stage: Stage, scale = 1): Avatar {
   torso.add(part(new THREE.CylinderGeometry(0.2, 0.27, 0.46, 8), outfit.top, [0, 0.22, 0]));
   if (stage === "staff" || stage === "tycoon") torso.add(part(new THREE.BoxGeometry(0.07, 0.3, 0.03), stage === "staff" ? "#5B5BD6" : "#E5484D", [0, 0.24, 0.235], 1, [-0.12, 0, 0]));
   if (stage === "tycoon") { torso.add(part(new THREE.BoxGeometry(0.16, 0.14, 0.03), "#F7F7FF", [0, 0.38, 0.2], 1, [-0.2, 0, 0])); }
+  if (stage === "senior") { torso.add(part(new THREE.BoxGeometry(0.15, 0.34, 0.03), "#F7F7FF", [0, 0.25, 0.225], 1, [-0.12, 0, 0])); torso.add(part(new THREE.BoxGeometry(0.06, 0.28, 0.03), "#5B5BD6", [0, 0.25, 0.245], 1, [-0.12, 0, 0])); }
   if (stage === "owner") torso.add(part(new THREE.BoxGeometry(0.36, 0.38, 0.04), "#2FAE73", [0, 0.17, 0.235], 1, [-0.12, 0, 0]));
   if (stage === "student") torso.add(part(new THREE.CapsuleGeometry(0.17, 0.12, 3, 6), "#FFC93C", [0, 0.25, -0.26], [1, 1, 0.55]));
   // arms (pivot at the shoulder)

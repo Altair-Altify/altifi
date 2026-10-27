@@ -27,7 +27,7 @@ const short = (n: number) => shortVnd(n, lang());
 const sign = (n: number) => (n > 0 ? "+" : n < 0 ? "−" : "") + short(Math.abs(n));
 const nodeOf = (id?: string) => (id ? DOMAINS.flatMap((d) => d.nodes).find((n) => n.id === id) : undefined);
 const RCOL: Record<Rating, string> = { "!!": "#1BADA6", "!": "#2BB673", "★": "#7CB342", "!?": "#8E9BFF", "?!": "#F2A33A", "??": "#EF4E4E" };
-const STAGE_N = { student: 0, staff: 0, owner: 1, tycoon: 3 } as Record<string, number>;
+const STAGE_N = { student: 0, staff: 0, senior: 0, owner: 1, tycoon: 3 } as Record<string, number>;
 
 function persist() {
   const g = ensureGame(), L = life();
@@ -125,6 +125,17 @@ function livedTo4() {
   return L;
 }
 function sceneCar() { goScene(() => { livedTo4(); office(); }); }
+/** Month 4 after the scooter case (fixed rate, a good move) → end the month at home → PROMOTED. */
+function scenePromo() {
+  goScene(() => {
+    const L = livedTo4(), c = nextCase(L);
+    if (c) decide(L, c, c.opts.find((o) => o.r === "!") || c.opts[0]);
+    L.plan = "lean";
+    const tw = getTown(), d = tw?.map.doors.find((x) => x.id === "home");
+    if (tw && d) tw.teleport(d.x, d.z + 0.6);
+    lifeEnd(() => 0.5); // no random illness in the recorded month
+  });
+}
 
 /* ---- doors ---- */
 townHooks.doors.push((b) => {
@@ -194,7 +205,7 @@ function decide(L: Life, c: Case, o: CaseOpt, own?: { text: string; kind: "good"
   if (fx.scam) L.scam = { amount: take(fx.scam), at: L.month };
   if (fx.bond) L.bond = { amount: take(fx.bond), at: L.month };
   if (fx.buy) {
-    const err = buy(L, fx.buy, fx.loan || null);
+    const err = buy(L, fx.buy, fx.loan || null, 24, true); // the case is an instalment offer: the emergency fund stays
     if (err) notes.push(t("lf.err." + err));
     else {
       // money from friends: no interest, but paid back within 12 months
@@ -342,15 +353,31 @@ function home() {
     ${!owner && !L.worked ? `<p class="lf-warn">${t("lf.warnNoWork")}</p>` : ""}${!L.plan ? `<p class="tw-note">${t("lf.defaultPlan")}</p>` : ""}
     <div class="lf-btns"><button class="btn good" onclick="A.lifeEnd()">${t("lf.endMonth")}</button><button class="btn ghost" onclick="A.townWardrobe()">${t("tw.wardrobe")}</button></div>`);
 }
-function lifeEnd() {
+function lifeEnd(rnd?: () => number) {
   const L = life(); if (!L) return;
   const g = ensureGame(), prevRate = policyRate(L.month);
-  const rep = endMonth(L);
+  const rep = endMonth(L, typeof rnd === "function" ? rnd : Math.random);
   g.history = [...(g.history || []), rep.nw].slice(-36);
   (g as any).rank = rep.rank;
+  if (rep.raise && g.stage === "staff") { g.stage = "senior"; getTown()?.setLook(g.look, g.stage); } // promoted: blazer over shirt + tie
   persist();
   showReport(rep, policyRate(L.month) > prevRate || policyRate(rep.m) > policyRate(rep.m - 1));
+  if (rep.raise || rep.top3) promoCard(rep);
 }
+/** A raise (= promotion) or your first time in the top 3: a full-screen celebration over the month report. */
+function promoCard(rep: Report) {
+  const L = life()!, sparks = noMotion() ? "" : `<div class="lf-spark" aria-hidden="true">${Array.from({ length: 18 }, (_, i) => `<i style="--x:${(i * 37) % 100}%;--d:${(i % 6) * 0.17}s;--s:${0.6 + (i % 4) * 0.25}"></i>`).join("")}</div>`;
+  townCard(`${sparks}<div class="lf-card ft-in">
+    <div class="lf-card-lion">${lion(88, "cheer")}</div>
+    <div class="lf-promo-k">${t(rep.raise ? "lf.promo.k" : "lf.promo.top3")}</div>
+    <h2>${t("lf.title." + (L.title || "staff"))}</h2>
+    <p class="lf-card-sub">${t("lf.promo.rank", { r: rep.rank, n: PERSONAS.length + 1 })}</p>
+    ${rep.raise ? `<p class="lf-card-note">${t("lf.raise", { v: short(L.salary) })}</p>` : ""}
+    <div class="lf-btns"><button class="btn ghost" onclick="A.lifePromoRank()">${t("lf.seeRank")}</button><button class="btn good" onclick="A.lifePromoGo()">${t("lf.cont")}</button></div>
+  </div>`, "promo");
+}
+function lifePromoRank() { closeCard(); lifePhone("rank"); }
+function lifePromoGo() { closeCard(); }
 function tipFor(L: Life, rep: Report, hike: boolean) {
   if (rep.bankrupt) return t("bz.tip.bankrupt");
   if (rep.pl) {
@@ -513,13 +540,13 @@ function lifePhone(tab: "nw" | "rank" = "nw") {
       <div class="lf-row"><span>${t("lf.debts")}</span><b class="neg">${debt(L) ? "−" + short(debt(L)) : "0"}</b></div>
       <div class="lf-total"><span>${t("top.netWorth")}</span><b>${money(nw)}</b></div>
       <p class="tw-note">${t("lf.nwNote", { a: short(ownedValue(L)) })}</p>
-      <div class="lf-row"><span>${t("lf.salary")}</span><b>${short(L.salary)}</b></div><div class="lf-row"><span>${t("lf.score")}</span><b>${L.score}</b></div><div class="lf-row"><span>${t("lf.policyShort")}</span><b>${policyRate(L.month).toFixed(1)}%</b></div>`;
+      <div class="lf-row"><span>${t("lf.jobTitle")}</span><b>${t("lf.title." + (L.title || "staff"))}</b></div><div class="lf-row"><span>${t("lf.salary")}</span><b>${short(L.salary)}</b></div><div class="lf-row"><span>${t("lf.score")}</span><b>${L.score}</b></div><div class="lf-row"><span>${t("lf.policyShort")}</span><b>${policyRate(L.month).toFixed(1)}%</b></div>`;
   } else {
-    const rows = [...PERSONAS.map((p) => ({ n: p.name, s: tx(p.style), v: L.rivals[p.id], me: false })), { n: S.p.name || t("lf.you"), s: t("lf.you"), v: nw, me: true }].sort((a, b) => b.v - a.v);
+    const rows = [...PERSONAS.map((p) => ({ n: p.name, s: tx(p.style), v: L.rivals[p.id], me: false })), { n: S.p.name || t("lf.you"), s: `${t("lf.you")} · ${t("lf.title." + (L.title || "staff"))}`, v: nw, me: true }].sort((a, b) => b.v - a.v);
     body = `<ol class="lf-rank">${rows.map((r) => `<li class="${r.me ? "me" : ""}"><b>${esc(r.n)}</b><span>${esc(r.s)}</span><i>${short(r.v)}</i></li>`).join("")}</ol><p class="tw-note">${t("lf.rankNote")}</p>`;
   }
   townSheet(`${head(t("lf.phone"), t("lf.month", { m: L.month }))}${tabs}${body}`);
 }
 function lifeDealer() { confirmFor = ""; dealer(); }
 
-reg({ sceneJob, sceneCar, lifeJobGo, lifeOwn, lifeOwnCount, lifeOffice, bizOpen, bizPrice, bizCase, bizChoose, playBiz, bizShop, lifeStart, lifeChoose, lifePlan, lifeBank, lifeAuto, lifeCard, lifeIns, lifeBuy, lifeSell, lifeEnd, lifePhone, lifeDealer, playLife, townSheetClose, townWardrobe });
+reg({ sceneJob, sceneCar, scenePromo, lifePromoRank, lifePromoGo, lifeJobGo, lifeOwn, lifeOwnCount, lifeOffice, bizOpen, bizPrice, bizCase, bizChoose, playBiz, bizShop, lifeStart, lifeChoose, lifePlan, lifeBank, lifeAuto, lifeCard, lifeIns, lifeBuy, lifeSell, lifeEnd, lifePhone, lifeDealer, playLife, townSheetClose, townWardrobe });

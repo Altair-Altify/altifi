@@ -12,7 +12,7 @@ export type Plan = "lean" | "balanced" | "loose";
 export interface Loan { id: string; what: string; left: number; kind: "fixed" | "float" | "card"; rate: number; months: number }
 export interface Owned { id: string; value: number }
 export interface Line { k: string; v: number; vars?: Record<string, string | number> }
-export interface Report { m: number; lines: Line[]; nw: number; dnw: number; event?: string; raise?: boolean; burnout?: boolean; rank: number; pl?: PL; bankrupt?: boolean }
+export interface Report { m: number; lines: Line[]; nw: number; dnw: number; event?: string; raise?: boolean; burnout?: boolean; rank: number; top3?: boolean; pl?: PL; bankrupt?: boolean }
 export interface Life {
   month: number; // 1-based, the month you are living now
   cash: number; savings: number; mood: number; score: number;
@@ -29,7 +29,12 @@ export interface Life {
   rivals: Record<string, number>;
   reports: Report[];
   biz?: Biz; // your milk-tea kiosk (Business mode)
+  title?: Title; // job title — goes up with each promotion
+  top3?: boolean; // has been in the top 3 of the ranking at least once
+  raisedAt?: number; // month of the last raise / promotion
 }
+export type Title = "staff" | "senior" | "lead";
+export const TITLES: Title[] = ["staff", "senior", "lead"];
 
 /* ---- market (simulated, 1 month per step) ---- */
 /** Policy rate by month: low for 4 months, then two hikes (like the State Bank of Vietnam, Sep–Oct 2022). */
@@ -69,11 +74,14 @@ export const INSURANCE = 180_000; // health + accident, per month
  * income tax at this level after the personal deduction. ⚠️ check the current PIT law (13.2d P5). */
 export const START_SALARY = 8_950_000;
 
+/** What each classmate already has when you start (savings, a shop's capital…), so you start around #6 and have to
+ * climb — with equal starts a frugal month 1 put you in the top 3 at once (balance note in PROGRESS.md). */
+const HEAD_START: Record<string, number> = { "minh-khang": 3_000_000, "ngoc-ha": 1_500_000, "duc-tri": 2_000_000, "gia-huy": 3_000_000, "thao-vy": 5_000_000, "bao-anh": 500_000 };
 export function newLife(startCash: number): Life {
   return {
     month: 1, cash: startCash, savings: 0, mood: 70, score: 650, salary: START_SALARY, plan: null, worked: false, good: 0, cases: [],
     autoSave: 0, housing: "room", vehicle: "walk", insured: false, owned: [], loans: [],
-    rivals: Object.fromEntries(PERSONAS.map((p) => [p.id, startCash])), reports: [],
+    rivals: Object.fromEntries(PERSONAS.map((p) => [p.id, startCash + (HEAD_START[p.id] || 0)])), reports: [],
   };
 }
 
@@ -97,8 +105,9 @@ export const monthlyCosts = (L: Life) => {
 /* ---- buying / selling / banking ---- */
 export function canBuy(L: Life, it: Item, stage: number) { return it.stage <= stage; }
 /** Buy with cash (+ savings), or borrow what that doesn't cover: needs a credit score ≥ 600; a loan covers up to
- * 100% of a vehicle (dealer "0-down" instalments) or 70% of a home. */
-export function buy(L: Life, id: string, loan: "fixed" | "float" | null, months = 24): string | null {
+ * 100% of a vehicle (dealer "0-down" instalments) or 70% of a home. keepFund: borrow the full allowed share
+ * and keep your emergency fund (the Office case "a scooter on instalments"). */
+export function buy(L: Life, id: string, loan: "fixed" | "float" | null, months = 24, keepFund = false): string | null {
   const it = item(id);
   if (it.price === 0) { sellCurrent(L, it.kind); if (it.kind === "home") L.housing = id; else L.vehicle = id; return null; }
   if ((it.kind === "home" ? L.housing : L.vehicle) === id) return "have";
@@ -108,7 +117,8 @@ export function buy(L: Life, id: string, loan: "fixed" | "float" | null, months 
   let fromLoan = 0;
   if (loan) {
     if (L.score < 600) return "lowScore";
-    fromLoan = Math.min(Math.round(need * (it.kind === "ride" ? 1 : 0.7)), Math.max(0, need - have));
+    const cap = Math.round(need * (it.kind === "ride" ? 1 : 0.7));
+    fromLoan = keepFund ? cap : Math.min(cap, Math.max(0, need - have)); // keepFund: dealer instalments, savings untouched
     if (fromLoan <= 0) loan = null;
   }
   if (have + fromLoan < need) return "noCash";
@@ -211,14 +221,22 @@ export function endMonth(L: Life, rnd: () => number = Math.random): Report {
   } else L.score = Math.min(850, L.score + (L.loans.length ? 12 : 6));
   // mood: −6 a month, + what you spend on fun, + where you live and how you get around
   L.mood = Math.max(0, Math.min(100, L.mood - 6 + plan.mood + h.mood * 0.5 + v.mood * 0.5 + (event ? -4 : 0)));
-  // a raise every 6 months if you made good decisions and didn't burn out
-  let raise = false;
-  if (!b && m % 6 === 0 && L.good >= Math.ceil(m / 2) && !burnout) { L.salary = Math.round(L.salary * 1.1 / 10000) * 10000; raise = true; }
   // classmates move too
   for (const p of PERSONAS) L.rivals[p.id] = Math.round(rivalStep(p.id, L.rivals[p.id], m, rnd));
   const nw = netWorth(L);
   const rank = 1 + PERSONAS.filter((p) => L.rivals[p.id] > nw).length;
-  const rep: Report = { m, lines, nw, dnw: nw - before, event, raise, burnout, rank, pl, bankrupt };
+  const top3 = rank <= 3 && !L.top3 && m >= 3; if (top3) L.top3 = true; // counts from month 3: you need a little tenure
+  // promotion (balanced for the demo, see PROGRESS.md): the first one after 4 good decisions or your first time in the
+  // top 3 (from month 3) — Office worker → Senior staff, take-home +30%; then a raise (+10%, next title) at least 6
+  // months after the last one if you made good decisions. Never while burnt out, never while you run the kiosk.
+  let raise = false;
+  const title = L.title || "staff";
+  if (!b && !burnout) {
+    if (title === "staff" && (L.good >= 4 || top3)) { L.salary = Math.round(L.salary * 1.3 / 10000) * 10000; raise = true; }
+    else if (m - (L.raisedAt || 0) >= 6 && L.good >= Math.ceil(m / 2)) { L.salary = Math.round(L.salary * 1.1 / 10000) * 10000; raise = true; }
+    if (raise) { L.raisedAt = m; L.title = TITLES[Math.min(TITLES.length - 1, TITLES.indexOf(title) + 1)]; }
+  }
+  const rep: Report = { m, lines, nw, dnw: nw - before, event, raise, burnout, rank, top3, pl, bankrupt };
   L.reports.push(rep);
   if (L.reports.length > 24) L.reports.shift();
   L.month += 1; L.plan = null; L.worked = false;

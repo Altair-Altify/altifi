@@ -135,6 +135,7 @@ body.potato .tw-act,body.potato .tw-talk{animation:none}
 .lf-total b{font-size:18px;font-variant-numeric:tabular-nums}
 .lf-total i{font-style:normal;font-weight:900}
 .lf-seg{margin:0 0 8px}
+.lf-seg button:not(.on){background:#fff;color:#3A2F28;border-color:#E8D9C2} /* cream phone sheet in every theme */
 .lf-rank{margin:0;padding:0;list-style:none;counter-reset:r}
 .lf-rank li{counter-increment:r;display:flex;align-items:baseline;gap:8px;padding:8px;border-radius:12px;font-size:13.5px;font-weight:700}
 .lf-rank li::before{content:"#" counter(r);width:28px;font-weight:900;color:#7A6656}
@@ -214,3 +215,16 @@ body.potato .tw-canvas{transition:none}
 .lf-you b{font-size:12px;color:#6B5847}
 .lf-you p{margin:2px 0 0;font-size:14px;font-weight:700;font-style:italic;color:#3A2F28;overflow-wrap:anywhere}
 .tw-sheet .btn.ghost,.lf-card .btn.ghost{background:#fff;color:#4B4BB8;border:2px solid #E8D9C2;box-shadow:0 4px 0 #E8D9C2} /* cream sheets look the same in Night and Light */
+.lf-cov.promo{justify-content:center;padding:16px;background:radial-gradient(circle at 50% 42%,rgba(255,201,60,.35),rgba(30,27,58,.72) 70%)}
+.lf-card-lion{display:flex;justify-content:center;margin-top:-58px}
+.lf-card-lion svg{filter:drop-shadow(0 6px 10px rgba(30,27,58,.3))}
+.promo .lf-card{padding-top:12px}
+.lf-promo-k{display:inline-block;margin-top:6px;padding:6px 16px;border-radius:999px;background:linear-gradient(90deg,#F5A524,#F2C94C);color:#3A2F28;font-weight:900;font-size:20px;letter-spacing:2px;box-shadow:0 3px 0 #C98A00}
+.promo .lf-card h2{font-size:26px;margin-top:10px}
+.promo .lf-btns{margin-top:12px}
+.lf-spark{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.lf-spark i{position:absolute;top:-24px;left:var(--x);width:12px;height:12px;background:#FFD54A;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);transform:scale(var(--s));animation:lfSpark 2.6s linear var(--d) infinite}
+.lf-spark i:nth-child(3n){background:#fff}.lf-spark i:nth-child(4n){background:#FF8FA3}
+@keyframes lfSpark{0%{transform:translateY(0) rotate(0) scale(var(--s));opacity:0}10%{opacity:1}100%{transform:translateY(110vh) rotate(260deg) scale(var(--s));opacity:.2}}
+body.potato .lf-spark{display:none}
+@media (prefers-reduced-motion:reduce){.lf-spark{display:none}}
